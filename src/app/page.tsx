@@ -1,5 +1,14 @@
-import Image from "next/image";
+import MenuBar from "@/components/navigation/menubar";
+import Footer from "@/components/navigation/footer";
 
 export default function Home() {
-  return <div>Home page</div>;
+  return (
+    <div>
+      <MenuBar />
+      <div></div>
+      <div></div>
+      <div></div>
+      <Footer />
+    </div>
+  );
 }
