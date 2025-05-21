@@ -8,44 +8,50 @@ import MenuBar from "@/components/navigation/menubar";
 import Footer from "@/components/navigation/footer";
 import InputField from "@/components/input-field";
 import { Button } from "@/components/ui/button";
-import { signInSchema } from "@/schema/signin-schema";
-import { useAtom } from "jotai";
+import { signUpSchema } from "@/schema/signup-schema";
+import { useAtom, useSetAtom } from "jotai";
 import {
-  loginFormAtom,
-  loadableLoginAtom,
-  loginTriggerAtom,
-  loginResultAtom,
+  signupFormAction,
+  signUpTriggerAtom,
+  loadableSignUpAtom,
+  signUpResultAtom,
 } from "@/jotai/auth/auth";
 import { Role } from "@/common/enum";
 import { roleRedirectMap } from "@/common/helper";
+import SelectField from "@/components/select-field";
+import { SignUpType } from "@/jotai/auth/authtypes";
 
-const initialValues = {
+const initialValues: SignUpType = {
+  name: "",
   email: "",
   password: "",
+  role: undefined,
 };
 
 export default function Page() {
   const router = useRouter();
-  type Inputs = z.infer<typeof signInSchema>;
-  const [, setLoginFormData] = useAtom(loginFormAtom);
-  const [loginStatus] = useAtom(loadableLoginAtom);
-  const [result] = useAtom(loginResultAtom);
-  const [, triggerLogin] = useAtom(loginTriggerAtom);
+  type Inputs = z.infer<typeof signUpSchema>;
+  const [signInStatus] = useAtom(loadableSignUpAtom);
+  const [result] = useAtom(signUpResultAtom);
+  const setSignUpFormData = useSetAtom(signupFormAction);
+  const [_, triggerSignUp] = useAtom(signUpTriggerAtom);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    watch,
   } = useForm<Inputs>({
     defaultValues: initialValues,
-    resolver: zodResolver(signInSchema),
+    resolver: zodResolver(signUpSchema),
   });
 
   const onSubmit = handleSubmit(async (data) => {
-    setLoginFormData(data);
-    await triggerLogin();
+    setSignUpFormData(data as SignUpType);
+    await triggerSignUp();
 
-    if (loginStatus.state === "hasData") {
+    if (signInStatus.state === "hasData") {
       const role = result?.user?.role;
       const path = roleRedirectMap[role as Role];
 
@@ -53,56 +59,69 @@ export default function Page() {
 
       router.push(path);
       console.log("redirecting");
-    } else if (loginStatus.state === "hasError") {
-      console.error("Login failed:", loginStatus.error);
+    } else if (signInStatus.state === "hasError") {
+      console.error("Login failed:", signInStatus.error);
     }
   });
 
   return (
     <div>
       <MenuBar />
-      <div className={"border border-red-500 grid md:grid-cols-2 grid-cols-1"}>
-        <div className={"bg-red-200"}>Sign in</div>
+      <div className={"grid md:grid-cols-2 grid-cols-1"}>
+        <div className={"bg-red-200"}>Sign Up</div>
         <form
           className="h-full flex flex-col items-center justify-center gap-5 w-full p-5 md:p-12 lg:p-20"
           onSubmit={onSubmit}
         >
-          <div className="flex flex-col items-center justify-center gap-2">
-            <p className={"font-bold text-base md:text-lg"}>Sign In</p>
+          <div className="w-full flex flex-col items-center justify-center gap-2">
+            <p className={"font-bold text-base md:text-lg"}>Sign Up</p>
             <p className={"text-sm font-light capitalize"}>
               Enter your sign in credentials
             </p>
           </div>
           <InputField
+            label="Name"
+            name="name"
+            type={"text"}
+            inputProps={{
+              placeholder: "Name",
+            }}
+            register={register}
+            error={errors?.name}
+          />
+
+          <InputField
             label="Email"
+            name="email"
             inputProps={{
               placeholder: "Email",
             }}
-            name="email"
             type={"email"}
-            defaultValue={initialValues.email}
             register={register}
             error={errors?.email}
           />
 
           <InputField
             label="Password"
+            name="password"
             inputProps={{
               placeholder: "Password",
             }}
-            name="password"
             type={"password"}
-            defaultValue={initialValues.password}
             register={register}
             error={errors?.password}
           />
 
+          <SelectField
+            placeholder={"Role"}
+            items={[...Object.values(Role)]}
+            title={"Role"}
+            selected={watch("role")}
+            onSelect={(role) => setValue("role", role as Role)}
+          />
+
           <Button className="w-full" type={"submit"}>
-            {loginStatus.state === "loading"
-              ? "Loading..."
-              : loginStatus.state === "hasData"
-              ? "Redirecting..."
-              : "Sign In"}
+            Sign In
           </Button>
         </form>
       </div>
