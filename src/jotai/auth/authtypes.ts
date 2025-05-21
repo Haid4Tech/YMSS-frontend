@@ -1,5 +1,13 @@
 import { Role } from "@/common/enum";
 
+export interface UserType {
+  id: number;
+  email: string;
+  name: string;
+  role: Role;
+  createdAt: string;
+}
+
 export interface SignUpType {
   email: string;
   password: string;
@@ -12,25 +20,7 @@ export interface SignInType {
   password: string;
 }
 
-export interface SignInResponse {
-  user: {
-    id: number;
-    email: string;
-    name: string;
-    role: Role;
-    createdAt: string;
-  };
-  token: string | null;
-}
-
-export interface SignUpResponse {
-  user: {
-    id: number;
-    email: string;
-    name: string;
-    role: Role;
-    createdAt: string;
-  };
-
+export interface AuthSession {
+  user: UserType;
   token: string | null;
 }

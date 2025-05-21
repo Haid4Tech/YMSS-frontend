@@ -1,6 +1,7 @@
 "use client";
 
 import { z } from "zod";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -14,7 +15,7 @@ import {
   signupFormAction,
   signUpTriggerAtom,
   loadableSignUpAtom,
-  signUpResultAtom,
+  authResultAtom,
 } from "@/jotai/auth/auth";
 import { Role } from "@/common/enum";
 import { roleRedirectMap } from "@/common/helper";
@@ -32,7 +33,7 @@ export default function Page() {
   const router = useRouter();
   type Inputs = z.infer<typeof signUpSchema>;
   const [signInStatus] = useAtom(loadableSignUpAtom);
-  const [result] = useAtom(signUpResultAtom);
+  const [result] = useAtom(authResultAtom);
   const setSignUpFormData = useSetAtom(signupFormAction);
   const [_, triggerSignUp] = useAtom(signUpTriggerAtom);
 
@@ -46,6 +47,19 @@ export default function Page() {
     defaultValues: initialValues,
     resolver: zodResolver(signUpSchema),
   });
+
+  useEffect(() => {
+    if (signInStatus.state === "hasData" && result) {
+      const role = result.user.role;
+      const path = roleRedirectMap[role as Role];
+
+      router.push(path);
+    }
+
+    if (signInStatus.state === "hasError") {
+      console.error("Login failed:", signInStatus.error);
+    }
+  }, [signInStatus.state, result, router]);
 
   const onSubmit = handleSubmit(async (data) => {
     setSignUpFormData(data as SignUpType);

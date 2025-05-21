@@ -1,11 +1,6 @@
-import { atom } from "jotai";
 import axios from "axios";
-import {
-  SignUpType,
-  SignInType,
-  SignInResponse,
-  SignUpResponse,
-} from "./authtypes";
+import { atom } from "jotai";
+import { SignUpType, SignInType, AuthSession } from "./authtypes";
 import { loadable } from "jotai/utils";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
@@ -23,7 +18,7 @@ const url = process.env.NEXT_PUBLIC_API_URL;
 export const loginFormAtom = atom<SignInType>({ email: "", password: "" });
 
 // To store the login result (token, user data)
-export const loginResultAtom = atom<SignInResponse | null>(null);
+export const authResultAtom = atom<AuthSession | null>(null);
 
 // To trigger login (write-only atom)
 export const loginTriggerAtom = atom(null, async (get, set) => {
@@ -32,7 +27,7 @@ export const loginTriggerAtom = atom(null, async (get, set) => {
     const response = await axios.post(`${url}/auth/login`, form, {
       headers: { "Content-Type": "application/json" },
     });
-    set(loginResultAtom, response.data);
+    set(authResultAtom, response.data);
   } catch (error) {
     if (error instanceof Error) {
       console.error("Login error:", error);
@@ -60,9 +55,6 @@ export const signupFormAction = atom<SignUpType>({
   role: undefined,
 });
 
-// To store the sign up result (token, user data)
-export const signUpResultAtom = atom<SignUpResponse | null>(null);
-
 export const signUpTriggerAtom = atom(null, async (get, set) => {
   const form = get(signupFormAction);
 
@@ -70,7 +62,7 @@ export const signUpTriggerAtom = atom(null, async (get, set) => {
     const response = await axios.post(`${url}/auth/register`, form, {
       headers: { "Content-Type": "application/json" },
     });
-    set(signUpResultAtom, response.data);
+    set(authResultAtom, response.data);
     console.log(response.data);
   } catch (error) {
     if (error instanceof Error) {
@@ -79,4 +71,16 @@ export const signUpTriggerAtom = atom(null, async (get, set) => {
   }
 });
 
-export const loadableSignUpAtom = loadable(signUpResultAtom);
+export const loadableSignUpAtom = loadable(signUpTriggerAtom);
+
+/*
+  |--------------------------------------------------------------------------
+  | LOG OUT AUTHENTICATION - JOTAI
+  |--------------------------------------------------------------------------
+  | Setting all the Log Out authentication logic
+  | using Jotai 
+  |
+  */
+export const logoutTriggerAtom = atom(null, async (_get, set) => {
+  set(authResultAtom, null);
+});

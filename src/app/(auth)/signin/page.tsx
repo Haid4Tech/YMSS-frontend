@@ -1,6 +1,7 @@
 "use client";
 
 import { z } from "zod";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -14,7 +15,7 @@ import {
   loginFormAtom,
   loadableLoginAtom,
   loginTriggerAtom,
-  loginResultAtom,
+  authResultAtom,
 } from "@/jotai/auth/auth";
 import { Role } from "@/common/enum";
 import { roleRedirectMap } from "@/common/helper";
@@ -29,7 +30,7 @@ export default function Page() {
   type Inputs = z.infer<typeof signInSchema>;
   const [, setLoginFormData] = useAtom(loginFormAtom);
   const [loginStatus] = useAtom(loadableLoginAtom);
-  const [result] = useAtom(loginResultAtom);
+  const [result] = useAtom(authResultAtom);
   const [, triggerLogin] = useAtom(loginTriggerAtom);
 
   const {
@@ -41,21 +42,22 @@ export default function Page() {
     resolver: zodResolver(signInSchema),
   });
 
+  useEffect(() => {
+    if (loginStatus.state === "hasData" && result) {
+      const role = result.user.role;
+      const path = roleRedirectMap[role as Role];
+
+      router.push(path);
+    }
+
+    if (loginStatus.state === "hasError") {
+      console.error("Login failed:", loginStatus.error);
+    }
+  }, [loginStatus.state, result, router]);
+
   const onSubmit = handleSubmit(async (data) => {
     setLoginFormData(data);
     await triggerLogin();
-
-    if (loginStatus.state === "hasData") {
-      const role = result?.user?.role;
-      const path = roleRedirectMap[role as Role];
-
-      if (!path) return;
-
-      router.push(path);
-      console.log("redirecting");
-    } else if (loginStatus.state === "hasError") {
-      console.error("Login failed:", loginStatus.error);
-    }
   });
 
   return (
@@ -100,7 +102,7 @@ export default function Page() {
           <Button className="w-full" type={"submit"}>
             {loginStatus.state === "loading"
               ? "Loading..."
-              : loginStatus.state === "hasData"
+              : loginStatus.state === "hasData" && result !== null
               ? "Redirecting..."
               : "Sign In"}
           </Button>
