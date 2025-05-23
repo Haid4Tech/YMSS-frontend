@@ -25,9 +25,7 @@ export const authResultAtom = atom<AuthSession | null>(null);
 export const loginTriggerAtom = atom(null, async (get, set) => {
   const form = get(loginFormAtom);
   try {
-    const response = await axiosInstance.post(`${url}/auth/login`, form, {
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await axiosInstance.post(`${url}/auth/login`, form);
     set(authResultAtom, response.data);
     setCookie("token", response.data?.token);
   } catch (error) {
@@ -61,9 +59,7 @@ export const signUpTriggerAtom = atom(null, async (get, set) => {
   const form = get(signupFormAction);
 
   try {
-    const response = await axiosInstance.post(`${url}/auth/register`, form, {
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await axiosInstance.post(`${url}/auth/register`, form);
     set(authResultAtom, response.data);
     console.log(response.data);
   } catch (error) {

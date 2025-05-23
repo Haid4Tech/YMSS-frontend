@@ -1,9 +1,14 @@
+"use client";
+
+import { useAtom } from "jotai";
 import FormModal from "@/components/form-modal";
 import Pagination from "@/components/pagination";
 import Table from "@/components/table";
 import TableSearch from "@/components/table-search";
 import { classesData, role } from "@/app/lib/data";
 import Image from "next/image";
+
+import { allClassLoadableAtom } from "@/jotai/class/class";
 
 type Class = {
   id: number;
@@ -40,6 +45,10 @@ const columns = [
 ];
 
 const ClassListPage = () => {
+  const [classes] = useAtom(allClassLoadableAtom);
+
+  console.log("classes", classes);
+
   const renderRow = (item: Class) => (
     <tr
       key={item.id}
