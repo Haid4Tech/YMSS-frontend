@@ -1,7 +1,8 @@
-import axios from "axios";
 import { atom } from "jotai";
-import { SignUpType, SignInType, AuthSession } from "./authtypes";
+import { SignUpType, SignInType, AuthSession } from "./auth-types";
 import { loadable } from "jotai/utils";
+import axiosInstance from "@/utils/axios-instance";
+import { setCookie, deleteCookie } from "cookies-next";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
 
@@ -24,10 +25,11 @@ export const authResultAtom = atom<AuthSession | null>(null);
 export const loginTriggerAtom = atom(null, async (get, set) => {
   const form = get(loginFormAtom);
   try {
-    const response = await axios.post(`${url}/auth/login`, form, {
+    const response = await axiosInstance.post(`${url}/auth/login`, form, {
       headers: { "Content-Type": "application/json" },
     });
     set(authResultAtom, response.data);
+    setCookie("token", response.data?.token);
   } catch (error) {
     if (error instanceof Error) {
       console.error("Login error:", error);
@@ -59,7 +61,7 @@ export const signUpTriggerAtom = atom(null, async (get, set) => {
   const form = get(signupFormAction);
 
   try {
-    const response = await axios.post(`${url}/auth/register`, form, {
+    const response = await axiosInstance.post(`${url}/auth/register`, form, {
       headers: { "Content-Type": "application/json" },
     });
     set(authResultAtom, response.data);
@@ -81,6 +83,8 @@ export const loadableSignUpAtom = loadable(signUpTriggerAtom);
   | using Jotai 
   |
   */
-export const logoutTriggerAtom = atom(null, async (_get, set) => {
+export const logoutTriggerAtom = atom(null, async (_get, set, update) => {
   set(authResultAtom, null);
+  deleteCookie("token");
+  console.log("Logout reason:", update);
 });

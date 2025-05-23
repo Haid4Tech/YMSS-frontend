@@ -20,7 +20,7 @@ import {
 import { Role } from "@/common/enum";
 import { roleRedirectMap } from "@/common/helper";
 import SelectField from "@/components/select-field";
-import { SignUpType } from "@/jotai/auth/authtypes";
+import { SignUpType } from "@/jotai/auth/auth-types";
 
 const initialValues: SignUpType = {
   name: "",

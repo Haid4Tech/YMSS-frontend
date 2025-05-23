@@ -1,7 +1,7 @@
-import axios from "axios";
+import axiosInstance from "@/utils/axios-instance";
 import { atom } from "jotai";
 import { loadable } from "jotai/utils";
-import { GetStudentResponse } from "./studenttypes";
+import { GetStudentResponse } from "./student-types";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
 
@@ -16,9 +16,8 @@ export const allStudentsResult = atom<GetStudentResponse | null>(null);
 
 export const getAllStudentsAtom = atom(async () => {
   try {
-    const response = await axios.get(`${url}/students`);
+    const response = await axiosInstance.get(`${url}/students`);
     return response.data;
-    // set(allStudentsResult, response.data);
   } catch (error) {
     throw error;
   }

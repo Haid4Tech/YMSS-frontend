@@ -1,8 +1,7 @@
 import axios from "axios";
-import { getToken } from "@/common/helper";
-import { useAtom } from "jotai";
 import { getDefaultStore } from "jotai";
-import { authResultAtom, logoutTriggerAtom } from "@/jotai/auth/auth";
+import { logoutTriggerAtom } from "@/jotai/auth/auth";
+import { getCookie } from "cookies-next";
 
 const store = getDefaultStore();
 
@@ -15,7 +14,7 @@ const axiosInstance = axios.create({
 
 // Add a request interceptor
 axiosInstance.interceptors.request.use(async (config) => {
-  const token = store.get(authResultAtom)?.token;
+  const token = getCookie("token");
   if (token) {
     config.headers["Authorization"] = `Bearer ${token}`;
   }
@@ -35,7 +34,7 @@ axiosInstance.interceptors.response.use(
     const errorMessage = error.response?.data?.message || error.message;
 
     if (error?.response?.status === 401) {
-      store.set(logoutTriggerAtom);
+      store.set(logoutTriggerAtom, "Unauthorized");
     } else if (error.response?.status === 403) {
       console.error(`Forbidden: ${errorMessage}`);
     } else {

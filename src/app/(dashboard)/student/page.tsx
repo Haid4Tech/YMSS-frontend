@@ -9,7 +9,6 @@ import EventCalendar from "@/components/event-calendar";
 const StudentPage = () => {
   const [students] = useAtom(allStudentLoadableAtom);
 
-  console.log("Student ", students);
   return (
     <div className="p-4 flex gap-4 flex-col xl:flex-row">
       {/* LEFT */}

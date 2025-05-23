@@ -1,5 +1,5 @@
-import { UserType } from "../auth/authtypes";
-import { ClassType } from "../class/classtype";
+import { UserType } from "../auth/auth-types";
+import { ClassType } from "../class/class-type";
 import { ParentType } from "../parent/parenttypes";
 
 export interface Student {
