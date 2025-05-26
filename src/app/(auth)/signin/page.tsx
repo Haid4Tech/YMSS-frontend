@@ -15,8 +15,9 @@ import {
   loginFormAtom,
   loadableLoginAtom,
   loginTriggerAtom,
-  authResultAtom,
+  authPersistedAtom,
 } from "@/jotai/auth/auth";
+import { AuthSession } from "@/jotai/auth/auth-types";
 import { Role } from "@/common/enum";
 import { roleRedirectMap } from "@/common/helper";
 
@@ -30,7 +31,7 @@ export default function Page() {
   type Inputs = z.infer<typeof signInSchema>;
   const [, setLoginFormData] = useAtom(loginFormAtom);
   const [loginStatus] = useAtom(loadableLoginAtom);
-  const [result] = useAtom(authResultAtom);
+  const [result] = useAtom(authPersistedAtom) as AuthSession[];
   const [, triggerLogin] = useAtom(loginTriggerAtom);
 
   const {
@@ -43,7 +44,7 @@ export default function Page() {
   });
 
   useEffect(() => {
-    if (loginStatus.state === "hasData" && result) {
+    if (loginStatus.state === "hasData" && result !== null) {
       const role = result.user.role;
       const path = roleRedirectMap[role as Role];
 

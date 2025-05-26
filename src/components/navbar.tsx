@@ -4,15 +4,17 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { useAtom } from "jotai";
-import { logoutTriggerAtom } from "@/jotai/auth/auth";
+import { logoutTriggerAtom, authPersistedAtom } from "@/jotai/auth/auth";
+import { AuthSession } from "@/jotai/auth/auth-types";
 // import UserProfile from "./navigation/userprofile";
 
 const Navbar = () => {
   const router = useRouter();
+  const [auth] = useAtom(authPersistedAtom) as AuthSession[];
   const [_, logOutTrigger] = useAtom(logoutTriggerAtom);
 
   const handleLogout = () => {
-    logOutTrigger();
+    logOutTrigger("logout triggered");
     router.push("/");
   };
   return (
@@ -39,8 +41,12 @@ const Navbar = () => {
         </div>
         {/* <UserProfile/> */}
         <div className="flex flex-col">
-          <span className="text-xs leading-3 font-medium">John Doe</span>
-          <span className="text-[10px] text-gray-500 text-right">Admin</span>
+          <span className="text-xs leading-3 font-medium">
+            {auth?.user?.name || "User Name"}
+          </span>
+          <span className="text-[10px] text-gray-500 text-right">
+            {auth?.user?.role || "N/A"}
+          </span>
         </div>
         <Image
           src="/avatar.png"

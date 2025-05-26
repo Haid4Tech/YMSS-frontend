@@ -1,8 +1,16 @@
+"use client";
+
+import { useAtom } from "jotai";
+import { useState, useEffect } from "react";
+import { authPersistedAtom } from "@/jotai/auth/auth";
+import { AuthSession } from "@/jotai/auth/auth-types";
+import { Role } from "@/common/enum";
+
 import FormModal from "@/components/form-modal";
 import Pagination from "@/components/pagination";
 import Table from "@/components/table";
 import TableSearch from "@/components/table-search";
-import { parentsData, role } from "@/app/lib/data";
+import { parentsData } from "@/app/lib/data";
 import Image from "next/image";
 
 type Parent = {
@@ -41,6 +49,8 @@ const columns = [
 ];
 
 const ParentListPage = () => {
+  const [auth] = useAtom(authPersistedAtom) as AuthSession[];
+  const role = auth?.user?.role;
   const renderRow = (item: Parent) => (
     <tr
       key={item.id}
@@ -57,7 +67,7 @@ const ParentListPage = () => {
       <td className="hidden md:table-cell">{item.address}</td>
       <td>
         <div className="flex items-center gap-2">
-          {role === "admin" && (
+          {role === Role.ADMIN && (
             <>
               <FormModal table="parent" type="update" data={item} />
               <FormModal table="parent" type="delete" id={item.id} />
@@ -82,7 +92,7 @@ const ParentListPage = () => {
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {role === "admin" && <FormModal table="teacher" type="create" />}
+            {role === Role.ADMIN && <FormModal table="teacher" type="create" />}
           </div>
         </div>
       </div>

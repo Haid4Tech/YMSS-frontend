@@ -3,6 +3,7 @@ import { SignUpType, SignInType, AuthSession } from "./auth-types";
 import { loadable } from "jotai/utils";
 import axiosInstance from "@/utils/axios-instance";
 import { setCookie, deleteCookie } from "cookies-next";
+import { atomWithStorage, createJSONStorage } from "jotai/utils";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
 
@@ -14,19 +15,19 @@ const url = process.env.NEXT_PUBLIC_API_URL;
   | using Jotai 
   |
 */
+// persist auth state
+const storage = createJSONStorage(() => sessionStorage);
+export const authPersistedAtom = atomWithStorage("auth state", null, storage);
 
 // Store the login form input
 export const loginFormAtom = atom<SignInType>({ email: "", password: "" });
-
-// To store the login result (token, user data)
-export const authResultAtom = atom<AuthSession | null>(null);
 
 // To trigger login (write-only atom)
 export const loginTriggerAtom = atom(null, async (get, set) => {
   const form = get(loginFormAtom);
   try {
     const response = await axiosInstance.post(`${url}/auth/login`, form);
-    set(authResultAtom, response.data);
+    set(authPersistedAtom, response.data);
     setCookie("token", response.data?.token);
   } catch (error) {
     if (error instanceof Error) {
@@ -60,7 +61,7 @@ export const signUpTriggerAtom = atom(null, async (get, set) => {
 
   try {
     const response = await axiosInstance.post(`${url}/auth/register`, form);
-    set(authResultAtom, response.data);
+    set(authPersistedAtom, response.data);
     console.log(response.data);
   } catch (error) {
     if (error instanceof Error) {
@@ -80,7 +81,7 @@ export const loadableSignUpAtom = loadable(signUpTriggerAtom);
   |
   */
 export const logoutTriggerAtom = atom(null, async (_get, set, update) => {
-  set(authResultAtom, null);
+  set(authPersistedAtom, null);
   deleteCookie("token");
   console.log("Logout reason:", update);
 });

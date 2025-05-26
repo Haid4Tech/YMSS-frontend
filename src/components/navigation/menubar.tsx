@@ -3,10 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useAtom } from "jotai";
-import { logoutTriggerAtom, authResultAtom } from "@/jotai/auth/auth";
+import { logoutTriggerAtom, authPersistedAtom } from "@/jotai/auth/auth";
 
 export default function MenuBar() {
-  const [result] = useAtom(authResultAtom);
+  const [result] = useAtom(authPersistedAtom);
   const [_, logOutTrigger] = useAtom(logoutTriggerAtom);
 
   return (
@@ -18,10 +18,13 @@ export default function MenuBar() {
         height={50}
       />
       <div>
-        {result !== null ? (
+        {result === null ? (
           <Link href={"/signin"}>login</Link>
         ) : (
-          <div className="cursor-pointer" onClick={() => logOutTrigger()}>
+          <div
+            className="cursor-pointer"
+            onClick={() => logOutTrigger("Log out triggered")}
+          >
             <p>logout</p>
           </div>
         )}

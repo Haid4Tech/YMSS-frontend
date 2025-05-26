@@ -1,3 +1,7 @@
+"use client";
+
+import { useAtom } from "jotai";
+
 import FormModal from "@/components/form-modal";
 import Pagination from "@/components/pagination";
 import Table from "@/components/table";

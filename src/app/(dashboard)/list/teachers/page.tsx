@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import FormModal from "@/components/form-modal";
 import Pagination from "@/components/pagination";
 import Table from "@/components/table";
@@ -6,19 +9,11 @@ import { role, teachersData } from "@/app/lib/data";
 import Image from "next/image";
 import Link from "next/link";
 
-import Profile from "../../../../../public/profile.png";
+import { useAtom } from "jotai";
+import { allTeachersLoadableAtom } from "@/jotai/teachers/teachers";
+import { TeacherType } from "@/jotai/teachers/teachers-types";
 
-type Teacher = {
-  id: number;
-  teacherId: string;
-  name: string;
-  email?: string;
-  photo: string;
-  phone: string;
-  subjects: string[];
-  classes: string[];
-  address: string;
-};
+import Profile from "../../../../../public/profile.png";
 
 const columns = [
   {
@@ -57,7 +52,21 @@ const columns = [
 ];
 
 const TeacherListPage = () => {
-  const renderRow = (item: Teacher) => (
+  const [teachers] = useAtom(allTeachersLoadableAtom);
+  const [teachersList, setTeachersList] = useState<TeacherType[]>([]);
+
+  useEffect(() => {
+    if (teachers.state === "hasData") {
+      setTeachersList(teachers.data.teachers);
+    } else if (teachers.state === "hasError") {
+      console.error("Error fetching teachers data");
+    }
+  });
+
+  console.log("Teachers Data:", teachersList);
+  console.log("Teachers Data other ", teachersData);
+
+  const renderRow = (item: TeacherType) => (
     <tr
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
@@ -71,15 +80,17 @@ const TeacherListPage = () => {
           className="md:hidden xl:block w-10 h-10 rounded-full object-cover"
         />
         <div className="flex flex-col">
-          <h3 className="font-semibold">{item.name}</h3>
-          <p className="text-xs text-gray-500">{item?.email}</p>
+          <h3 className="font-semibold">{item.user.name}</h3>
+          <p className="text-xs text-gray-500">{item?.user.email}</p>
         </div>
       </td>
-      <td className="hidden md:table-cell">{item.teacherId}</td>
-      <td className="hidden md:table-cell">{item.subjects.join(",")}</td>
-      <td className="hidden md:table-cell">{item.classes.join(",")}</td>
-      <td className="hidden md:table-cell">{item.phone}</td>
-      <td className="hidden md:table-cell">{item.address}</td>
+      <td className="hidden md:table-cell">{item.id}</td>
+      <td className="hidden md:table-cell">
+        {item?.subjects?.map((subject) => subject?.name) as string[]}
+      </td>
+      <td className="hidden md:table-cell">{["no classes"]}</td>
+      <td className="hidden md:table-cell">no phone</td>
+      <td className="hidden md:table-cell">no address</td>
       <td>
         <div className="flex items-center gap-2">
           <Link href={`/list/teachers/${item.id}`}>
@@ -122,7 +133,7 @@ const TeacherListPage = () => {
         </div>
       </div>
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={teachersData} />
+      <Table columns={columns} renderRow={renderRow} data={teachersList} />
       {/* PAGINATION */}
       <Pagination />
     </div>

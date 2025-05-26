@@ -1,17 +1,26 @@
 import { UserType } from "../auth/auth-types";
 import { ClassType } from "../class/class-type";
-import { ParentType } from "../parent/parenttypes";
+import { Parent } from "../parent/parenttypes";
 
-export interface Student {
+export interface StudentType {
   id: number;
   userId: number;
   classId: number;
   parentId: number;
   user: UserType;
   class: ClassType;
-  parent: ParentType;
+  parent: Parent;
 }
 
 export interface GetStudentResponse {
-  students: Array<Student>;
+  students: Array<StudentType>;
+}
+
+export interface loadableStudentResponseProp {
+  data: {
+    limit: number;
+    page: number;
+    students: Array<StudentType>;
+    total: number;
+  };
 }
