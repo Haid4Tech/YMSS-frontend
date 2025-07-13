@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FieldError } from "react-hook-form";
 
 type InputFieldProps = {
