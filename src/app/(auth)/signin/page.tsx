@@ -5,8 +5,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import MenuBar from "@/components/navigation/menubar";
-import Footer from "@/components/navigation/footer";
 import InputField from "@/components/input-field";
 import { Button } from "@/components/ui/button";
 import { signInSchema } from "@/schema/signin-schema";
@@ -62,54 +60,54 @@ export default function Page() {
   });
 
   return (
-    <div>
-      <MenuBar />
-      <div className={"border border-red-500 grid md:grid-cols-2 grid-cols-1"}>
-        <div className={"bg-red-200"}>Sign in</div>
-        <form
-          className="h-full flex flex-col items-center justify-center gap-5 w-full p-5 md:p-12 lg:p-20"
-          onSubmit={onSubmit}
-        >
-          <div className="flex flex-col items-center justify-center gap-2">
-            <p className={"font-bold text-base md:text-lg"}>Sign In</p>
-            <p className={"text-sm font-light capitalize"}>
-              Enter your sign in credentials
-            </p>
-          </div>
-          <InputField
-            label="Email"
-            inputProps={{
-              placeholder: "Email",
-            }}
-            name="email"
-            type={"email"}
-            defaultValue={initialValues.email}
-            register={register}
-            error={errors?.email}
-          />
+    <div className={"grid md:grid-cols-2 grid-cols-1"}>
+      <div className={"bg-red-200"}>Sign in</div>
+      <form
+        className={
+          "h-full flex flex-col items-center justify-center gap-5 w-full p-5 md:p-12 lg:p-20"
+        }
+        onSubmit={onSubmit}
+      >
+        <div className="flex flex-col items-center justify-center gap-2">
+          <p className={"font-bold text-base md:text-lg lg:text-2xl"}>
+            Sign In
+          </p>
+          <p className={"text-sm md:text-base font-light capitalize"}>
+            Enter your sign in credentials
+          </p>
+        </div>
+        <InputField
+          label="Email"
+          inputProps={{
+            placeholder: "Email",
+          }}
+          name="email"
+          type={"email"}
+          defaultValue={initialValues.email}
+          register={register}
+          error={errors?.email}
+        />
 
-          <InputField
-            label="Password"
-            inputProps={{
-              placeholder: "Password",
-            }}
-            name="password"
-            type={"password"}
-            defaultValue={initialValues.password}
-            register={register}
-            error={errors?.password}
-          />
+        <InputField
+          label="Password"
+          inputProps={{
+            placeholder: "Password",
+          }}
+          name="password"
+          type={"password"}
+          defaultValue={initialValues.password}
+          register={register}
+          error={errors?.password}
+        />
 
-          <Button className="w-full" type={"submit"}>
-            {loginStatus.state === "loading"
-              ? "Loading..."
-              : loginStatus.state === "hasData" && result !== null
-              ? "Redirecting..."
-              : "Sign In"}
-          </Button>
-        </form>
-      </div>
-      <Footer />
+        <Button className="w-full" type={"submit"}>
+          {loginStatus.state === "loading"
+            ? "Loading..."
+            : loginStatus.state === "hasData" && result !== null
+            ? "Redirecting..."
+            : "Sign In"}
+        </Button>
+      </form>
     </div>
   );
 }
