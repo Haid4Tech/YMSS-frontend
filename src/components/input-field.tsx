@@ -25,7 +25,7 @@ const InputField = ({
       <input
         type={type}
         {...register(name)}
-        className="ring-[1.5px] ring-neutral-400 p-2 rounded-sm text-sm w-full"
+        className="ring-[1.5px] ring-ring p-2 rounded-sm text-sm w-full"
         {...inputProps}
         defaultValue={defaultValue}
       />

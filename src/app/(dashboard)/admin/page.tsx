@@ -1,3 +1,6 @@
+"use client";
+
+// import { useSetAtom } from "jotai";
 import Announcements from "@/components/annoucement";
 import AttendanceChart from "@/components/attendance-chart";
 import CountChart from "@/components/count-chart";
@@ -5,7 +8,19 @@ import EventCalendar from "@/components/event-calendar";
 import FinanceChart from "@/components/finance-chart";
 import UserCard from "@/components/usercard";
 
+// import { createParentsAtom } from "@/jotai/parent/parent";
+
 const AdminPage = () => {
+  // const createParent = useSetAtom(createParentsAtom);
+
+  // const handleSubmit = async () => {
+  //   console.log("triggered");
+  //   const payload = {
+  //     userId: 6,
+  //   };
+  //   const res = await createParent(payload);
+  //   console.log(res);
+  // };
   return (
     <div className="p-4 flex gap-4 flex-col md:flex-row">
       {/* LEFT */}

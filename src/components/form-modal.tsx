@@ -1,15 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { Trash2, Plus, RefreshCw, X } from "lucide-react";
+import { Button } from "./ui/button";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import { useState } from "react";
 
-// USE LAZY LOADING
-
-// import TeacherForm from "./forms/TeacherForm";
-// import StudentForm from "./forms/StudentForm";
-
+// Lazy-loaded form components
 const TeacherForm = dynamic(() => import("./forms/teachers-form"), {
   loading: () => <h1>Loading...</h1>,
 });
@@ -17,80 +14,90 @@ const StudentForm = dynamic(() => import("./forms/student-form"), {
   loading: () => <h1>Loading...</h1>,
 });
 
-const forms: {
-  [key: string]: (type: "create" | "update", data?: any) => React.JSX.Element;
-} = {
-  teacher: (type, data) => <TeacherForm type={type} data={data} />,
-  student: (type, data) => <StudentForm type={type} data={data} />,
-};
+// Define supported table types for forms
+const forms = {
+  teacher: (type: "create" | "update", data?: any) => (
+    <TeacherForm type={type} data={data} />
+  ),
+  student: (type: "create" | "update", data?: any) => (
+    <StudentForm type={type} data={data} />
+  ),
+} as const;
 
-const FormModal = ({
-  table,
-  type,
-  data,
-  id,
-}: {
-  table:
-    | "teacher"
-    | "student"
-    | "parent"
-    | "subject"
-    | "class"
-    | "lesson"
-    | "exam"
-    | "assignment"
-    | "result"
-    | "attendance"
-    | "event"
-    | "announcement";
+type TableType =
+  | "teacher"
+  | "student"
+  | "parent"
+  | "subject"
+  | "class"
+  | "lesson"
+  | "exam"
+  | "assignment"
+  | "result"
+  | "attendance"
+  | "event"
+  | "announcement";
+
+type ModalProps = {
+  table: TableType;
   type: "create" | "update" | "delete";
   data?: any;
   id?: number;
-}) => {
-  const size = type === "create" ? "w-8 h-8" : "w-7 h-7";
-  const bgColor =
-    type === "create"
-      ? "bg-lamaYellow"
-      : type === "update"
-      ? "bg-lamaSky"
-      : "bg-lamaPurple";
+};
 
+const FormModal = ({ table, type, data, id }: ModalProps) => {
   const [open, setOpen] = useState(false);
 
   const Form = () => {
-    return type === "delete" && id ? (
-      <form action="" className="p-4 flex flex-col gap-4">
-        <span className="text-center font-medium">
-          All data will be lost. Are you sure you want to delete this {table}?
-        </span>
-        <button className="bg-red-700 text-white py-2 px-4 rounded-md border-none w-max self-center">
-          Delete
-        </button>
-      </form>
-    ) : type === "create" || type === "update" ? (
-      forms[table](type, data)
-    ) : (
-      "Form not found!"
+    if (type === "delete" && id) {
+      return (
+        <form action="" className="p-4 flex flex-col gap-4">
+          <span className="text-center font-medium">
+            All data will be lost. Are you sure you want to delete this {table}?
+          </span>
+          <Button
+            type="submit"
+            variant={"destructive"}
+            className={"w-max self-center"}
+          >
+            Delete
+          </Button>
+        </form>
+      );
+    }
+
+    if (table in forms && (type === "create" || type === "update")) {
+      const FormComponent = forms[table as keyof typeof forms];
+      return FormComponent(type, data);
+    }
+
+    return (
+      <div className="text-red-600 text-center font-semibold">
+        ⚠️ Form not available for "{table}"!
+      </div>
     );
   };
 
   return (
     <>
       <button
-        className={`${size} flex items-center justify-center rounded-full ${bgColor}`}
+        className="flex items-center justify-center rounded-full cursor-pointer"
         onClick={() => setOpen(true)}
       >
-        <Image src={`/${type}.png`} alt="" width={16} height={16} />
+        {type === "delete" && <Trash2 size={18} />}
+        {type === "create" && <Plus size={18} />}
+        {type === "update" && <RefreshCw size={18} />}
       </button>
+
       {open && (
-        <div className="w-screen h-screen absolute left-0 top-0 bg-black bg-opacity-60 z-50 flex items-center justify-center">
-          <div className="bg-white p-4 rounded-md relative w-[90%] md:w-[70%] lg:w-[60%] xl:w-[50%] 2xl:w-[40%]">
+        <div className="z-30 w-screen h-screen fixed left-0 top-0 bg-black/75 flex items-center justify-center">
+          <div className="z-40 bg-white p-4 rounded-md relative w-[90%] opacity-100 md:w-[70%] lg:w-[60%] xl:w-[50%] 2xl:w-[40%]">
             <Form />
             <div
               className="absolute top-4 right-4 cursor-pointer"
               onClick={() => setOpen(false)}
             >
-              <Image src="/close.png" alt="" width={14} height={14} />
+              <X size={18} />
             </div>
           </div>
         </div>

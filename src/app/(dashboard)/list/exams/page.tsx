@@ -1,17 +1,19 @@
+"use client";
+
+import { useAtom } from "jotai";
+import { useState, useEffect } from "react";
+import { allExamsLoadableAtom } from "@/jotai/exams/exams";
+import { authPersistedAtom } from "@/jotai/auth/auth";
+import { ExamType } from "@/jotai/exams/exams-type";
+import { AuthSession } from "@/jotai/auth/auth-types";
+import { formatDate } from "@/common/helper";
+
 import FormModal from "@/components/form-modal";
 import Pagination from "@/components/pagination";
 import Table from "@/components/table";
 import TableSearch from "@/components/table-search";
-import { examsData, role } from "@/app/lib/data";
+import { Role } from "@/common/enum";
 import Image from "next/image";
-
-type Exam = {
-  id: number;
-  subject: string;
-  class: string;
-  teacher: string;
-  date: string;
-};
 
 const columns = [
   {
@@ -39,19 +41,34 @@ const columns = [
 ];
 
 const ExamListPage = () => {
-  const renderRow = (item: Exam) => (
+  const [auth] = useAtom(authPersistedAtom) as AuthSession[];
+  const [exams] = useAtom(allExamsLoadableAtom);
+  const [examsList, setExamsList] = useState<ExamType[]>([]);
+  const role = auth?.user?.role;
+
+  useEffect(() => {
+    if (exams.state === "hasData") {
+      setExamsList(exams.data);
+    } else if (exams.state === "hasError") {
+      console.error("Error fetching exams data:", exams.error);
+    }
+  }, [exams]);
+
+  const renderRow = (item: ExamType) => (
     <tr
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
     >
-      <td className="flex items-center gap-4 p-4">{item.subject}</td>
-      <td>{item.class}</td>
-      <td className="hidden md:table-cell">{item.teacher}</td>
-      <td className="hidden md:table-cell">{item.date}</td>
+      <td className="flex items-center gap-4 p-4">{item.title}</td>
+      <td>need class relationship</td>
+      <td className="hidden md:table-cell">no teacher</td>
+      <td className="hidden md:table-cell">
+        {formatDate(new Date(item.date))}
+      </td>
       <td>
         <div className="flex items-center gap-2">
-          {role === "admin" ||
-            (role === "teacher" && (
+          {role === Role.ADMIN ||
+            (role === Role.TEACHER && (
               <>
                 <FormModal table="exam" type="update" data={item} />
                 <FormModal table="exam" type="delete" id={item.id} />
@@ -76,13 +93,15 @@ const ExamListPage = () => {
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {role === "admin" ||
-              (role === "teacher" && <FormModal table="exam" type="create" />)}
+            {role === Role.ADMIN ||
+              (role === Role.TEACHER && (
+                <FormModal table="exam" type="create" />
+              ))}
           </div>
         </div>
       </div>
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={examsData} />
+      <Table columns={columns} renderRow={renderRow} data={examsList} />
       {/* PAGINATION */}
       <Pagination />
     </div>
