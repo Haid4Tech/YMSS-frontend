@@ -7,7 +7,7 @@ import { logoutTriggerAtom, authPersistedAtom } from "@/jotai/auth/auth";
 
 export default function MenuBar() {
   const [result] = useAtom(authPersistedAtom);
-  const [_, logOutTrigger] = useAtom(logoutTriggerAtom);
+  const [, logOutTrigger] = useAtom(logoutTriggerAtom);
 
   return (
     <div className="bg-red-100 border-b border-neutral-200 h-20 flex flex-row items-center justify-between px-12">
@@ -23,7 +23,7 @@ export default function MenuBar() {
         ) : (
           <div
             className="cursor-pointer"
-            onClick={() => logOutTrigger("Log out triggered")}
+            onClick={() => logOutTrigger("logout triggered")}
           >
             <p>logout</p>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtom } from "jotai";
-import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
 import { authPersistedAtom } from "@/jotai/auth/auth";
 import { AuthSession } from "@/jotai/auth/auth-types";
 import { Role } from "@/common/enum";

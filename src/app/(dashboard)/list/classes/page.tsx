@@ -13,7 +13,6 @@ import FormModal from "@/components/form-modal";
 import Pagination from "@/components/pagination";
 import Table from "@/components/table";
 import TableSearch from "@/components/table-search";
-import Image from "next/image";
 
 type Class = {
   id: number;

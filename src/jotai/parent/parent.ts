@@ -1,7 +1,7 @@
 import axiosInstance from "@/utils/axios-instance";
 import { atom } from "jotai";
-import { loadable } from "jotai/utils";
-import { CreateParentProp } from "./parenttypes";
+// import { loadable } from "jotai/utils";
+// import { CreateParentProp } from "./parenttypes";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
 

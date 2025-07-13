@@ -4,7 +4,7 @@ import Image from "next/image";
 import {
   RadialBarChart,
   RadialBar,
-  Legend,
+  // Legend,
   ResponsiveContainer,
 } from "recharts";
 

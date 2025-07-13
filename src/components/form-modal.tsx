@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import * as React from "react";
@@ -73,7 +74,7 @@ const FormModal = ({ table, type, data, id }: ModalProps) => {
 
     return (
       <div className="text-red-600 text-center font-semibold">
-        ⚠️ Form not available for "{table}"!
+        ⚠️ Form not available for &quot;{table}&quot;!
       </div>
     );
   };

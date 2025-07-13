@@ -7,12 +7,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "../ui/button";
 import { useAtom } from "jotai";
 import { logoutTriggerAtom } from "@/jotai/auth/auth";
 
 const UserProfile = () => {
-  const [_, logOutTrigger] = useAtom(logoutTriggerAtom);
+  const [, logOutTrigger] = useAtom(logoutTriggerAtom);
 
   return (
     <DropdownMenu>
@@ -34,7 +33,7 @@ const UserProfile = () => {
       <DropdownMenuContent className="min-w-5">
         <DropdownMenuItem
           className="cursor-pointer"
-          onClick={() => logOutTrigger()}
+          onClick={() => logOutTrigger("logout triggered")}
         >
           <p className={"text-xs font-semibold"}>Log Out</p>
         </DropdownMenuItem>

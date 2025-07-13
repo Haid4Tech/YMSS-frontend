@@ -5,8 +5,6 @@ import TableSearch from "@/components/table-search";
 import { resultsData, role } from "@/app/lib/data";
 import Image from "next/image";
 
-import Filter from "../../../../../public/filter.png";
-
 type Result = {
   id: number;
   subject: string;

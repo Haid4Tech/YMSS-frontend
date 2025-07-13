@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom } from "jotai";
+// import { useAtom } from "jotai";
 
 import FormModal from "@/components/form-modal";
 import Pagination from "@/components/pagination";

@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { SignUpType, SignInType, AuthSession } from "./auth-types";
+import { SignUpType, SignInType } from "./auth-types";
 import { loadable } from "jotai/utils";
 import axiosInstance from "@/utils/axios-instance";
 import { setCookie, deleteCookie } from "cookies-next";

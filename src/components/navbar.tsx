@@ -11,7 +11,7 @@ import { AuthSession } from "@/jotai/auth/auth-types";
 const Navbar = () => {
   const router = useRouter();
   const [auth] = useAtom(authPersistedAtom) as AuthSession[];
-  const [_, logOutTrigger] = useAtom(logoutTriggerAtom);
+  const [, logOutTrigger] = useAtom(logoutTriggerAtom);
 
   const handleLogout = () => {
     logOutTrigger("logout triggered");
