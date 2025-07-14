@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { SignUpType, SignInType } from "./auth-types";
+import { SignUpType, SignInType, AuthSession } from "./auth-types";
 import { loadable } from "jotai/utils";
 import axiosInstance from "@/utils/axios-instance";
 import { setCookie, deleteCookie } from "cookies-next";
@@ -16,8 +16,8 @@ const url = process.env.NEXT_PUBLIC_API_URL;
   |
 */
 // persist auth state
-const storage = createJSONStorage(() => sessionStorage);
-export const authPersistedAtom = atomWithStorage("auth state", null, storage);
+const storage = createJSONStorage<AuthSession | null>(() => sessionStorage);
+export const authPersistedAtom = atomWithStorage<AuthSession | null>("auth state", null, storage);
 
 // Store the login form input
 export const loginFormAtom = atom<SignInType>({ email: "", password: "" });
@@ -27,7 +27,7 @@ export const loginTriggerAtom = atom(null, async (get, set) => {
   const form = get(loginFormAtom);
   try {
     const response = await axiosInstance.post(`${url}/auth/login`, form);
-    set(authPersistedAtom, response.data);
+    set(authPersistedAtom, response.data as AuthSession);
     setCookie("token", response.data?.token);
   } catch (error) {
     if (error instanceof Error) {
