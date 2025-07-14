@@ -5,14 +5,21 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAtom } from "jotai";
+import { cn } from "@/lib/utils";
 import { logoutTriggerAtom, authPersistedAtom } from "@/jotai/auth/auth";
 import { Spinner } from "@radix-ui/themes";
 import { navItem } from "@/common/data";
 import { menuBarStates } from "@/common/states";
 import { MenuStatesProp } from "@/common/types";
 import { Button } from "../ui/button";
+import { roleRedirectMap } from "@/common/helper";
+import { Role } from "@/common/enum";
 
-export default function MenuBar() {
+interface IMenuBar {
+  view?: "admin" | "main";
+}
+
+export default function MenuBar({ view }: IMenuBar) {
   const router = useRouter();
   const [loadingStates, setLoadingStates] =
     useState<MenuStatesProp>(menuBarStates);
@@ -25,10 +32,11 @@ export default function MenuBar() {
       portalState: true,
     }));
 
-    if (result !== null) {
-      if (result?.user?.role === "STUDENT") {
-        router.push("/student");
-      }
+    const role = result?.user?.role;
+    const path = roleRedirectMap[role as Role];
+
+    if (role) {
+      router.push(path);
     }
 
     setTimeout(() => {
@@ -59,7 +67,7 @@ export default function MenuBar() {
   };
 
   return (
-    <div className="border-b border-neutral-200 h-24 flex flex-row items-center justify-between px-4 md:px-8 lg:px-12 xl:px-32">
+    <div className="border-b border-neutral-200 h-24 flex flex-row items-center justify-between px-4 md:px-8 lg:px-12">
       <Image
         src={"/YMSS_logo-nobg.png"}
         alt={"school logo"}
@@ -68,7 +76,9 @@ export default function MenuBar() {
       />
 
       <div className={"flex flex-row gap-10 items-center"}>
-        <div className="flex flex-row gap-6">
+        <div
+          className={cn(view === "admin" ? "hidden" : "flex", "flex-row gap-6")}
+        >
           {navItem.map((items, index) => (
             <Link
               className="text-base hover:text-purple-800"
@@ -79,16 +89,16 @@ export default function MenuBar() {
             </Link>
           ))}
         </div>
+
         <div>
           {result !== null ? (
             <Button onClick={handleLogout}>
               {loadingStates.logoutState ? (
                 <div className="flex flex-row gap-2 items-center">
-                  Loggin out
                   <Spinner />
                 </div>
               ) : (
-                "Logout"
+                "Go to Dashboard"
               )}
             </Button>
           ) : (

@@ -17,7 +17,11 @@ const url = process.env.NEXT_PUBLIC_API_URL;
 */
 // persist auth state
 const storage = createJSONStorage<AuthSession | null>(() => sessionStorage);
-export const authPersistedAtom = atomWithStorage<AuthSession | null>("auth state", null, storage);
+export const authPersistedAtom = atomWithStorage<AuthSession | null>(
+  "auth state",
+  null,
+  storage
+);
 
 // Store the login form input
 export const loginFormAtom = atom<SignInType>({ email: "", password: "" });

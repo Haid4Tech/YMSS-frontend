@@ -1,8 +1,6 @@
 "use client";
 
 import { z } from "zod";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import InputField from "@/components/input-field";
@@ -16,8 +14,10 @@ import {
   authPersistedAtom,
 } from "@/jotai/auth/auth";
 import { AuthSession } from "@/jotai/auth/auth-types";
-import { Role } from "@/common/enum";
-import { roleRedirectMap } from "@/common/helper";
+import { Spinner } from "@radix-ui/themes";
+// import { SignInStates } from "@/common/states";
+// import { SignInStatesProp } from "@/common/types";
+// import { useState } from "react";
 
 const initialValues = {
   email: "",
@@ -25,12 +25,15 @@ const initialValues = {
 };
 
 export default function Page() {
-  const router = useRouter();
   type Inputs = z.infer<typeof signInSchema>;
   const [, setLoginFormData] = useAtom(loginFormAtom);
   const [loginStatus] = useAtom(loadableLoginAtom);
   const [result] = useAtom(authPersistedAtom) as AuthSession[];
   const [, triggerLogin] = useAtom(loginTriggerAtom);
+  // const [loadingStates, setLoadingStates] =
+  //   useState<SignInStatesProp>(SignInStates);
+
+  console.log("login Status ", loginStatus);
 
   const {
     register,
@@ -41,22 +44,16 @@ export default function Page() {
     resolver: zodResolver(signInSchema),
   });
 
-  useEffect(() => {
-    if (loginStatus.state === "hasData" && result !== null) {
-      const role = result.user.role;
-      const path = roleRedirectMap[role as Role];
-
-      router.push(path);
-    }
-
-    if (loginStatus.state === "hasError") {
-      console.error("Login failed:", loginStatus.error);
-    }
-  }, [loginStatus.state, result, router]);
-
   const onSubmit = handleSubmit(async (data) => {
-    setLoginFormData(data);
-    await triggerLogin();
+    // setLoadingStates((prev) => ({ ...prev, loginState: true }));
+
+    try {
+      setLoginFormData(data);
+      await triggerLogin();
+    } catch (error) {
+      console.log("Error logging user in");
+      throw error;
+    }
   });
 
   return (
@@ -100,12 +97,12 @@ export default function Page() {
           error={errors?.password}
         />
 
-        <Button className="w-full" type={"submit"}>
-          {loginStatus.state === "loading"
-            ? "Loading..."
-            : loginStatus.state === "hasData" && result !== null
-            ? "Redirecting..."
-            : "Sign In"}
+        <Button
+          disabled={loginStatus.state === "hasData" && result !== null}
+          className="w-full"
+          type={"submit"}
+        >
+          {loginStatus.state === "loading" ? <Spinner /> : "Sign In"}
         </Button>
       </form>
     </div>

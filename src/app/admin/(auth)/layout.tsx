@@ -2,10 +2,10 @@ import { ReactNode } from "react";
 import MenuBar from "@/components/navigation/menubar";
 import Footer from "@/components/navigation/footer";
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <main>
-      <MenuBar />
+      <MenuBar view={"admin"} />
       <div>{children}</div>
       <Footer />
     </main>
