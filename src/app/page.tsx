@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div>
       <MenuBar />
-      <div></div>
+      <div>Home page</div>
       <div></div>
       <div></div>
       <Footer />
