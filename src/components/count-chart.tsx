@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+
 const data = [
   {
     name: "Total",
