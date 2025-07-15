@@ -13,7 +13,7 @@ export default function DashboardLayout({
       {/* LEFT */}
       <div className="scrollbar-width w-[14%] md:w-[8%] lg:w-[16%] xl:w-[18%] p-4 border-r border-gray-200">
         <Link
-          href="/admin"
+          href="/"
           className="flex items-center justify-center lg:justify-start gap-2"
         >
           <Image src="/YMSS_logo-nobg.png" alt="logo" width={32} height={32} />
