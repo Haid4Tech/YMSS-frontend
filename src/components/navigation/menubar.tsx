@@ -1,19 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { authPersistedAtom } from "@/jotai/auth/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { useAtom } from "jotai";
 import { cn } from "@/lib/utils";
-import { logoutTriggerAtom, authPersistedAtom } from "@/jotai/auth/auth";
 import { Spinner } from "@radix-ui/themes";
 import { navItem } from "@/common/data";
 import { menuBarStates } from "@/common/states";
 import { MenuStatesProp } from "@/common/types";
-import { Button } from "../ui/button";
 import { roleRedirectMap } from "@/common/helper";
+import { Button } from "../ui/button";
 import { Role } from "@/common/enum";
+import { isPathMatch } from "@/common/helper";
 
 interface IMenuBar {
   view?: "admin" | "main";
@@ -24,7 +25,9 @@ export default function MenuBar({ view }: IMenuBar) {
   const [loadingStates, setLoadingStates] =
     useState<MenuStatesProp>(menuBarStates);
   const [result] = useAtom(authPersistedAtom);
-  const [, logOutTrigger] = useAtom(logoutTriggerAtom);
+  const pathName = usePathname();
+
+  const pathResult = isPathMatch(pathName, ["/admin/signin", "/admin/signup"]);
 
   const handleDashboardRedirect = () => {
     setLoadingStates((prev) => ({
@@ -47,32 +50,29 @@ export default function MenuBar({ view }: IMenuBar) {
     }, 5000);
   };
 
-  const handleLogout = async () => {
+  const handleAuthRedirect = () => {
     setLoadingStates((prev) => ({
       ...prev,
-      logoutState: true,
+      isAuthLoading: true,
     }));
 
-    try {
-      await logOutTrigger("logout triggered");
-    } catch (error) {
-      console.log("Error logging out user");
-      throw error;
-    } finally {
+    router.push("/admin/signin");
+
+    setTimeout(() => {
       setLoadingStates((prev) => ({
         ...prev,
-        logoutState: false,
+        isAuthLoading: true,
       }));
-    }
+    }, 5000);
   };
 
   return (
-    <div className="border-b border-neutral-200 h-24 flex flex-row items-center justify-between px-4 md:px-8 lg:px-12">
+    <div className="border-b border-neutral-200 flex flex-row items-center justify-between py-4 px-4 md:px-8 lg:px-12">
       <Image
         src={"/YMSS_logo-nobg.png"}
         alt={"school logo"}
-        width={50}
-        height={50}
+        width={40}
+        height={40}
       />
 
       <div className={"flex flex-row gap-10 items-center"}>
@@ -92,16 +92,6 @@ export default function MenuBar({ view }: IMenuBar) {
 
         <div>
           {result !== null ? (
-            <Button onClick={handleLogout}>
-              {loadingStates.logoutState ? (
-                <div className="flex flex-row gap-2 items-center">
-                  <Spinner />
-                </div>
-              ) : (
-                "Go to Dashboard"
-              )}
-            </Button>
-          ) : (
             <Button onClick={handleDashboardRedirect}>
               {loadingStates.portalState ? (
                 <div className="flex flex-row gap-2 items-center">
@@ -109,9 +99,25 @@ export default function MenuBar({ view }: IMenuBar) {
                   <Spinner />
                 </div>
               ) : (
-                "Portal"
+                "Go to Dashboard"
               )}
             </Button>
+          ) : (
+            <div>
+              <Button
+                className={cn(pathResult ? "hidden" : "block")}
+                onClick={handleAuthRedirect}
+              >
+                {loadingStates.isAuthLoading ? (
+                  <div className="flex flex-row gap-2 items-center">
+                    Redirecting
+                    <Spinner />
+                  </div>
+                ) : (
+                  "Portal"
+                )}
+              </Button>
+            </div>
           )}
         </div>
       </div>

@@ -84,64 +84,61 @@ export default function Page() {
 
   return (
     <div>
-      <div className={"grid md:grid-cols-2 grid-cols-1"}>
-        <div className={"bg-red-200"}>Sign Up</div>
-        <form
-          className="h-full flex flex-col items-center justify-center gap-5 w-full p-5 md:p-12 lg:p-20"
-          onSubmit={onSubmit}
-        >
-          <div className="w-full flex flex-col items-center justify-center gap-2">
-            <p className={"font-bold text-base md:text-lg"}>Sign Up</p>
-            <p className={"text-sm font-light capitalize"}>
-              Enter your sign in credentials
-            </p>
-          </div>
-          <InputField
-            label="Name"
-            name="name"
-            type={"text"}
-            inputProps={{
-              placeholder: "Name",
-            }}
-            register={register}
-            error={errors?.name}
-          />
+      <form
+        className="h-full flex flex-col items-center justify-center gap-5 w-full p-5 md:p-12 lg:p-20"
+        onSubmit={onSubmit}
+      >
+        <div className="w-full flex flex-col items-center justify-center gap-2">
+          <p className={"font-bold text-base md:text-lg"}>Sign Up</p>
+          <p className={"text-sm font-light capitalize"}>
+            Enter your sign in credentials
+          </p>
+        </div>
+        <InputField
+          label="Name"
+          name="name"
+          type={"text"}
+          inputProps={{
+            placeholder: "Name",
+          }}
+          register={register}
+          error={errors?.name}
+        />
 
-          <InputField
-            label="Email"
-            name="email"
-            inputProps={{
-              placeholder: "Email",
-            }}
-            type={"email"}
-            register={register}
-            error={errors?.email}
-          />
+        <InputField
+          label="Email"
+          name="email"
+          inputProps={{
+            placeholder: "Email",
+          }}
+          type={"email"}
+          register={register}
+          error={errors?.email}
+        />
 
-          <InputField
-            label="Password"
-            name="password"
-            inputProps={{
-              placeholder: "Password",
-            }}
-            type={"password"}
-            register={register}
-            error={errors?.password}
-          />
+        <InputField
+          label="Password"
+          name="password"
+          inputProps={{
+            placeholder: "Password",
+          }}
+          type={"password"}
+          register={register}
+          error={errors?.password}
+        />
 
-          <SelectField
-            placeholder={"Role"}
-            items={[...Object.values(Role)]}
-            title={"Role"}
-            selected={watch("role")}
-            onSelect={(role) => setValue("role", role as Role)}
-          />
+        <SelectField
+          placeholder={"Role"}
+          items={[...Object.values(Role)]}
+          title={"Role"}
+          selected={watch("role")}
+          onSelect={(role) => setValue("role", role as Role)}
+        />
 
-          <Button className="w-full" type={"submit"}>
-            Sign In
-          </Button>
-        </form>
-      </div>
+        <Button className="w-full" type={"submit"}>
+          Sign In
+        </Button>
+      </form>
     </div>
   );
 }

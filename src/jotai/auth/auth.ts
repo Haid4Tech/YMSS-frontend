@@ -33,6 +33,8 @@ export const loginTriggerAtom = atom(null, async (get, set) => {
     const response = await axiosInstance.post(`${url}/auth/login`, form);
     set(authPersistedAtom, response.data as AuthSession);
     setCookie("token", response.data?.token);
+
+    return response.data;
   } catch (error) {
     if (error instanceof Error) {
       console.error("Login error:", error);

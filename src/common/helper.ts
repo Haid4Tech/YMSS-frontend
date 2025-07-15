@@ -26,3 +26,23 @@ export const formatDate = (date: Date | string): string => {
   const parsedDate = typeof date === "string" ? new Date(date) : date;
   return dayjs(parsedDate).format("DD-MMM-YYYY");
 };
+
+/**
+ * Check Path matches
+ * @param currentPath
+ * @param targetPath
+ * @returns
+ */
+export function isPathMatch(
+  currentPath: string,
+  targetPaths: string | string[],
+  options?: { partial?: boolean }
+): boolean {
+  const paths = Array.isArray(targetPaths) ? targetPaths : [targetPaths];
+
+  return paths.some((path) => {
+    return options?.partial
+      ? currentPath.startsWith(path)
+      : currentPath === path;
+  });
+}

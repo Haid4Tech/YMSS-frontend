@@ -1,27 +1,38 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { useAtom } from "jotai";
 import { logoutTriggerAtom, authPersistedAtom } from "@/jotai/auth/auth";
 import { AuthSession } from "@/jotai/auth/auth-types";
+import { Spinner } from "@radix-ui/themes";
 // import UserProfile from "./navigation/userprofile";
 
 const Navbar = () => {
   const router = useRouter();
+  const [loadingStates, setLoadingStates] = useState<boolean>(false);
   const [auth] = useAtom(authPersistedAtom) as AuthSession[];
   const [, logOutTrigger] = useAtom(logoutTriggerAtom);
 
-  const handleLogout = () => {
-    logOutTrigger("logout triggered");
-    router.push("/");
+  const handleLogout = async () => {
+    setLoadingStates(true);
+    try {
+      await logOutTrigger("logout triggered");
+      router.push("/");
+    } catch (error) {
+      console.log("Error logging user out");
+      throw error;
+    } finally {
+      setLoadingStates(false);
+    }
   };
   return (
     <div className="flex items-center justify-between p-4 border-b border-gray-300">
       {/* SEARCH BAR */}
       <div className="hidden md:flex items-center gap-2 text-xs rounded-full ring-[1.5px] ring-gray-300 px-2">
-        <Image src="/search.png" alt="" width={14} height={14} />
+        <Image src="/search.png" alt="" width={15} height={15} />
         <input
           type="text"
           placeholder="Search..."
@@ -55,7 +66,16 @@ const Navbar = () => {
           height={36}
           className="rounded-full"
         />
-        <Button onClick={handleLogout}>logout</Button>
+        <Button onClick={handleLogout}>
+          {loadingStates ? (
+            <div className="flex flex-row gap-2 items-center">
+              Logging out
+              <Spinner />
+            </div>
+          ) : (
+            "logout"
+          )}
+        </Button>
       </div>
     </div>
   );

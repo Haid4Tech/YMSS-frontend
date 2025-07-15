@@ -1,6 +1,8 @@
 "use client";
 
 import { z } from "zod";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import InputField from "@/components/input-field";
@@ -15,9 +17,10 @@ import {
 } from "@/jotai/auth/auth";
 import { AuthSession } from "@/jotai/auth/auth-types";
 import { Spinner } from "@radix-ui/themes";
-// import { SignInStates } from "@/common/states";
-// import { SignInStatesProp } from "@/common/types";
-// import { useState } from "react";
+import { SignInStates } from "@/common/states";
+import { SignInStatesProp } from "@/common/types";
+import { roleRedirectMap } from "@/common/helper";
+import { Role } from "@/common/enum";
 
 const initialValues = {
   email: "",
@@ -25,15 +28,14 @@ const initialValues = {
 };
 
 export default function Page() {
+  const router = useRouter();
   type Inputs = z.infer<typeof signInSchema>;
   const [, setLoginFormData] = useAtom(loginFormAtom);
   const [loginStatus] = useAtom(loadableLoginAtom);
   const [result] = useAtom(authPersistedAtom) as AuthSession[];
   const [, triggerLogin] = useAtom(loginTriggerAtom);
-  // const [loadingStates, setLoadingStates] =
-  //   useState<SignInStatesProp>(SignInStates);
-
-  console.log("login Status ", loginStatus);
+  const [loadingStates, setLoadingStates] =
+    useState<SignInStatesProp>(SignInStates);
 
   const {
     register,
@@ -45,20 +47,28 @@ export default function Page() {
   });
 
   const onSubmit = handleSubmit(async (data) => {
-    // setLoadingStates((prev) => ({ ...prev, loginState: true }));
+    setLoadingStates((prev) => ({ ...prev, loginState: true }));
 
     try {
       setLoginFormData(data);
-      await triggerLogin();
+      const response = await triggerLogin();
+
+      if (response?.user !== null) {
+        const role = response?.user?.role;
+        const path = roleRedirectMap[role as Role];
+
+        router.push(path);
+      }
     } catch (error) {
       console.log("Error logging user in");
       throw error;
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, loginState: false }));
     }
   });
 
   return (
-    <div className={"grid md:grid-cols-2 grid-cols-1"}>
-      <div className={"bg-red-200"}>Sign in</div>
+    <div>
       <form
         className={
           "h-full flex flex-col items-center justify-center gap-5 w-full p-5 md:p-12 lg:p-20"
@@ -102,7 +112,16 @@ export default function Page() {
           className="w-full"
           type={"submit"}
         >
-          {loginStatus.state === "loading" ? <Spinner /> : "Sign In"}
+          {loadingStates.loginState ? (
+            <div className="flex flex-row gap-2 items-center">
+              Signing in
+              <Spinner />
+            </div>
+          ) : result !== null ? (
+            "Redirecting..."
+          ) : (
+            "Sign In"
+          )}
         </Button>
       </form>
     </div>

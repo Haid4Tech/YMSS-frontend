@@ -11,9 +11,9 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen">
       {/* LEFT */}
-      <div className="scrollbar-width overflow-y-auto w-[14%] md:w-[8%] lg:w-[16%] xl:w-[18%] p-4">
+      <div className="scrollbar-width w-[14%] md:w-[8%] lg:w-[16%] xl:w-[18%] p-4 border-r border-gray-200">
         <Link
-          href="/"
+          href="/admin"
           className="flex items-center justify-center lg:justify-start gap-2"
         >
           <Image src="/YMSS_logo-nobg.png" alt="logo" width={32} height={32} />
@@ -27,7 +27,7 @@ export default function DashboardLayout({
         <div className="sticky top-0 bg-white">
           <Navbar />
         </div>
-        <div className={"scrollbar-width overflow-scroll"}>{children}</div>
+        <div className={"scrollbar-width overflow-y-auto"}>{children}</div>
       </div>
     </div>
   );
