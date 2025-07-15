@@ -1,4 +1,10 @@
-import { role } from "@/app/lib/data";
+"use client";
+
+import { useAtom } from "jotai";
+import { Role } from "@/common/enum";
+import { AuthSession } from "@/jotai/auth/auth-types";
+import { authPersistedAtom } from "@/jotai/auth/auth";
+
 import Image from "next/image";
 import Link from "next/link";
 
@@ -10,85 +16,85 @@ const menuItems = [
         icon: "/home.png",
         label: "Home",
         href: "/",
-        visible: ["admin", "teacher", "student", "parent"],
+        visible: [...Object.values(Role)],
       },
       {
         icon: "/teacher.png",
         label: "Teachers",
-        href: "/list/teachers",
-        visible: ["admin", "teacher"],
+        href: "/admin/list/teachers",
+        visible: [Role.ADMIN, Role.TEACHER],
       },
       {
         icon: "/student.png",
         label: "Students",
-        href: "/list/students",
-        visible: ["admin", "teacher"],
+        href: "/admin/list/students",
+        visible: [Role.ADMIN, Role.TEACHER],
       },
       {
         icon: "/parent.png",
         label: "Parents",
-        href: "/list/parents",
-        visible: ["admin", "teacher"],
+        href: "/admin/list/parents",
+        visible: [Role.ADMIN, Role.TEACHER],
       },
       {
         icon: "/subject.png",
         label: "Subjects",
-        href: "/list/subjects",
-        visible: ["admin"],
+        href: "/admin/list/subjects",
+        visible: [Role.ADMIN],
       },
       {
         icon: "/class.png",
         label: "Classes",
-        href: "/list/classes",
-        visible: ["admin", "teacher"],
+        href: "/admin/list/classes",
+        visible: [Role.ADMIN, Role.TEACHER],
       },
       {
         icon: "/lesson.png",
         label: "Lessons",
-        href: "/list/lessons",
-        visible: ["admin", "teacher"],
+        href: "/admin/list/lessons",
+        visible: [Role.ADMIN, Role.TEACHER],
       },
       {
         icon: "/exam.png",
         label: "Exams",
-        href: "/list/exams",
-        visible: ["admin", "teacher", "student", "parent"],
+        href: "/admin/list/exams",
+        visible: [...Object.values(Role)],
       },
-      {
-        icon: "/assignment.png",
-        label: "Assignments",
-        href: "/list/assignments",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
+      // {
+      //   icon: "/assignment.png",
+      //   label: "Assignments",
+      //   href: "/list/assignments",
+      //   visible: [...Object.values(Role)],
+      // },
       {
         icon: "/result.png",
         label: "Results",
-        href: "/list/results",
-        visible: ["admin", "teacher", "student", "parent"],
+        href: "/admin/list/results",
+        visible: [...Object.values(Role)],
       },
       {
         icon: "/attendance.png",
         label: "Attendance",
-        href: "/list/attendance",
-        visible: ["admin", "teacher", "student", "parent"],
+        href: "/admin/list/attendance",
+        visible: [...Object.values(Role)],
       },
       {
         icon: "/calendar.png",
         label: "Events",
-        href: "/list/events",
-        visible: ["admin", "teacher", "student", "parent"],
+        href: "/admin/list/events",
+        visible: [...Object.values(Role)],
       },
       {
         icon: "/message.png",
         label: "Messages",
-        href: "/list/messages",
-        visible: ["admin", "teacher", "student", "parent"],
+        href: "/admin/list/messages",
+        visible: [...Object.values(Role)],
       },
       {
         icon: "/announcement.png",
         label: "Announcements",
-        href: "/list/announcements",
-        visible: ["admin", "teacher", "student", "parent"],
+        href: "/admin/list/announcements",
+        visible: [...Object.values(Role)],
       },
     ],
   },
@@ -98,26 +104,28 @@ const menuItems = [
       {
         icon: "/profile.png",
         label: "Profile",
-        href: "/profile",
-        visible: ["admin", "teacher", "student", "parent"],
+        href: "/admin/profile",
+        visible: [...Object.values(Role)],
       },
       {
         icon: "/setting.png",
         label: "Settings",
-        href: "/settings",
-        visible: ["admin", "teacher", "student", "parent"],
+        href: "/admin/settings",
+        visible: [...Object.values(Role)],
       },
       {
         icon: "/logout.png",
         label: "Logout",
-        href: "/logout",
-        visible: ["admin", "teacher", "student", "parent"],
+        href: "/admin",
+        visible: [...Object.values(Role)],
       },
     ],
   },
 ];
 
 const Menu = () => {
+  const [auth] = useAtom(authPersistedAtom) as AuthSession[];
+  const role = auth?.user?.role;
   return (
     <div className="mt-4 text-sm">
       {menuItems.map((i) => (

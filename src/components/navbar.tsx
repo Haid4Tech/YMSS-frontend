@@ -1,11 +1,38 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Image from "next/image";
+import { Button } from "./ui/button";
+import { useAtom } from "jotai";
+import { logoutTriggerAtom, authPersistedAtom } from "@/jotai/auth/auth";
+import { AuthSession } from "@/jotai/auth/auth-types";
+import { Spinner } from "@radix-ui/themes";
+// import UserProfile from "./navigation/userprofile";
 
 const Navbar = () => {
+  const router = useRouter();
+  const [loadingStates, setLoadingStates] = useState<boolean>(false);
+  const [auth] = useAtom(authPersistedAtom) as AuthSession[];
+  const [, logOutTrigger] = useAtom(logoutTriggerAtom);
+
+  const handleLogout = async () => {
+    setLoadingStates(true);
+    try {
+      await logOutTrigger("logout triggered");
+      router.push("/");
+    } catch (error) {
+      console.log("Error logging user out");
+      throw error;
+    } finally {
+      setLoadingStates(false);
+    }
+  };
   return (
-    <div className="flex items-center justify-between p-4">
+    <div className="flex items-center justify-between p-4 border-b border-gray-300">
       {/* SEARCH BAR */}
       <div className="hidden md:flex items-center gap-2 text-xs rounded-full ring-[1.5px] ring-gray-300 px-2">
-        <Image src="/search.png" alt="" width={14} height={14} />
+        <Image src="/search.png" alt="" width={15} height={15} />
         <input
           type="text"
           placeholder="Search..."
@@ -23,9 +50,14 @@ const Navbar = () => {
             1
           </div>
         </div>
+        {/* <UserProfile/> */}
         <div className="flex flex-col">
-          <span className="text-xs leading-3 font-medium">John Doe</span>
-          <span className="text-[10px] text-gray-500 text-right">Admin</span>
+          <span className="text-xs leading-3 font-medium">
+            {auth?.user?.name || "User Name"}
+          </span>
+          <span className="text-[10px] text-gray-500 text-right">
+            {auth?.user?.role || "N/A"}
+          </span>
         </div>
         <Image
           src="/avatar.png"
@@ -34,6 +66,16 @@ const Navbar = () => {
           height={36}
           className="rounded-full"
         />
+        <Button onClick={handleLogout}>
+          {loadingStates ? (
+            <div className="flex flex-row gap-2 items-center">
+              Logging out
+              <Spinner />
+            </div>
+          ) : (
+            "logout"
+          )}
+        </Button>
       </div>
     </div>
   );
