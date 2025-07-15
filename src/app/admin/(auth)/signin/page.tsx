@@ -79,7 +79,7 @@ export default function Page() {
           <p className={"font-bold text-base md:text-lg lg:text-2xl"}>
             Sign In
           </p>
-          <p className={"text-sm md:text-base font-light capitalize"}>
+          <p className={"text-sm font-light capitalize"}>
             Enter your sign in credentials
           </p>
         </div>
