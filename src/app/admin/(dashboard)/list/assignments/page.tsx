@@ -2,7 +2,7 @@ import FormModal from "@/components/form-modal";
 import Pagination from "@/components/performance";
 import Table from "@/components/table";
 import TableSearch from "@/components/table-search";
-import { assignmentsData, role } from "@/app/lib/data";
+import { assignmentsData, role } from "@/common/lib/data";
 import Image from "next/image";
 
 type Assignment = {

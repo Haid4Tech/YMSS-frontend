@@ -118,7 +118,7 @@ export default function Page() {
               <Spinner />
             </div>
           ) : result !== null ? (
-            "Redirecting..."
+            "Signed in..."
           ) : (
             "Sign In"
           )}

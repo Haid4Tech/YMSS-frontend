@@ -2,7 +2,7 @@ import Announcements from "@/components/annoucement";
 import BigCalendar from "@/components/big-calendar";
 import FormModal from "@/components/form-modal";
 import Performance from "@/components/performance";
-import { role } from "@/app/lib/data";
+import { role } from "@/common/lib/data";
 import Image from "next/image";
 import Link from "next/link";
 

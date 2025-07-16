@@ -6,7 +6,7 @@ import FormModal from "@/components/form-modal";
 import Pagination from "@/components/pagination";
 import Table from "@/components/table";
 import TableSearch from "@/components/table-search";
-import { role, subjectsData } from "@/app/lib/data";
+import { role, subjectsData } from "@/common/lib/data";
 import Image from "next/image";
 
 type Subject = {

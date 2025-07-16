@@ -6,4 +6,6 @@ export const menuBarStates = {
 
 export const SignInStates = {
   loginState: false,
+  portalLoginState: false,
+  portalRedirectState: false,
 };

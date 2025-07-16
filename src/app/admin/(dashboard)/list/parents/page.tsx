@@ -10,7 +10,7 @@ import FormModal from "@/components/form-modal";
 import Pagination from "@/components/pagination";
 import Table from "@/components/table";
 import TableSearch from "@/components/table-search";
-import { parentsData } from "@/app/lib/data";
+import { parentsData } from "@/common/lib/data";
 import Image from "next/image";
 
 type Parent = {

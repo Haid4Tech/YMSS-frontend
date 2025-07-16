@@ -2,7 +2,7 @@ import FormModal from "@/components/form-modal";
 import Pagination from "@/components/pagination";
 import Table from "@/components/table";
 import TableSearch from "@/components/table-search";
-import { resultsData, role } from "@/app/lib/data";
+import { resultsData, role } from "@/common/lib/data";
 import Image from "next/image";
 
 type Result = {

@@ -6,4 +6,6 @@ export interface MenuStatesProp {
 
 export interface SignInStatesProp {
   loginState: boolean;
+  portalLoginState: boolean;
+  portalRedirectState: boolean;
 }

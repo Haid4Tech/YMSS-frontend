@@ -56,7 +56,7 @@ export default function MenuBar({ view }: IMenuBar) {
       isAuthLoading: true,
     }));
 
-    router.push("/admin/signin");
+    router.push("/portal/signin");
 
     setTimeout(() => {
       setLoadingStates((prev) => ({
@@ -81,7 +81,7 @@ export default function MenuBar({ view }: IMenuBar) {
         >
           {navItem.map((items, index) => (
             <Link
-              className="text-base hover:text-purple-800"
+              className="text-sm hover:text-purple-800"
               href={items.url}
               key={index}
             >
