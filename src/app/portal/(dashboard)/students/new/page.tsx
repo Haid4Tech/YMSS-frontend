@@ -91,7 +91,7 @@ export default function AddStudentPage() {
       }
     };
     fetchData();
-  }, []);
+  }, [classesData, parentsData]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

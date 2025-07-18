@@ -8,9 +8,9 @@ import ManagementCard from "@/components/pages/dashboard/management-card";
 import { GraduationCap, Network, School, Megaphone } from "lucide-react";
 
 import { studentsAPI, studentListAtom } from "@/jotai/students/student";
-import { teachersAPI } from "@/jotai/teachers/teachers";
-import { classesAPI } from "@/jotai/class/class";
-import { announcementsAPI } from "@/jotai/announcement/announcement";
+import { teachersAPI, teacherListAtom } from "@/jotai/teachers/teachers";
+import { getAllClassAtom } from "@/jotai/class/class";
+import { announcementsAPI, announcementListAtom } from "@/jotai/announcement/announcement";
 
 interface AdminDashboardProps {
   user: User;
@@ -112,29 +112,29 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   });
 
   const [loading, setLoading] = useState(true);
-  const [announcements] = useAtom(announcementsAPI.getAll);
+  const [announcements] = useAtom(announcementListAtom);
 
   const [students] = useAtom(studentListAtom);
-  const [teachers] = useAtom(teachersAPI.getAll);
-  const [classes] = useAtom(classesAPI.getAll);
+  const [teachers] = useAtom(teacherListAtom);
+  const [classes] = useAtom(getAllClassAtom);
 
   const [, getAllStudents] = useAtom(studentsAPI.getAll);
-  const [, getAllClasses] = useAtom(classesAPI.getAll);
   const [, getAllTeachers] = useAtom(teachersAPI.getAll);
+  const [, getAllAnnouncements] = useAtom(announcementsAPI.getAll);
 
   useEffect(() => {
     const fetchDashboardData = () => {
       try {
         // TRIGGER ATOMS
         getAllStudents();
-        getAllClasses();
         getAllTeachers();
+        getAllAnnouncements();
 
         setStats({
           totalStudents: students?.students?.length ?? 0,
           totalTeachers: teachers?.teachers?.length ?? 0,
-          totalClasses: classes?.length ?? 0,
-          recentAnnouncements: announcements.slice(0, 5).length ?? 0,
+          totalClasses: Array.isArray(classes) ? classes.length : 0,
+          recentAnnouncements: Array.isArray(announcements) ? announcements.slice(0, 5).length : 0,
         });
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -144,7 +144,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
     };
 
     fetchDashboardData();
-  }, [students, teachers, classes, announcements, getAllStudents]);
+  }, [students, teachers, classes, announcements, getAllStudents, getAllTeachers, getAllAnnouncements]);
 
   if (loading) {
     return (

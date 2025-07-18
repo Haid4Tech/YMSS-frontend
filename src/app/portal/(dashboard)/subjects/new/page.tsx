@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -25,7 +25,7 @@ export default function AddSubjectPage() {
   const [loading, setLoading] = useState(false);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [, getAllTeachers] = useAtom(teachersAPI.getAll);
-  
+
   const [formData, setFormData] = useState({
     name: "",
     code: "",
@@ -41,7 +41,7 @@ export default function AddSubjectPage() {
     assessmentMethods: "",
     weeklyHours: "",
     practicalHours: "",
-    theoryHours: ""
+    theoryHours: "",
   });
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export default function AddSubjectPage() {
   }, [getAllTeachers]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,7 +72,7 @@ export default function AddSubjectPage() {
         credits: parseInt(formData.credits) || 0,
         grade: formData.grade,
         category: formData.category,
-        teacherId: formData.teacherId ? parseInt(formData.teacherId) : null,
+        teacherId: formData.teacherId && formData.teacherId !== "none" ? parseInt(formData.teacherId) : null,
         syllabus: formData.syllabus,
         objectives: formData.objectives,
         prerequisites: formData.prerequisites,
@@ -80,7 +80,7 @@ export default function AddSubjectPage() {
         assessmentMethods: formData.assessmentMethods,
         weeklyHours: parseInt(formData.weeklyHours) || 0,
         practicalHours: parseInt(formData.practicalHours) || 0,
-        theoryHours: parseInt(formData.theoryHours) || 0
+        theoryHours: parseInt(formData.theoryHours) || 0,
       };
 
       await subjectsAPI.create(subjectData);
@@ -103,7 +103,9 @@ export default function AddSubjectPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold">Add New Subject</h1>
-            <p className="text-muted-foreground">Create a new subject with curriculum details</p>
+            <p className="text-muted-foreground">
+              Create a new subject with curriculum details
+            </p>
           </div>
         </div>
       </div>
@@ -138,7 +140,10 @@ export default function AddSubjectPage() {
               </div>
               <div>
                 <Label htmlFor="grade">Grade Level</Label>
-                <Select value={formData.grade} onValueChange={(value) => handleInputChange("grade", value)}>
+                <Select
+                  value={formData.grade}
+                  onValueChange={(value) => handleInputChange("grade", value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select grade" />
                   </SelectTrigger>
@@ -154,7 +159,12 @@ export default function AddSubjectPage() {
               </div>
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) =>
+                    handleInputChange("category", value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -164,9 +174,13 @@ export default function AddSubjectPage() {
                     <SelectItem value="language">Language</SelectItem>
                     <SelectItem value="science">Science</SelectItem>
                     <SelectItem value="mathematics">Mathematics</SelectItem>
-                    <SelectItem value="social_studies">Social Studies</SelectItem>
+                    <SelectItem value="social_studies">
+                      Social Studies
+                    </SelectItem>
                     <SelectItem value="arts">Arts</SelectItem>
-                    <SelectItem value="physical_education">Physical Education</SelectItem>
+                    <SelectItem value="physical_education">
+                      Physical Education
+                    </SelectItem>
                     <SelectItem value="technology">Technology</SelectItem>
                   </SelectContent>
                 </Select>
@@ -185,14 +199,22 @@ export default function AddSubjectPage() {
               </div>
               <div>
                 <Label htmlFor="teacherId">Assigned Teacher</Label>
-                <Select value={formData.teacherId} onValueChange={(value) => handleInputChange("teacherId", value)}>
+                <Select
+                  value={formData.teacherId}
+                  onValueChange={(value) =>
+                    handleInputChange("teacherId", value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select teacher" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No teacher assigned</SelectItem>
+                    <SelectItem value="none">No teacher assigned</SelectItem>
                     {teachers.map((teacher) => (
-                      <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                      <SelectItem
+                        key={teacher.id}
+                        value={teacher.id.toString()}
+                      >
                         {teacher.user.name}
                       </SelectItem>
                     ))}
@@ -204,7 +226,9 @@ export default function AddSubjectPage() {
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
                   placeholder="Brief description of the subject"
                 />
               </div>
@@ -225,7 +249,9 @@ export default function AddSubjectPage() {
                   id="weeklyHours"
                   type="number"
                   value={formData.weeklyHours}
-                  onChange={(e) => handleInputChange("weeklyHours", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("weeklyHours", e.target.value)
+                  }
                   min="0"
                   max="20"
                 />
@@ -236,18 +262,24 @@ export default function AddSubjectPage() {
                   id="theoryHours"
                   type="number"
                   value={formData.theoryHours}
-                  onChange={(e) => handleInputChange("theoryHours", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("theoryHours", e.target.value)
+                  }
                   min="0"
                   max="20"
                 />
               </div>
               <div>
-                <Label htmlFor="practicalHours">Practical Hours (per week)</Label>
+                <Label htmlFor="practicalHours">
+                  Practical Hours (per week)
+                </Label>
                 <Input
                   id="practicalHours"
                   type="number"
                   value={formData.practicalHours}
-                  onChange={(e) => handleInputChange("practicalHours", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("practicalHours", e.target.value)
+                  }
                   min="0"
                   max="20"
                 />
@@ -267,7 +299,9 @@ export default function AddSubjectPage() {
               <Textarea
                 id="objectives"
                 value={formData.objectives}
-                onChange={(e) => handleInputChange("objectives", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("objectives", e.target.value)
+                }
                 placeholder="List the learning objectives for this subject"
               />
             </div>
@@ -285,7 +319,9 @@ export default function AddSubjectPage() {
               <Textarea
                 id="prerequisites"
                 value={formData.prerequisites}
-                onChange={(e) => handleInputChange("prerequisites", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("prerequisites", e.target.value)
+                }
                 placeholder="List any required prior knowledge or subjects"
               />
             </div>
@@ -303,7 +339,9 @@ export default function AddSubjectPage() {
               <Textarea
                 id="assessmentMethods"
                 value={formData.assessmentMethods}
-                onChange={(e) => handleInputChange("assessmentMethods", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("assessmentMethods", e.target.value)
+                }
                 placeholder="Describe how students will be assessed (exams, projects, assignments, etc.)"
               />
             </div>
@@ -322,4 +360,4 @@ export default function AddSubjectPage() {
       </form>
     </div>
   );
-} 
+}
