@@ -1,0 +1,195 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@radix-ui/themes";
+import { SignInStatesProp } from "@/common/types";
+import { SignInStates } from "@/common/states";
+
+import {
+  userAtom,
+  authAPI,
+  loginFormAtom,
+  isAuthenticatedAtom,
+} from "@/jotai/auth/auth";
+import { useAtom } from "jotai";
+
+export default function SignIn() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState<SignInStatesProp>(SignInStates);
+  const [error, setError] = useState("");
+
+  const [, setLoginFormData] = useAtom(loginFormAtom);
+  const [user] = useAtom(userAtom);
+  const [, triggerLogin] = useAtom(authAPI.login);
+  const [isAuthenticated] = useAtom(isAuthenticatedAtom);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading((prev) => ({ ...prev, portalLoginState: true }));
+    setError("");
+
+    try {
+      setLoginFormData({ email: email, password: password });
+      const response = await triggerLogin();
+
+      if (response?.user !== null) {
+        // Redirect to dashboard
+        if (response?.user?.role === "STUDENT") {
+          router.push("/portal/students");
+        }
+        if (response?.user?.role === "ADMIN") {
+          router.push("/portal/dashboard");
+        }
+        if (response?.user?.role === "TEACHER") {
+          router.push("/portal/teachers");
+        }
+        if (response?.user?.role === "PARENT") {
+          router.push("/portal/parents");
+        }
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      setError(
+        error.response?.data?.message || "Login failed. Please try again."
+      );
+    } finally {
+      setLoading((prev) => ({ ...prev, portalLoginState: false }));
+    }
+  };
+
+  if (isAuthenticated) {
+    return (
+      <div className={"flex flex-col gap-4 items-center justify-center"}>
+        <p className="text-base">
+          Welcome back <span className="font-bold "> {user?.name} </span> you
+          are authenticated
+        </p>
+        <Button
+          onClick={() => {
+            setLoading((prev) => ({ ...prev, portalLoginState: true }));
+            router.push("/portal/dashboard");
+          }}
+        >
+          {loading.portalLoginState ? (
+            <div className={"flex items-center gap-2"}>
+              Redirecting... <Spinner />
+            </div>
+          ) : (
+            "Continue"
+          )}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold">Sign In</h1>
+        <p className="text-muted-foreground">
+          Welcome back! Please sign in to your account.
+        </p>
+      </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="email" className="text-sm font-medium">
+            Email Address
+          </label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={loading.portalLoginState}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="password" className="text-sm font-medium">
+            Password
+          </label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={loading.portalLoginState}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+            />
+            <span className="text-sm text-muted-foreground">Remember me</span>
+          </label>
+          <Link
+            href="/portal/forgot-password"
+            className="text-sm text-primary hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={loading.portalLoginState}
+        >
+          {loading.portalLoginState ? (
+            <div className="flex flex-row gap-2 items-center">
+              Signing <Spinner />
+            </div>
+          ) : (
+            "Sign In"
+          )}
+        </Button>
+      </form>
+
+      {/* Footer */}
+      <div className="text-center space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/portal/signup"
+            className="text-primary hover:underline font-medium"
+          >
+            Sign up
+          </Link>
+        </p>
+
+        <div className="text-center">
+          <Link
+            href="/"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            ← Back to Homepage
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}

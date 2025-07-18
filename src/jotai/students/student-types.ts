@@ -1,26 +1,32 @@
-import { UserType } from "../auth/auth-types";
-import { ClassType } from "../class/class-type";
-import { Parent } from "../parent/parenttypes";
+import { User } from "../auth/auth-types";
+import { Class } from "../class/class-type";
+import { Parent } from "../parent/parent-types";
 
-export interface StudentType {
+export interface Student {
   id: number;
   userId: number;
   classId: number;
-  parentId: number;
-  user: UserType;
-  class: ClassType;
-  parent: Parent;
+  parentId?: number;
+  user: User;
+  class: Class;
+  parent?: Parent;
+  
+  // Additional fields used in the application
+  dateOfBirth?: string;
+  phone?: string;
+  address?: string;
+  parentPhone?: string;
+  guardianName?: string;
+  emergencyContact?: string;
+  bloodGroup?: string;
+  medicalConditions?: string;
+  admissionDate?: string;
+  studentId?: string; // Student ID number
 }
 
-export interface GetStudentResponse {
-  students: Array<StudentType>;
-}
-
-export interface loadableStudentResponseProp {
-  data: {
-    limit: number;
-    page: number;
-    students: Array<StudentType>;
-    total: number;
-  };
+export interface StudentResponse {
+  students: Array<Student>;
+  page: number;
+  limit: number;
+  total: number;
 }

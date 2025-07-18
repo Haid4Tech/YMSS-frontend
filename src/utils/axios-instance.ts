@@ -1,12 +1,13 @@
 import axios from "axios";
 import { getDefaultStore } from "jotai";
-import { logoutTriggerAtom } from "@/jotai/auth/auth";
-import { getCookie } from "cookies-next";
+import { authAPI } from "@/jotai/auth/auth";
+import { getCookie, deleteCookie } from "cookies-next";
 
 const store = getDefaultStore();
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -30,11 +31,15 @@ axiosInstance.interceptors.response.use(
     }
     return response;
   },
-  function (error) {
+  (error) => {
     const errorMessage = error.response?.data?.message || error.message;
 
     if (error?.response?.status === 401) {
-      store.set(logoutTriggerAtom, "Unauthorized");
+      store.set(authAPI.logout, "Unauthorized");
+      if (typeof window !== "undefined") {
+        deleteCookie("token");
+        window.location.href = "/portal/signin";
+      }
     } else if (error.response?.status === 403) {
       console.error(`Forbidden: ${errorMessage}`);
     } else {

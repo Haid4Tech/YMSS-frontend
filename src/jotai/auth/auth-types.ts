@@ -1,26 +1,36 @@
 import { Role } from "@/common/enum";
 
-export interface UserType {
+export interface User {
   id: number;
   email: string;
   name: string;
   role: Role;
   createdAt: string;
+  
+  // Additional fields used in the application
+  phone?: string;
+  bio?: string;
+  profileImage?: string;
+  dateOfBirth?: string;
+  address?: string;
+  isActive?: boolean;
+  lastLogin?: string;
+  updatedAt?: string;
 }
 
-export interface SignUpType {
+export interface SignUpProps {
   email: string;
   password: string;
   name: string;
-  role: Role | undefined;
+  role: Role | undefined | string;
 }
 
-export interface SignInType {
+export interface SignInProps {
   email: string;
   password: string;
 }
 
 export interface AuthSession {
-  user: UserType;
+  user: User;
   token: string | null;
 }
