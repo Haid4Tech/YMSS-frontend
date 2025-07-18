@@ -5,6 +5,24 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { User } from "@/jotai/auth/auth-types";
 import { cn } from "@/lib/utils";
+import {
+  BookOpen,
+  Trophy,
+  Home,
+  Users,
+  GraduationCap,
+  UserCheck,
+  Calendar,
+  CircleUser,
+  ClipboardList,
+  UserCog,
+  Settings,
+  HelpCircle,
+  MessageSquare,
+  Megaphone,
+  CalendarDays,
+  FileText,
+} from "lucide-react";
 
 interface PortalSidebarProps {
   user: User;
@@ -14,7 +32,8 @@ interface PortalSidebarProps {
 interface NavItem {
   name: string;
   href: string;
-  icon: string;
+  icon?: string; // For image icons
+  lucideIcon?: React.ComponentType<{ className?: string }>; // For Lucide icons
   roles: string[];
 }
 
@@ -22,91 +41,91 @@ const navigationItems: NavItem[] = [
   {
     name: "Dashboard",
     href: "/portal/dashboard",
-    icon: "/home.png",
+    lucideIcon: Home,
     roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"],
   },
   {
     name: "Students",
     href: "/portal/students",
-    icon: "/student.png",
+    lucideIcon: GraduationCap,
     roles: ["ADMIN", "TEACHER"],
   },
   {
     name: "Teachers",
     href: "/portal/teachers",
-    icon: "/teacher.png",
+    lucideIcon: UserCog,
     roles: ["ADMIN"],
   },
   {
     name: "Parents",
     href: "/portal/parents",
-    icon: "/parent.png",
+    lucideIcon: Users,
     roles: ["ADMIN"],
   },
   {
     name: "Classes",
     href: "/portal/classes",
-    icon: "/class.png",
+    lucideIcon: Calendar,
     roles: ["ADMIN", "TEACHER"],
   },
   {
     name: "Subjects",
     href: "/portal/subjects",
-    icon: "/subject.png",
+    lucideIcon: BookOpen,
     roles: ["ADMIN", "TEACHER"],
   },
   {
     name: "Exams",
     href: "/portal/exams",
-    icon: "/exam.png",
+    lucideIcon: ClipboardList,
     roles: ["ADMIN", "TEACHER", "STUDENT"],
   },
   {
     name: "Results",
     href: "/portal/results",
-    icon: "/result.png",
+    lucideIcon: Trophy,
     roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"],
   },
   {
     name: "Attendance",
     href: "/portal/attendance",
-    icon: "/attendance.png",
+    lucideIcon: UserCheck,
     roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"],
   },
   {
     name: "Announcements",
     href: "/portal/announcements",
-    icon: "/announcement.png",
+    lucideIcon: Megaphone,
     roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"],
   },
   {
     name: "Events",
     href: "/portal/events",
-    icon: "/calendar.png",
+    lucideIcon: CalendarDays,
     roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"],
   },
   {
     name: "Messages",
     href: "/portal/messages",
-    icon: "/message.png",
+    lucideIcon: MessageSquare,
     roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"],
   },
   {
     name: "Academic Records",
     href: "/portal/records",
-    icon: "/file.svg",
+    lucideIcon: FileText,
     roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"],
   },
   {
     name: "Profile",
     href: "/portal/profile",
-    icon: "/profile.png",
+    lucideIcon: CircleUser,
     roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"],
   },
   {
     name: "Settings",
     href: "/portal/settings",
-    icon: "/setting.png",
+    lucideIcon: Settings,
     roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"],
   },
 ];
@@ -130,9 +149,9 @@ export default function PortalSidebar({ user, onClose }: PortalSidebarProps) {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-background">
       {/* Logo */}
-      <div className="flex items-center gap-3 p-6 border-b border-border h-18">
+      <div className="flex items-center gap-3 p-6 border-b border-border h-18 bg-background">
         <Link href="/" className="flex items-center gap-2">
           <Image
             src="/YMSS_logo-nobg.png"
@@ -145,7 +164,7 @@ export default function PortalSidebar({ user, onClose }: PortalSidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto scrollbar-width">
+      <nav className="flex-1 overflow-y-auto scrollbar-width bg-background">
         <div className="p-4 space-y-1">
           {filteredNavItems.map((item) => (
             <Link
@@ -159,16 +178,27 @@ export default function PortalSidebar({ user, onClose }: PortalSidebarProps) {
                   : "text-muted-foreground"
               )}
             >
-              <Image
-                src={item.icon}
-                alt={item.name}
-                width={18}
-                height={18}
-                className={cn(
-                  "opacity-70",
-                  isActiveRoute(item.href) && "brightness-0 invert"
-                )}
-              />
+              {item.lucideIcon ? (
+                <item.lucideIcon
+                  className={cn(
+                    "w-5 h-5 transition-colors",
+                    isActiveRoute(item.href)
+                      ? "text-primary-foreground"
+                      : "text-muted-foreground group-hover:text-accent-foreground"
+                  )}
+                />
+              ) : item.icon ? (
+                <Image
+                  src={item.icon}
+                  alt={item.name}
+                  width={18}
+                  height={18}
+                  className={cn(
+                    "opacity-70",
+                    isActiveRoute(item.href) && "brightness-0 invert"
+                  )}
+                />
+              ) : null}
               {item.name}
             </Link>
           ))}
@@ -176,25 +206,13 @@ export default function PortalSidebar({ user, onClose }: PortalSidebarProps) {
       </nav>
 
       {/* Quick Actions */}
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-border bg-background">
         <div className="space-y-2">
           <Link
             href="/portal/help"
             className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <HelpCircle className="w-5 h-5" />
             Help & Support
           </Link>
         </div>

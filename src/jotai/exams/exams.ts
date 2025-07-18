@@ -22,9 +22,9 @@ export const examsAPI = {
     set(examErrorAtom, null);
 
     try {
-      const response = await axiosInstance.get("/exams");
+    const response = await axiosInstance.get("/exams");
       set(examListAtom, response.data);
-      return response.data;
+    return response.data;
     } catch (error: any) {
       set(examErrorAtom, error.message || "Failed to fetch exams");
     } finally {

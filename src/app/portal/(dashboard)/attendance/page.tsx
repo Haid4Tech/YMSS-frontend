@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAtom } from "jotai";
 import Link from "next/link";
-import { attendanceAPI, attendanceListAtom, attendanceLoadingAtom, attendanceErrorAtom } from "@/jotai/attendance/attendance";
+import { attendanceAPI } from "@/jotai/attendance/attendance";
 import { Attendance } from "@/jotai/attendance/attendance-type";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@radix-ui/themes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -354,7 +355,13 @@ export default function AddSubjectPage() {
             <Link href="/portal/subjects">Cancel</Link>
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading ? "Creating Subject..." : "Create Subject"}
+            {loading ? (
+              <div className="flex flex-row gap-2 items-center">
+                Creating Subject... <Spinner />
+              </div>
+            ) : (
+              "Create Subject"
+            )}
           </Button>
         </div>
       </form>

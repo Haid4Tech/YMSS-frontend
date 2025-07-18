@@ -3,14 +3,18 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { studentsAPI, enhancedStudentsAPI } from "@/jotai/students/student";
+import { enhancedStudentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
-import { gradesAPI, enhancedGradesAPI } from "@/jotai/grades/grades";
+import { enhancedGradesAPI } from "@/jotai/grades/grades";
 import { Grade } from "@/jotai/grades/grades-types";
-import { attendanceAPI, enhancedAttendanceAPI } from "@/jotai/attendance/attendance";
+import {
+  // attendanceAPI,
+  enhancedAttendanceAPI,
+} from "@/jotai/attendance/attendance";
 import { Attendance } from "@/jotai/attendance/attendance-type";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PersonAvatar } from "@/components/ui/person-avatar";
 import {
   LineChart,
   Line,
@@ -41,82 +45,106 @@ export default function StudentDetailPage() {
   useEffect(() => {
     const fetchStudentData = async () => {
       try {
+        setLoading(true);
+        console.log("Fetching student data for ID:", studentId);
+
         const [studentData, gradesData, attendanceData] = await Promise.all([
           enhancedStudentsAPI.getById(parseInt(studentId)),
           enhancedGradesAPI.getByStudent(parseInt(studentId)),
           enhancedAttendanceAPI.getByStudent(parseInt(studentId)),
         ]);
 
-        setStudent(studentData);
+        console.log("Student data received:", studentData);
+
+        // Validate student data structure
+        if (studentData && typeof studentData === "object") {
+          setStudent(studentData);
+        } else {
+          console.error("Invalid student data structure:", studentData);
+          setStudent(null);
+        }
+
         setGrades(Array.isArray(gradesData) ? gradesData : []);
         setAttendance(Array.isArray(attendanceData) ? attendanceData : []);
       } catch (error) {
         console.error("Failed to fetch student data:", error);
+        setStudent(null);
+        setGrades([]);
+        setAttendance([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (studentId) {
+    if (studentId && !isNaN(parseInt(studentId))) {
       fetchStudentData();
+    } else {
+      setLoading(false);
     }
   }, [studentId]);
 
-  // Calculate academic statistics
+  // Calculate academic statistics - safely
   const academicStats = {
     averageGrade:
-      grades.length > 0
+      Array.isArray(grades) && grades.length > 0
         ? (
-            grades.reduce((sum, grade) => sum + (grade.value || 0), 0) /
+            grades.reduce((sum, grade) => sum + (grade?.value || 0), 0) /
             grades.length
           ).toFixed(1)
         : "N/A",
-    totalExams: grades.length,
+    totalExams: Array.isArray(grades) ? grades.length : 0,
     attendanceRate:
-      attendance.length > 0
+      Array.isArray(attendance) && attendance.length > 0
         ? (
-            (attendance.filter((a) => a.present).length / attendance.length) *
+            (attendance.filter((a) => a?.present === true).length /
+              attendance.length) *
             100
           ).toFixed(1)
         : "N/A",
-    totalClasses: attendance.length,
+    totalClasses: Array.isArray(attendance) ? attendance.length : 0,
   };
 
-  // Prepare chart data
-  const gradeChartData = grades.map((grade, index) => ({
-    exam: grade.exam?.title || `Exam ${index + 1}`,
-    marks: grade.value || 0,
-    totalMarks: 100, // Default total marks since it's not in Exam type
-    percentage: ((grade.value || 0) / 100 * 100).toFixed(1),
-  }));
+  // Prepare chart data - only if grades is valid array
+  const gradeChartData = Array.isArray(grades)
+    ? grades.map((grade, index) => ({
+        exam: grade?.exam?.title || `Exam ${index + 1}`,
+        marks: grade?.value || 0,
+        totalMarks: 100, // Default total marks since it's not in Exam type
+        percentage: (((grade?.value || 0) / 100) * 100).toFixed(1),
+      }))
+    : [];
 
-  const subjectPerformanceData = grades.reduce((acc, grade) => {
-    const subject = grade.exam?.subject?.name || "Unknown";
-    if (!acc[subject]) {
-      acc[subject] = { subject, totalMarks: 0, count: 0 };
-    }
-    acc[subject].totalMarks += grade.marks || 0;
-    acc[subject].count += 1;
-    return acc;
-  }, {} as Record<string, { subject: string; totalMarks: number; count: number }>);
+  const subjectPerformanceData = Array.isArray(grades)
+    ? grades.reduce((acc, grade) => {
+        const subject = grade?.exam?.subject?.name || "Unknown";
+        if (!acc[subject]) {
+          acc[subject] = { subject, totalMarks: 0, count: 0 };
+        }
+        acc[subject].totalMarks += grade?.value || 0;
+        acc[subject].count += 1;
+        return acc;
+      }, {} as Record<string, { subject: string; totalMarks: number; count: number }>)
+    : {};
 
   const subjectChart = Object.values(subjectPerformanceData).map((item) => ({
     subject: item.subject,
     average: (item.totalMarks / item.count).toFixed(1),
   }));
 
-  const attendancePieData = [
-    {
-      name: "Present",
-      value: attendance.filter((a) => a.present).length,
-      color: "#10B981",
-    },
-    {
-      name: "Absent",
-      value: attendance.filter((a) => !a.present).length,
-      color: "#EF4444",
-    },
-  ];
+  const attendancePieData = Array.isArray(attendance)
+    ? [
+        {
+          name: "Present",
+          value: attendance.filter((a) => a?.present === true).length,
+          color: "#10B981",
+        },
+        {
+          name: "Absent",
+          value: attendance.filter((a) => a?.present === false).length,
+          color: "#EF4444",
+        },
+      ]
+    : [];
 
   if (loading) {
     return (
@@ -126,12 +154,14 @@ export default function StudentDetailPage() {
     );
   }
 
-  if (!student) {
+  if (!student || !student.user) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Student not found</p>
-        <Button asChild className="mt-4">
-          <Link href="/portal/students">Back to Students</Link>
+        <p className="text-muted-foreground">
+          {!student ? "Student not found" : "Student data incomplete"}
+        </p>
+        <Button onClick={() => router.back()} asChild className="mt-4">
+          Back to Students
         </Button>
       </div>
     );
@@ -145,8 +175,14 @@ export default function StudentDetailPage() {
           <Button variant="outline" asChild>
             <Link href="/portal/students">← Back</Link>
           </Button>
+          <PersonAvatar
+            name={student?.user?.name || "Unknown Student"}
+            size="xl"
+          />
           <div>
-            <h1 className="text-3xl font-bold">{student.user.name}</h1>
+            <h1 className="text-3xl font-bold">
+              {student?.user?.name || "Unknown Student"}
+            </h1>
             <p className="text-muted-foreground">Student Profile</p>
           </div>
         </div>
@@ -252,7 +288,8 @@ export default function StudentDetailPage() {
                     {student.class?.name || "Not assigned"}
                   </p>
                 </div>
-                <div>
+                {/* TODO: Uncomment when dateOfBirth is added to Student schema */}
+                {/* <div>
                   <label className="text-sm font-medium text-muted-foreground">
                     Date of Birth
                   </label>
@@ -261,25 +298,43 @@ export default function StudentDetailPage() {
                       ? new Date(student.dateOfBirth).toLocaleDateString()
                       : "Not provided"}
                   </p>
-                </div>
-                <div>
+                </div> */}
+
+                {/* TODO: Uncomment when phone is added to Student schema */}
+                {/* <div>
                   <label className="text-sm font-medium text-muted-foreground">
                     Phone
                   </label>
                   <p className="text-sm">{student.phone || "Not provided"}</p>
+                </div> */}
+
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Role
+                  </label>
+                  <p className="text-sm">{student.user.role}</p>
                 </div>
                 <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Member Since
+                  </label>
+                  <p className="text-sm">
+                    {new Date(student.user.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                {/* TODO: Uncomment when address is added to Student schema */}
+                {/* <div>
                   <label className="text-sm font-medium text-muted-foreground">
                     Address
                   </label>
                   <p className="text-sm">{student.address || "Not provided"}</p>
-                </div>
+                </div> */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">
                     Parent
                   </label>
                   <p className="text-sm">
-                    {student.parent?.user.name || "Not assigned"}
+                    {student?.parent?.user?.name || "Not assigned"}
                   </p>
                 </div>
               </div>
@@ -399,7 +454,9 @@ export default function StudentDetailPage() {
                   >
                     <div>
                       <p className="font-medium">
-                        {record.lesson?.title || "Unknown Lesson"}
+                        {/* TODO: Uncomment when lesson is added to Attendance schema */}
+                        {/* {record.lesson?.title || "Unknown Lesson"} */}
+                        Attendance Record
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {record.date
@@ -451,9 +508,12 @@ export default function StudentDetailPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium">
-                        {grade.marks || 0}/{grade.exam?.totalMarks || 100}
+                        {/* TODO: Uncomment when totalMarks is added to Exam schema */}
+                        {/* {grade.marks || 0}/{grade.exam?.totalMarks || 100} */}
+                        {grade.value || 0}/100
                       </p>
-                      <p
+                      {/* TODO: Uncomment when letter grade is added to Grade schema */}
+                      {/* <p
                         className={`text-sm font-medium ${
                           grade.grade === "A"
                             ? "text-green-600"
@@ -465,6 +525,9 @@ export default function StudentDetailPage() {
                         }`}
                       >
                         Grade: {grade.grade || "Not graded"}
+                      </p> */}
+                      <p className="text-sm font-medium text-blue-600">
+                        Score: {grade.value || 0}%
                       </p>
                     </div>
                   </div>

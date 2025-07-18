@@ -14,11 +14,14 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@radix-ui/themes";
 import { Input } from "@/components/ui/input";
+import { PersonAvatar } from "@/components/ui/person-avatar";
 
 export default function TeachersPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
+  const [dashboardLoading, setDashboardLoading] = useState(false);
 
   const [teachers] = useAtom(teacherListAtom);
   const [, getAllTeachers] = useAtom(teachersAPI.getAll);
@@ -54,8 +57,20 @@ export default function TeachersPage() {
         <p className="text-muted-foreground">
           Failed to load Teachers Data. Return to Dashboard
         </p>
-        <Button onClick={() => router.push("/portal/dashboard")}>
-          Go to Dashboard
+        <Button 
+          onClick={() => {
+            setDashboardLoading(true);
+            router.push("/portal/dashboard");
+          }}
+          disabled={dashboardLoading}
+        >
+          {dashboardLoading ? (
+            <div className="flex flex-row gap-2 items-center">
+              Going to Dashboard... <Spinner />
+            </div>
+          ) : (
+            "Go to Dashboard"
+          )}
         </Button>
       </div>
     );
@@ -90,7 +105,13 @@ export default function TeachersPage() {
           <Card key={teacher.id} className="hover-scale">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>{teacher.user?.name || "Unnamed Teacher"}</span>
+                <div className="flex items-center gap-3">
+                  <PersonAvatar 
+                    name={teacher.user?.name || "Unnamed Teacher"}
+                    size="md"
+                  />
+                  <span>{teacher.user?.name || "Unnamed Teacher"}</span>
+                </div>
                 <Button asChild variant="outline" size="sm">
                   <Link href={`/portal/teachers/${teacher.id}`}>View</Link>
                 </Button>

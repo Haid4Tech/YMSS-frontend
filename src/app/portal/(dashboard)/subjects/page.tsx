@@ -11,10 +11,12 @@ import {
 } from "@/jotai/subject/subject";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@radix-ui/themes";
 import { Input } from "@/components/ui/input";
 
 export default function SubjectsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [retryLoading, setRetryLoading] = useState(false);
   const [subjects] = useAtom(subjectListAtom);
   const [loading] = useAtom(subjectLoadingAtom);
   const [error] = useAtom(subjectErrorAtom);
@@ -44,7 +46,25 @@ export default function SubjectsPage() {
         <p className="text-muted-foreground">
           Failed to load Subjects. {error}
         </p>
-        <Button onClick={() => getAllSubjects()}>Retry</Button>
+        <Button 
+          onClick={async () => {
+            setRetryLoading(true);
+            try {
+              await getAllSubjects();
+            } finally {
+              setRetryLoading(false);
+            }
+          }}
+          disabled={retryLoading}
+        >
+          {retryLoading ? (
+            <div className="flex flex-row gap-2 items-center">
+              Retrying... <Spinner />
+            </div>
+          ) : (
+            "Retry"
+          )}
+        </Button>
       </div>
     );
   }

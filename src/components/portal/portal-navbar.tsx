@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
-import { UserType } from "@/jotai/auth/auth-types";
+import { User } from "@/jotai/auth/auth-types";
 import { authAPI } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,46 +19,91 @@ import {
   MessageCircleMore,
   Menu,
   LogOut,
-  User,
+  User as UserIcon,
   Settings,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { PersonAvatar } from "@/components/ui/person-avatar";
+import { Spinner } from "@radix-ui/themes";
 
 interface PortalNavbarProps {
-  user: UserType;
+  user: User;
   onMenuClick: () => void;
 }
 
 export default function PortalNavbar({ user, onMenuClick }: PortalNavbarProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+  const [navigationLoading, setNavigationLoading] = useState<string | null>(null);
   const router = useRouter();
   const [, triggerLogout] = useAtom(authAPI.logout);
+
+  // Initialize theme from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const initialDarkMode = savedTheme === "dark" || (!savedTheme && prefersDark);
+    
+    setIsDarkMode(initialDarkMode);
+    updateTheme(initialDarkMode);
+  }, []);
+
+  // Function to update theme classes and localStorage
+  const updateTheme = (darkMode: boolean) => {
+    const htmlElement = document.documentElement;
+    if (darkMode) {
+      htmlElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      htmlElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  };
+
+  // Toggle theme function
+  const toggleTheme = () => {
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    updateTheme(newDarkMode);
+  };
 
   const dropDownItems = [
     {
       title: "Profile",
-      Icon: User,
-      action: () => router.push("/portal/profile"),
+      Icon: UserIcon,
+      action: () => {
+        setNavigationLoading("Profile");
+        router.push("/portal/profile");
+      },
     },
     {
       title: "Settings",
       Icon: Settings,
-      action: () => router.push("/portal/settings"),
+      action: () => {
+        setNavigationLoading("Settings");
+        router.push("/portal/settings");
+      },
     },
   ];
 
   const handleLogout = async () => {
     try {
+      setLogoutLoading(true);
       await triggerLogout("User logout");
       router.push("/portal/signin");
     } catch (error) {
       console.error("Logout error:", error);
       // Force redirect even if logout fails
       router.push("/portal/signin");
+    } finally {
+      setLogoutLoading(false);
     }
   };
 
   return (
-    <header className="bg-white border-b border-border px-6 py-4 h-18">
+    <header className="bg-background border-b border-border px-6 py-4 h-18">
       <div className="flex flex-row items-center justify-between">
         {/* Left side - Menu button for mobile */}
         <div className="flex items-center gap-4">
@@ -92,19 +137,31 @@ export default function PortalNavbar({ user, onMenuClick }: PortalNavbarProps) {
             <MessageCircleMore />
           </Button>
 
+          {/* Theme Toggle */}
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={toggleTheme}
+            className="h-10 w-10"
+            aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {isDarkMode ? (
+              <Sun className="h-5 w-5 text-yellow-500" />
+            ) : (
+              <Moon className="h-5 w-5 text-slate-700 dark:text-slate-300" />
+            )}
+          </Button>
+
           {/* User Menu */}
           <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-            <DropdownMenuTrigger className="bg-primary/20 rounded-lg" asChild>
-              <Button
-                variant="ghost"
-                className="h-10 w-10 bg-primary/10 rounded-full"
-              >
-                <div className="flex items-center justify-center">
-                  <span className="text-primary font-medium">
-                    {user.name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              </Button>
+            <DropdownMenuTrigger asChild>
+              <button className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full">
+                <PersonAvatar 
+                  name={user.name}
+                  size="lg"
+                  className="cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all"
+                />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
@@ -126,18 +183,38 @@ export default function PortalNavbar({ user, onMenuClick }: PortalNavbarProps) {
                   className={"cursor-pointer"}
                   key={index}
                   onClick={action}
+                  disabled={navigationLoading === title}
                 >
-                  <Icon />
-                  {title}
+                  {navigationLoading === title ? (
+                    <>
+                      <Spinner />
+                      {title}...
+                    </>
+                  ) : (
+                    <>
+                      <Icon />
+                      {title}
+                    </>
+                  )}
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className={"cursor-pointer"}
                 onClick={handleLogout}
+                disabled={logoutLoading}
               >
-                <LogOut />
-                Log out
+                {logoutLoading ? (
+                  <>
+                    <Spinner />
+                    Logging out...
+                  </>
+                ) : (
+                  <>
+                    <LogOut />
+                    Log out
+                  </>
+                )}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

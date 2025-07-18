@@ -10,7 +10,7 @@ import { GraduationCap, Network, School, Megaphone } from "lucide-react";
 import { studentsAPI, studentListAtom } from "@/jotai/students/student";
 import { teachersAPI, teacherListAtom } from "@/jotai/teachers/teachers";
 import { getAllClassAtom } from "@/jotai/class/class";
-import { announcementsAPI, announcementListAtom } from "@/jotai/announcement/announcement";
+import { announcementsAPI, announcementListAtom, announcementErrorAtom, announcementLoadingAtom } from "@/jotai/announcement/announcement";
 
 interface AdminDashboardProps {
   user: User;
@@ -113,6 +113,8 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
 
   const [loading, setLoading] = useState(true);
   const [announcements] = useAtom(announcementListAtom);
+  const [announcementError] = useAtom(announcementErrorAtom);
+  const [announcementLoading] = useAtom(announcementLoadingAtom);
 
   const [students] = useAtom(studentListAtom);
   const [teachers] = useAtom(teacherListAtom);
@@ -122,20 +124,21 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   const [, getAllTeachers] = useAtom(teachersAPI.getAll);
   const [, getAllAnnouncements] = useAtom(announcementsAPI.getAll);
 
+  // Initial data fetching - only run once on mount
   useEffect(() => {
-    const fetchDashboardData = () => {
+    const fetchDashboardData = async () => {
       try {
         // TRIGGER ATOMS
         getAllStudents();
         getAllTeachers();
-        getAllAnnouncements();
 
-        setStats({
-          totalStudents: students?.students?.length ?? 0,
-          totalTeachers: teachers?.teachers?.length ?? 0,
-          totalClasses: Array.isArray(classes) ? classes.length : 0,
-          recentAnnouncements: Array.isArray(announcements) ? announcements.slice(0, 5).length : 0,
-        });
+        // Handle announcements separately with error handling
+        try {
+          await getAllAnnouncements();
+        } catch (error) {
+          console.error("Failed to fetch announcements:", error);
+          // Don't fail the entire dashboard if announcements fail
+        }
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
       } finally {
@@ -144,7 +147,17 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
     };
 
     fetchDashboardData();
-  }, [students, teachers, classes, announcements, getAllStudents, getAllTeachers, getAllAnnouncements]);
+  }, [getAllStudents, getAllTeachers, getAllAnnouncements]);
+
+  // Update stats when data changes
+  useEffect(() => {
+    setStats({
+      totalStudents: students?.students?.length ?? 0,
+      totalTeachers: teachers?.teachers?.length ?? 0,
+      totalClasses: Array.isArray(classes) ? classes.length : 0,
+      recentAnnouncements: announcementError ? 0 : (Array.isArray(announcements) ? announcements.slice(0, 5).length : 0),
+    });
+  }, [students, teachers, classes, announcements, announcementError]);
 
   if (loading) {
     return (
@@ -212,10 +225,32 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
             <Megaphone className="text-gray-500" />
           </CardHeader>
           <CardContent>
+            {announcementError ? (
+              <div className="space-y-1">
+                <div className="text-2xl font-bold text-red-500">⚠</div>
+                <p className="text-xs text-red-500">
+                  Error: {announcementError}
+                </p>
+                <button
+                  onClick={() => getAllAnnouncements()}
+                  className="text-xs text-blue-500 hover:text-blue-700 underline"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : announcementLoading ? (
+              <div className="space-y-1">
+                <div className="text-2xl font-bold text-blue-500">⏳</div>
+                <p className="text-xs text-blue-500">Loading...</p>
+              </div>
+            ) : (
+              <div className="space-y-1">
             <div className="text-2xl font-bold">
               {stats.recentAnnouncements}
             </div>
             <p className="text-xs text-muted-foreground">Recent posts</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

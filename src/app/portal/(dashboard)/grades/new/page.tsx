@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@radix-ui/themes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -431,7 +432,13 @@ export default function AddGradePage() {
               <Link href="/portal/grades">Cancel</Link>
             </Button>
             <Button type="submit" disabled={loading || gradedStudents === 0}>
-              {loading ? "Saving Grades..." : `Save ${gradedStudents} Grades`}
+              {loading ? (
+                <div className="flex flex-row gap-2 items-center">
+                  Saving Grades... <Spinner />
+                </div>
+              ) : (
+                `Save ${gradedStudents} Grades`
+              )}
             </Button>
           </div>
         )}

@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PersonAvatar } from "@/components/ui/person-avatar";
 
 export default function StudentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -73,7 +74,13 @@ export default function StudentsPage() {
           <Card key={student?.id} className="hover-scale">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>{student?.user?.name}</span>
+                <div className="flex items-center gap-3">
+                  <PersonAvatar 
+                    name={student?.user?.name || "Unknown Student"}
+                    size="md"
+                  />
+                  <span>{student?.user?.name}</span>
+                </div>
                 <Button asChild variant="outline" size="sm">
                   <Link href={`/portal/students/${student?.id}`}>View</Link>
                 </Button>

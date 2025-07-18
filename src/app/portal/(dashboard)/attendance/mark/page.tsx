@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAtom } from "jotai";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { attendanceAPI, classesAPI, studentsAPI, Class, Student } from "@/lib/api";
+import { attendanceAPI } from "@/jotai/attendance/attendance";
+import { getAllClassAtom } from "@/jotai/class/class";
+import { studentsAPI } from "@/jotai/students/student";
+import { Student } from "@/jotai/students/student-types";
 
 interface AttendanceRecord {
   studentId: number;
@@ -25,24 +29,11 @@ interface AttendanceRecord {
 export default function MarkAttendancePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [classes, setClasses] = useState<Class[]>([]);
+  const [classes] = useAtom(getAllClassAtom);
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
-  const [selectAll, setSelectAll] = useState(true);
-
-  useEffect(() => {
-    const fetchClasses = async () => {
-      try {
-        const classesData = await classesAPI.getAll();
-        setClasses(Array.isArray(classesData) ? classesData : []);
-      } catch (error) {
-        console.error("Failed to fetch classes:", error);
-      }
-    };
-    fetchClasses();
-  }, []);
 
   useEffect(() => {
     if (selectedClass) {
@@ -89,7 +80,6 @@ export default function MarkAttendancePage() {
   };
 
   const handleSelectAll = (present: boolean) => {
-    setSelectAll(present);
     setAttendanceRecords(prev => 
       prev.map(record => ({ ...record, present }))
     );
@@ -107,7 +97,6 @@ export default function MarkAttendancePage() {
     try {
       // Submit attendance for each student
       const attendancePromises = attendanceRecords.map(record => {
-        const student = students.find(s => s.id === record.studentId);
         return attendanceAPI.mark({
           studentId: record.studentId,
           classId: parseInt(selectedClass),

@@ -3,14 +3,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { 
-  Exam, 
-  examsAPI, 
-  Grade,
-  gradesAPI,
-  Student,
-  studentsAPI
-} from "@/lib/api";
+import { Exam } from "@/jotai/exams/exams-type";
+import { examsAPI } from "@/jotai/exams/exams";
+import { Grade } from "@/jotai/grades/grades-types";
+import { gradesAPI } from "@/jotai/grades/grades";
+import { Student } from "@/jotai/students/student-types";
+import { studentsAPI } from "@/jotai/students/student";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 

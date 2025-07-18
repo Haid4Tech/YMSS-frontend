@@ -1,15 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAtom } from "jotai";
 import Link from "next/link";
-import { 
-  attendanceAPI, 
-  studentsAPI, 
-  classesAPI,
-  Attendance, 
-  Student, 
-  Class 
-} from "@/lib/api";
+import { attendanceAPI, attendanceListAtom } from "@/jotai/attendance/attendance";
+import { studentsAPI, studentListAtom } from "@/jotai/students/student";
+import { getAllClassAtom } from "@/jotai/class/class";
+import { Class } from "@/jotai/class/class-type";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -31,26 +28,23 @@ import {
 } from "recharts";
 
 export default function AttendanceAnalyticsPage() {
-  const [attendance, setAttendance] = useState<Attendance[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [classes, setClasses] = useState<Class[]>([]);
+  const [attendanceData] = useAtom(attendanceListAtom);
+  const [studentsData] = useAtom(studentListAtom);
+  const [classes] = useAtom(getAllClassAtom);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedClass, setSelectedClass] = useState<string>("all");
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("month");
+
+  const [, getAllAttendance] = useAtom(attendanceAPI.getAll);
+  const [, getAllStudents] = useAtom(studentsAPI.getAll);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [attendanceData, studentsData, classesData] = await Promise.all([
-          attendanceAPI.getAll(),
-          studentsAPI.getAll(),
-          classesAPI.getAll()
+        await Promise.all([
+          getAllAttendance(),
+          getAllStudents(),
         ]);
-
-        setAttendance(Array.isArray(attendanceData) ? attendanceData : []);
-        setStudents(Array.isArray(studentsData?.students) ? studentsData.students : []);
-        setClasses(Array.isArray(classesData) ? classesData : []);
       } catch (error) {
         console.error("Failed to fetch attendance data:", error);
       } finally {
@@ -59,7 +53,11 @@ export default function AttendanceAnalyticsPage() {
     };
 
     fetchData();
-  }, []);
+  }, [getAllAttendance, getAllStudents]);
+
+  // Derive computed values from atoms
+  const attendance = Array.isArray(attendanceData) ? attendanceData : [];
+  const students = Array.isArray(studentsData?.students) ? studentsData.students : [];
 
   // Filter attendance data based on selected class
   const filteredAttendance = selectedClass === "all" 
@@ -123,7 +121,7 @@ export default function AttendanceAnalyticsPage() {
   }));
 
   // Class-wise attendance comparison
-  const classWiseData = classes.map(cls => {
+  const classWiseData = classes.map((cls: Class) => {
     const classAttendance = attendance.filter(a => a.student?.classId === cls.id);
     const presentCount = classAttendance.filter(a => a.present).length;
     const rate = classAttendance.length > 0 ? (presentCount / classAttendance.length * 100) : 0;
@@ -206,7 +204,7 @@ export default function AttendanceAnalyticsPage() {
             className="px-3 py-2 border rounded-md"
           >
             <option value="all">All Classes</option>
-            {classes.map(cls => (
+            {classes.map((cls: Class) => (
               <option key={cls.id} value={cls.id.toString()}>{cls.name}</option>
             ))}
           </select>
@@ -448,7 +446,7 @@ export default function AttendanceAnalyticsPage() {
                 </ResponsiveContainer>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {classWiseData.map((classData) => (
+                  {classWiseData.map((classData: { className: string; attendanceRate: string; totalRecords: number; presentCount: number }) => (
                     <div key={classData.className} className="p-4 border rounded-lg">
                       <h3 className="font-medium text-lg mb-2">{classData.className}</h3>
                       <div className="space-y-2">
@@ -471,7 +469,7 @@ export default function AttendanceAnalyticsPage() {
                           <span className="font-medium text-green-600">{classData.presentCount}</span>
                         </div>
                         <Button asChild variant="outline" size="sm" className="w-full mt-2">
-                          <Link href={`/portal/classes/${classes.find(c => c.name === classData.className)?.id}`}>
+                          <Link href={`/portal/classes/${classes.find((c: Class) => c.name === classData.className)?.id}`}>
                             View Class Details
                           </Link>
                         </Button>

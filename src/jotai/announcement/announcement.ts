@@ -26,7 +26,10 @@ export const announcementsAPI = {
       set(announcementListAtom, response.data);
       return response.data;
     } catch (error: any) {
-      set(announcementErrorAtom, error.message || "Failed to fetch announcements");
+      const errorMessage = error.response?.data?.message || error.message || "Failed to fetch announcements";
+      set(announcementErrorAtom, errorMessage);
+      console.error("Announcements API Error:", error);
+      throw error; // Re-throw to allow handling in components
     } finally {
       set(announcementLoadingAtom, false);
     }

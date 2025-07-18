@@ -13,6 +13,7 @@ import { examsAPI, enhancedExamsAPI } from "@/jotai/exams/exams";
 import { Exam } from "@/jotai/exams/exams-type";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PersonAvatar } from "@/components/ui/person-avatar";
 import { 
   BarChart,
   Bar,
@@ -108,10 +109,12 @@ export default function TeacherDetailPage() {
     );
   }
 
-  if (!teacher) {
+  if (!teacher || !teacher.user) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Teacher not found</p>
+        <p className="text-muted-foreground">
+          {!teacher ? "Teacher not found" : "Teacher data incomplete"}
+        </p>
         <Button asChild className="mt-4">
           <Link href="/portal/teachers">Back to Teachers</Link>
         </Button>
@@ -127,8 +130,12 @@ export default function TeacherDetailPage() {
           <Button variant="outline" asChild>
             <Link href="/portal/teachers">← Back</Link>
           </Button>
+          <PersonAvatar 
+            name={teacher?.user?.name || "Unknown Teacher"}
+            size="xl"
+          />
           <div>
-            <h1 className="text-3xl font-bold">{teacher.user.name}</h1>
+            <h1 className="text-3xl font-bold">{teacher?.user?.name || "Unknown Teacher"}</h1>
             <p className="text-muted-foreground">Teacher Profile</p>
           </div>
         </div>
