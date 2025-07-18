@@ -8,10 +8,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAtom } from "jotai";
-import { logoutTriggerAtom } from "@/jotai/auth/auth";
+import { authAPI } from "@/jotai/auth/auth";
 
 const UserProfile = () => {
-  const [, logOutTrigger] = useAtom(logoutTriggerAtom);
+  const [, logOutTrigger] = useAtom(authAPI.logout);
 
   return (
     <DropdownMenu>

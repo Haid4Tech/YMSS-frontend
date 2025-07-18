@@ -27,7 +27,10 @@ export default function MenuBar({ view }: IMenuBar) {
   const [result] = useAtom(authPersistedAtom);
   const pathName = usePathname();
 
-  const pathResult = isPathMatch(pathName, ["/admin/signin", "/admin/signup"]);
+  const pathResult = isPathMatch(pathName, [
+    "/portal/signin",
+    "/portal/signup",
+  ]);
 
   const handleDashboardRedirect = () => {
     setLoadingStates((prev) => ({
@@ -56,7 +59,7 @@ export default function MenuBar({ view }: IMenuBar) {
       isAuthLoading: true,
     }));
 
-    router.push("/admin/signin");
+    router.push("/portal/signin");
 
     setTimeout(() => {
       setLoadingStates((prev) => ({
@@ -81,7 +84,7 @@ export default function MenuBar({ view }: IMenuBar) {
         >
           {navItem.map((items, index) => (
             <Link
-              className="text-base hover:text-purple-800"
+              className="text-sm hover:text-purple-800"
               href={items.url}
               key={index}
             >

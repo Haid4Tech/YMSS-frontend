@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axiosInstance from "@/utils/axios-instance";
 import { atom } from "jotai";
 import { loadable } from "jotai/utils";
+
+import { Class } from "./class-type";
 
 const url = process.env.NEXT_PUBLIC_API_URL;
 
@@ -47,3 +50,53 @@ export const deleteClassAtom = atom(
     }
   }
 );
+
+// State atoms for consistent pattern
+export const classListAtom = atom<Array<Class> | null>(null);
+export const classLoadingAtom = atom<boolean>(false);
+export const classErrorAtom = atom<string | null>(null);
+
+export const classesAPI = {
+  getAll: atom(null, async (_get, set) => {
+    set(classLoadingAtom, true);
+    set(classErrorAtom, null);
+
+    try {
+      const response = await axiosInstance.get("/classes");
+      set(classListAtom, response.data);
+      return response.data;
+    } catch (error: any) {
+      set(classErrorAtom, error.message || "Failed to fetch classes");
+    } finally {
+      set(classLoadingAtom, false);
+    }
+  }),
+
+  getById: async (id: number): Promise<Class> => {
+    const response = await axiosInstance.get(`/classes/${id}`);
+    return response.data;
+  },
+
+  create: async (data: any) => {
+    const response = await axiosInstance.post("/classes", data);
+    return response.data;
+  },
+
+  update: async (id: number, data: any) => {
+    const response = await axiosInstance.patch(`/classes/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: number) => {
+    const response = await axiosInstance.delete(`/classes/${id}`);
+    return response.data;
+  },
+};
+
+export const enhancedClassesAPI = {
+  ...classesAPI,
+  getById: async (id: number): Promise<Class> => {
+    const response = await axiosInstance.get(`/classes/${id}`);
+    return response.data;
+  },
+};
