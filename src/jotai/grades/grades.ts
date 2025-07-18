@@ -42,15 +42,15 @@ export const gradesAPI = {
     return response.data;
   }),
 
-  getByExam: atom(async (examId: number): Promise<Grade[]> => {
+  getByExam: async (examId: number): Promise<Grade[]> => {
     const response = await axiosInstance.get(`/grades/exam/${examId}`);
     return response.data;
-  }),
+  },
 
-  assign: atom(async (data: any) => {
+  assign: async (data: any) => {
     const response = await axiosInstance.post("/grades", data);
     return response.data;
-  }),
+  },
 
   update: atom(async (id: number, data: any) => {
     const response = await axiosInstance.patch(`/grades/${id}`, data);

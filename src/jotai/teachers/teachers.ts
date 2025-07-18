@@ -5,9 +5,9 @@ import { atom } from "jotai";
 
 /*
   |--------------------------------------------------------------------------
-  | GET ALL STUDENT DATA - JOTAI
+  | GET ALL TEACHER DATA - JOTAI
   |--------------------------------------------------------------------------
-  | Consuming apis to get student data
+  | Consuming apis to get teacher data
   |
 */
 export const teacherListAtom = atom<TeachersResponse | null>(null);
@@ -25,28 +25,28 @@ export const teachersAPI = {
       set(teacherListAtom, response.data);
       return response.data;
     } catch (error: any) {
-      set(teacherErrorAtom, error.message || "Failed to fetch students");
+      set(teacherErrorAtom, error.message || "Failed to fetch teachers");
     } finally {
       set(teachersLoadingAtom, false);
     }
   }),
 
-  getById: async (id: number): Promise<any> => {
+  getById: async (id: number): Promise<Teacher> => {
     const response = await axiosInstance.get(`/teachers/${id}`);
     return response.data;
   },
 
-  create: async (data: any) => {
+  create: async (data: Partial<Teacher>): Promise<Teacher> => {
     const response = await axiosInstance.post("/teachers", data);
     return response.data;
   },
 
-  update: async (id: number, data: any) => {
+  update: async (id: number, data: Partial<Teacher>): Promise<Teacher> => {
     const response = await axiosInstance.patch(`/teachers/${id}`, data);
     return response.data;
   },
 
-  delete: async (id: number) => {
+  delete: async (id: number): Promise<void> => {
     const response = await axiosInstance.delete(`/teachers/${id}`);
     return response.data;
   },

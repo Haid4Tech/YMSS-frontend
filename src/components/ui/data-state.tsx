@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import Link from "next/link";
 import { Button } from "./button";
@@ -22,7 +23,7 @@ export function DataState({
   backUrl = "/portal",
   backLabel = "Go back",
   onRetry,
-  children
+  children,
 }: DataStateProps) {
   // Loading state
   if (loading) {
@@ -74,7 +75,8 @@ export function DataState({
         <div className="space-y-2">
           <h3 className="text-lg font-semibold">{dataName} not found</h3>
           <p className="text-muted-foreground">
-            The {dataName.toLowerCase()} you&apos;re looking for doesn&apos;t exist or has been removed.
+            The {dataName.toLowerCase()} you&apos;re looking for doesn&apos;t
+            exist or has been removed.
           </p>
         </div>
         <Button asChild>
@@ -93,16 +95,16 @@ export function DataState({
 
 // Utility function for safe property access
 export function safeProp<T>(obj: any, path: string, defaultValue: T): T {
-  const keys = path.split('.');
+  const keys = path.split(".");
   let current = obj;
-  
+
   for (const key of keys) {
     if (current === null || current === undefined || !(key in current)) {
       return defaultValue;
     }
     current = current[key];
   }
-  
+
   return current !== null && current !== undefined ? current : defaultValue;
 }
 
@@ -137,6 +139,6 @@ export function useAsyncData<T>(
     data,
     loading,
     error,
-    retry: fetchData
+    retry: fetchData,
   };
-} 
+}

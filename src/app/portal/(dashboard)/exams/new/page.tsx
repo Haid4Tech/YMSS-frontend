@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -27,7 +27,10 @@ export default function AddExamPage() {
   const [loading, setLoading] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
-  
+
+  const [, getAllSubjects] = useAtom(subjectsAPI.getAll);
+  const [, getAllClasses] = useAtom(classesAPI.getAll);
+
   const [formData, setFormData] = useState({
     title: "",
     subjectId: "",
@@ -43,15 +46,15 @@ export default function AddExamPage() {
     roomNumber: "",
     supervisor: "",
     materials: "",
-    gradingCriteria: ""
+    gradingCriteria: "",
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [subjectsData, classesData] = await Promise.all([
-          subjectsAPI.getAll(),
-          classesAPI.getAll()
+          getAllSubjects(),
+          getAllClasses(),
         ]);
         setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
         setClasses(Array.isArray(classesData) ? classesData : []);
@@ -60,10 +63,10 @@ export default function AddExamPage() {
       }
     };
     fetchData();
-  }, []);
+  }, [getAllClasses, getAllSubjects]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -86,7 +89,7 @@ export default function AddExamPage() {
         roomNumber: formData.roomNumber,
         supervisor: formData.supervisor,
         materials: formData.materials,
-        gradingCriteria: formData.gradingCriteria
+        gradingCriteria: formData.gradingCriteria,
       };
 
       await examsAPI.create(examData);
@@ -109,7 +112,9 @@ export default function AddExamPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold">Schedule New Exam</h1>
-            <p className="text-muted-foreground">Create and schedule an examination</p>
+            <p className="text-muted-foreground">
+              Create and schedule an examination
+            </p>
           </div>
         </div>
       </div>
@@ -134,13 +139,21 @@ export default function AddExamPage() {
               </div>
               <div>
                 <Label htmlFor="subjectId">Subject *</Label>
-                <Select value={formData.subjectId} onValueChange={(value) => handleInputChange("subjectId", value)}>
+                <Select
+                  value={formData.subjectId}
+                  onValueChange={(value) =>
+                    handleInputChange("subjectId", value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select subject" />
                   </SelectTrigger>
                   <SelectContent>
                     {subjects.map((subject) => (
-                      <SelectItem key={subject.id} value={subject.id.toString()}>
+                      <SelectItem
+                        key={subject.id}
+                        value={subject.id.toString()}
+                      >
                         {subject.name} ({subject.code})
                       </SelectItem>
                     ))}
@@ -149,7 +162,10 @@ export default function AddExamPage() {
               </div>
               <div>
                 <Label htmlFor="classId">Class</Label>
-                <Select value={formData.classId} onValueChange={(value) => handleInputChange("classId", value)}>
+                <Select
+                  value={formData.classId}
+                  onValueChange={(value) => handleInputChange("classId", value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select class" />
                   </SelectTrigger>
@@ -165,7 +181,12 @@ export default function AddExamPage() {
               </div>
               <div>
                 <Label htmlFor="examType">Exam Type *</Label>
-                <Select value={formData.examType} onValueChange={(value) => handleInputChange("examType", value)}>
+                <Select
+                  value={formData.examType}
+                  onValueChange={(value) =>
+                    handleInputChange("examType", value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select exam type" />
                   </SelectTrigger>
@@ -196,7 +217,9 @@ export default function AddExamPage() {
                   id="startTime"
                   type="time"
                   value={formData.startTime}
-                  onChange={(e) => handleInputChange("startTime", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("startTime", e.target.value)
+                  }
                   required
                 />
               </div>
@@ -206,7 +229,9 @@ export default function AddExamPage() {
                   id="duration"
                   type="number"
                   value={formData.duration}
-                  onChange={(e) => handleInputChange("duration", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("duration", e.target.value)
+                  }
                   min="15"
                   max="480"
                   required
@@ -218,7 +243,9 @@ export default function AddExamPage() {
                   id="totalMarks"
                   type="number"
                   value={formData.totalMarks}
-                  onChange={(e) => handleInputChange("totalMarks", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("totalMarks", e.target.value)
+                  }
                   min="1"
                   max="1000"
                   required
@@ -230,7 +257,9 @@ export default function AddExamPage() {
                   id="passingMarks"
                   type="number"
                   value={formData.passingMarks}
-                  onChange={(e) => handleInputChange("passingMarks", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("passingMarks", e.target.value)
+                  }
                   min="1"
                   max={formData.totalMarks || "1000"}
                   required
@@ -241,7 +270,9 @@ export default function AddExamPage() {
                 <Input
                   id="roomNumber"
                   value={formData.roomNumber}
-                  onChange={(e) => handleInputChange("roomNumber", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("roomNumber", e.target.value)
+                  }
                   placeholder="e.g., Room 101, Lab A, Auditorium"
                 />
               </div>
@@ -250,7 +281,9 @@ export default function AddExamPage() {
                 <Input
                   id="supervisor"
                   value={formData.supervisor}
-                  onChange={(e) => handleInputChange("supervisor", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("supervisor", e.target.value)
+                  }
                   placeholder="Name of supervising teacher"
                 />
               </div>
@@ -269,7 +302,9 @@ export default function AddExamPage() {
               <Textarea
                 id="syllabusTopics"
                 value={formData.syllabusTopics}
-                onChange={(e) => handleInputChange("syllabusTopics", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("syllabusTopics", e.target.value)
+                }
                 placeholder="List the topics/chapters covered in this exam"
               />
             </div>
@@ -278,7 +313,9 @@ export default function AddExamPage() {
               <Textarea
                 id="instructions"
                 value={formData.instructions}
-                onChange={(e) => handleInputChange("instructions", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("instructions", e.target.value)
+                }
                 placeholder="Special instructions for students (e.g., calculator allowed, open book, etc.)"
               />
             </div>
@@ -296,7 +333,9 @@ export default function AddExamPage() {
               <Textarea
                 id="gradingCriteria"
                 value={formData.gradingCriteria}
-                onChange={(e) => handleInputChange("gradingCriteria", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("gradingCriteria", e.target.value)
+                }
                 placeholder="Describe how the exam will be graded and weighted"
               />
             </div>
@@ -311,14 +350,40 @@ export default function AddExamPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div className="space-y-2">
-                <p><span className="font-medium">Subject:</span> {subjects.find(s => s.id.toString() === formData.subjectId)?.name || "Not selected"}</p>
-                <p><span className="font-medium">Date & Time:</span> {formData.date} at {formData.startTime}</p>
-                <p><span className="font-medium">Duration:</span> {formData.duration} minutes</p>
+                <p>
+                  <span className="font-medium">Subject:</span>{" "}
+                  {subjects.find((s) => s.id.toString() === formData.subjectId)
+                    ?.name || "Not selected"}
+                </p>
+                <p>
+                  <span className="font-medium">Date & Time:</span>{" "}
+                  {formData.date} at {formData.startTime}
+                </p>
+                <p>
+                  <span className="font-medium">Duration:</span>{" "}
+                  {formData.duration} minutes
+                </p>
               </div>
               <div className="space-y-2">
-                <p><span className="font-medium">Total Marks:</span> {formData.totalMarks}</p>
-                <p><span className="font-medium">Passing Marks:</span> {formData.passingMarks}</p>
-                <p><span className="font-medium">Pass Percentage:</span> {formData.totalMarks && formData.passingMarks ? ((parseInt(formData.passingMarks) / parseInt(formData.totalMarks)) * 100).toFixed(1) : 0}%</p>
+                <p>
+                  <span className="font-medium">Total Marks:</span>{" "}
+                  {formData.totalMarks}
+                </p>
+                <p>
+                  <span className="font-medium">Passing Marks:</span>{" "}
+                  {formData.passingMarks}
+                </p>
+                <p>
+                  <span className="font-medium">Pass Percentage:</span>{" "}
+                  {formData.totalMarks && formData.passingMarks
+                    ? (
+                        (parseInt(formData.passingMarks) /
+                          parseInt(formData.totalMarks)) *
+                        100
+                      ).toFixed(1)
+                    : 0}
+                  %
+                </p>
               </div>
             </div>
           </CardContent>
@@ -336,4 +401,4 @@ export default function AddExamPage() {
       </form>
     </div>
   );
-} 
+}

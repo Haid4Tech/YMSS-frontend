@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import Link from "next/link";
 import { parentsAPI, parentListAtom, parentLoadingAtom, parentErrorAtom } from "@/jotai/parent/parent";
-import { Parent } from "@/jotai/parent/parent-types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

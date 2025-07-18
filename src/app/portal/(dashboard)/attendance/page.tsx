@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAtom } from "jotai";
 import Link from "next/link";
 import { attendanceAPI } from "@/jotai/attendance/attendance";
 import { Attendance } from "@/jotai/attendance/attendance-type";
@@ -13,10 +14,12 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [, getAllAttendance] = useAtom(attendanceAPI.getAll);
+
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const data = await attendanceAPI.getAll();
+        const data = await getAllAttendance();
         setAttendance(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch attendance:", error);
@@ -27,17 +30,13 @@ export default function AttendancePage() {
     };
 
     fetchAttendance();
-  }, []);
+  }, [getAllAttendance]);
 
   const filteredAttendance = Array.isArray(attendance)
-    ? attendance.filter(
-        (record) =>
-          record?.student?.user?.name
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          record?.lesson?.title
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase())
+    ? attendance.filter((record) =>
+        record?.student?.user?.name
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase())
       )
     : [];
 
@@ -90,19 +89,23 @@ export default function AttendancePage() {
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Lesson:</span>{" "}
-                  {record?.lesson?.title || "Not specified"}
+                  {/* {record?.lesson?.title || "Not specified"} */}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Date:</span>{" "}
-                  {record?.date ? new Date(record.date).toLocaleDateString() : "Not set"}
+                  {record?.date
+                    ? new Date(record.date).toLocaleDateString()
+                    : "Not set"}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Status:</span>{" "}
-                  <span className={`font-bold px-2 py-1 rounded-full text-xs ${
-                    record?.present 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
+                  <span
+                    className={`font-bold px-2 py-1 rounded-full text-xs ${
+                      record?.present
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
                     {record?.present ? "Present" : "Absent"}
                   </span>
                 </p>
@@ -133,4 +136,4 @@ export default function AttendancePage() {
       )}
     </div>
   );
-} 
+}

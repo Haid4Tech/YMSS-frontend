@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,7 +8,7 @@ import { userAtom } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -15,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ErrorBoundary, safeGet } from "@/components/ui/safe-render";
-import { 
+import {
   Settings as SettingsIcon,
   Bell,
   Shield,
@@ -23,7 +24,7 @@ import {
   Monitor,
   Save,
   Moon,
-  Sun
+  Sun,
 } from "lucide-react";
 
 interface SettingsData {
@@ -50,7 +51,7 @@ export default function SettingsPage() {
   const [user] = useAtom(userAtom);
   const [isLoading, setIsLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  
+
   const [settings, setSettings] = useState<SettingsData>({
     notifications: {
       email: true,
@@ -76,10 +77,9 @@ export default function SettingsPage() {
       try {
         // Simulate API call
         console.log("Loading user settings...");
-        
+
         // For now, use default settings
         // In the future, this will load from the database
-        
       } catch (error) {
         console.error("Failed to load settings:", error);
       }
@@ -90,8 +90,12 @@ export default function SettingsPage() {
     }
   }, [user]);
 
-  const updateSetting = (category: keyof SettingsData, key: string, value: any) => {
-    setSettings(prev => ({
+  const updateSetting = (
+    category: keyof SettingsData,
+    key: string,
+    value: any
+  ) => {
+    setSettings((prev) => ({
       ...prev,
       [category]: {
         ...prev[category],
@@ -104,18 +108,17 @@ export default function SettingsPage() {
   const handleSave = async () => {
     try {
       setIsLoading(true);
-      
+
       // TODO: Implement settings save API call
       console.log("Saving settings:", settings);
-      
+
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       setHasChanges(false);
-      
+
       // TODO: Show success message
       alert("Settings saved successfully!");
-      
     } catch (error) {
       console.error("Failed to save settings:", error);
       alert("Failed to save settings. Please try again.");
@@ -169,17 +172,14 @@ export default function SettingsPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={resetToDefaults}
               disabled={isLoading}
             >
               Reset to Defaults
             </Button>
-            <Button 
-              onClick={handleSave}
-              disabled={!hasChanges || isLoading}
-            >
+            <Button onClick={handleSave} disabled={!hasChanges || isLoading}>
               <Save className="h-4 w-4 mr-2" />
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>
@@ -206,7 +206,9 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={settings.notifications.email}
-                  onChange={(e) => updateSetting("notifications", "email", e.target.checked)}
+                  onChange={(e) =>
+                    updateSetting("notifications", "email", e.target.checked)
+                  }
                   className="toggle"
                 />
               </div>
@@ -221,7 +223,9 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={settings.notifications.push}
-                  onChange={(e) => updateSetting("notifications", "push", e.target.checked)}
+                  onChange={(e) =>
+                    updateSetting("notifications", "push", e.target.checked)
+                  }
                   className="toggle"
                 />
               </div>
@@ -236,7 +240,13 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={settings.notifications.announcements}
-                  onChange={(e) => updateSetting("notifications", "announcements", e.target.checked)}
+                  onChange={(e) =>
+                    updateSetting(
+                      "notifications",
+                      "announcements",
+                      e.target.checked
+                    )
+                  }
                   className="toggle"
                 />
               </div>
@@ -251,7 +261,9 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={settings.notifications.grades}
-                  onChange={(e) => updateSetting("notifications", "grades", e.target.checked)}
+                  onChange={(e) =>
+                    updateSetting("notifications", "grades", e.target.checked)
+                  }
                   className="toggle"
                 />
               </div>
@@ -266,7 +278,13 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={settings.notifications.attendance}
-                  onChange={(e) => updateSetting("notifications", "attendance", e.target.checked)}
+                  onChange={(e) =>
+                    updateSetting(
+                      "notifications",
+                      "attendance",
+                      e.target.checked
+                    )
+                  }
                   className="toggle"
                 />
               </div>
@@ -286,7 +304,9 @@ export default function SettingsPage() {
                 <Label>Theme</Label>
                 <Select
                   value={settings.appearance.theme}
-                  onValueChange={(value) => updateSetting("appearance", "theme", value)}
+                  onValueChange={(value) =>
+                    updateSetting("appearance", "theme", value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -318,15 +338,21 @@ export default function SettingsPage() {
                 <Label>Language</Label>
                 <Select
                   value={settings.appearance.language}
-                  onValueChange={(value) => updateSetting("appearance", "language", value)}
+                  onValueChange={(value) =>
+                    updateSetting("appearance", "language", value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="es" disabled>Spanish (Coming Soon)</SelectItem>
-                    <SelectItem value="fr" disabled>French (Coming Soon)</SelectItem>
+                    <SelectItem value="es" disabled>
+                      Spanish (Coming Soon)
+                    </SelectItem>
+                    <SelectItem value="fr" disabled>
+                      French (Coming Soon)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -335,17 +361,29 @@ export default function SettingsPage() {
                 <Label>Timezone</Label>
                 <Select
                   value={settings.appearance.timezone}
-                  onValueChange={(value) => updateSetting("appearance", "timezone", value)}
+                  onValueChange={(value) =>
+                    updateSetting("appearance", "timezone", value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="UTC">UTC (Coordinated Universal Time)</SelectItem>
-                    <SelectItem value="EST">EST (Eastern Standard Time)</SelectItem>
-                    <SelectItem value="PST">PST (Pacific Standard Time)</SelectItem>
-                    <SelectItem value="CST">CST (Central Standard Time)</SelectItem>
-                    <SelectItem value="MST">MST (Mountain Standard Time)</SelectItem>
+                    <SelectItem value="UTC">
+                      UTC (Coordinated Universal Time)
+                    </SelectItem>
+                    <SelectItem value="EST">
+                      EST (Eastern Standard Time)
+                    </SelectItem>
+                    <SelectItem value="PST">
+                      PST (Pacific Standard Time)
+                    </SelectItem>
+                    <SelectItem value="CST">
+                      CST (Central Standard Time)
+                    </SelectItem>
+                    <SelectItem value="MST">
+                      MST (Mountain Standard Time)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -365,16 +403,26 @@ export default function SettingsPage() {
                 <Label>Profile Visibility</Label>
                 <Select
                   value={settings.privacy.profileVisibility}
-                  onValueChange={(value) => updateSetting("privacy", "profileVisibility", value)}
+                  onValueChange={(value) =>
+                    updateSetting("privacy", "profileVisibility", value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="public">Public - Everyone can see</SelectItem>
-                    <SelectItem value="school">School Only - School members only</SelectItem>
-                    <SelectItem value="teachers">Teachers Only - Teachers and admin</SelectItem>
-                    <SelectItem value="private">Private - Only you and admin</SelectItem>
+                    <SelectItem value="public">
+                      Public - Everyone can see
+                    </SelectItem>
+                    <SelectItem value="school">
+                      School Only - School members only
+                    </SelectItem>
+                    <SelectItem value="teachers">
+                      Teachers Only - Teachers and admin
+                    </SelectItem>
+                    <SelectItem value="private">
+                      Private - Only you and admin
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -383,7 +431,9 @@ export default function SettingsPage() {
                 <Label>Contact Information Visibility</Label>
                 <Select
                   value={settings.privacy.contactInfo}
-                  onValueChange={(value) => updateSetting("privacy", "contactInfo", value)}
+                  onValueChange={(value) =>
+                    updateSetting("privacy", "contactInfo", value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -411,7 +461,8 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Current User</Label>
                 <p className="text-sm p-2 bg-muted rounded-md">
-                  {safeGet(user, "name", "Unknown User")} ({safeGet(user, "role", "User")})
+                  {safeGet(user, "name", "Unknown User")} (
+                  {safeGet(user, "role", "User")})
                 </p>
               </div>
 
@@ -423,19 +474,19 @@ export default function SettingsPage() {
               </div>
 
               <div className="pt-4 border-t space-y-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full"
                   onClick={() => router.push("/portal/profile")}
                 >
                   Edit Profile
                 </Button>
-                
+
                 {/* TODO: Implement these features */}
                 <Button variant="outline" className="w-full" disabled>
                   Change Password
                 </Button>
-                
+
                 <Button variant="outline" className="w-full" disabled>
                   Two-Factor Authentication
                 </Button>
@@ -452,33 +503,35 @@ export default function SettingsPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground">
               <div>
-                <h4 className="font-medium text-foreground mb-2">Notifications</h4>
+                <h4 className="font-medium text-foreground mb-2">
+                  Notifications
+                </h4>
                 <p>
-                  Control how and when you receive updates about school activities, 
-                  grades, and important announcements.
+                  Control how and when you receive updates about school
+                  activities, grades, and important announcements.
                 </p>
               </div>
-              
+
               <div>
                 <h4 className="font-medium text-foreground mb-2">Privacy</h4>
                 <p>
-                  Manage who can see your profile information and contact details 
-                  within the school portal system.
+                  Manage who can see your profile information and contact
+                  details within the school portal system.
                 </p>
               </div>
-              
+
               <div>
                 <h4 className="font-medium text-foreground mb-2">Appearance</h4>
                 <p>
-                  Customize how the portal looks and feels. Theme changes apply 
+                  Customize how the portal looks and feels. Theme changes apply
                   immediately and are saved to your account.
                 </p>
               </div>
-              
+
               <div>
                 <h4 className="font-medium text-foreground mb-2">Account</h4>
                 <p>
-                  Basic account information and security settings. Contact your 
+                  Basic account information and security settings. Contact your
                   administrator for role or permission changes.
                 </p>
               </div>
@@ -493,7 +546,8 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
                 <SettingsIcon className="h-4 w-4" />
                 <p className="text-sm">
-                  You have unsaved changes. Click &quot;Save Changes&quot; to apply your settings.
+                  You have unsaved changes. Click &quot;Save Changes&quot; to
+                  apply your settings.
                 </p>
               </div>
             </CardContent>
@@ -502,4 +556,4 @@ export default function SettingsPage() {
       </div>
     </ErrorBoundary>
   );
-} 
+}

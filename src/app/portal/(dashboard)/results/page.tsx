@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import Link from "next/link";
-import { gradesAPI, gradeListAtom, gradeLoadingAtom, gradeErrorAtom } from "@/jotai/grades/grades";
-import { Grade } from "@/jotai/grades/grades-types";
+import { gradesAPI, gradeListAtom, gradeLoadingAtom } from "@/jotai/grades/grades";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +12,6 @@ export default function ResultsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [grades] = useAtom(gradeListAtom);
   const [loading] = useAtom(gradeLoadingAtom);
-  const [error] = useAtom(gradeErrorAtom);
   const [, getAllGrades] = useAtom(gradesAPI.getAll);
 
   useEffect(() => {
@@ -93,8 +91,8 @@ export default function ResultsPage() {
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Score:</span>{" "}
                   <span className={`font-bold ${
-                    grade?.marks >= 80 ? 'text-green-600' : 
-                    grade?.marks >= 60 ? 'text-yellow-600' : 'text-red-600'
+                    (grade?.marks || 0) >= 80 ? 'text-green-600' : 
+                    (grade?.marks || 0) >= 60 ? 'text-yellow-600' : 'text-red-600'
                   }`}>
                     {grade?.marks || 0}/{grade?.exam?.totalMarks || 100}
                   </span>

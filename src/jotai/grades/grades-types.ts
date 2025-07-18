@@ -9,4 +9,18 @@ export interface Grade {
   date: string;
   student: Student;
   exam: Exam;
+
+  // Additional fields used in the application
+  grade?: string;
+  marks?: number; // Same as value, but some code uses marks
+  totalMarks?: number;
+  percentage?: number;
+  letterGrade?: string; // A, B, C, D, F
+  comments?: string;
+  teacherComments?: string;
+  isPublished?: boolean;
+  gradedBy?: number; // Teacher ID
+  gradedAt?: string;
+  subjectId?: number;
+  classId?: number;
 }

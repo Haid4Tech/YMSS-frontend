@@ -10,4 +10,15 @@ export interface Exam {
   class: Class;
   subject: Subject;
   createdAt: string;
+  
+  // Additional fields used in the application
+  totalMarks?: number;
+  duration?: number; // in minutes
+  description?: string;
+  instructions?: string;
+  startTime?: string;
+  endTime?: string;
+  examType?: string; // 'quiz', 'midterm', 'final', etc.
+  passingMarks?: number;
+  isPublished?: boolean;
 }

@@ -48,6 +48,11 @@ export const studentsAPI = {
     const response = await axiosInstance.delete(`/students/${id}`);
     return response.data;
   },
+
+  getByClass: async (classId: number): Promise<Student[]> => {
+    const response = await axiosInstance.get(`/students?classId=${classId}`);
+    return response.data;
+  },
 };
 
 // Enhanced API methods for detail pages
@@ -55,6 +60,10 @@ export const enhancedStudentsAPI = {
   ...studentsAPI,
   getById: async (id: number): Promise<Student> => {
     const response = await axiosInstance.get(`/students/${id}`);
+    return response.data;
+  },
+  getByClass: async (classId: number): Promise<Student[]> => {
+    const response = await axiosInstance.get(`/students?classId=${classId}`);
     return response.data;
   },
 };

@@ -48,10 +48,10 @@ export default function SignIn() {
           router.push("/portal/dashboard");
         }
         if (response?.user?.role === "TEACHER") {
-          router.push("/portal/teacher");
+          router.push("/portal/teachers");
         }
         if (response?.user?.role === "PARENT") {
-          router.push("/portal/parent");
+          router.push("/portal/parents");
         }
       }
     } catch (error: any) {

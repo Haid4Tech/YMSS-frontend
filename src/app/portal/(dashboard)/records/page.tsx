@@ -3,8 +3,12 @@
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import Link from "next/link";
-import { recordsAPI, recordListAtom, recordLoadingAtom, recordErrorAtom } from "@/jotai/record/record";
-import { AcademicRecord } from "@/jotai/record/record-types";
+import {
+  recordsAPI,
+  recordListAtom,
+  recordLoadingAtom,
+  recordErrorAtom,
+} from "@/jotai/record/record";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,9 +30,7 @@ export default function RecordsPage() {
           record?.student?.user?.name
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          record?.summary
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase())
+          record?.summary?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : [];
 
@@ -132,4 +134,4 @@ export default function RecordsPage() {
       )}
     </div>
   );
-} 
+}

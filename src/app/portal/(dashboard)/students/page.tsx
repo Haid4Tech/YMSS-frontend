@@ -75,7 +75,7 @@ export default function StudentsPage() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <PersonAvatar 
+                  <PersonAvatar
                     name={student?.user?.name || "Unknown Student"}
                     size="md"
                   />

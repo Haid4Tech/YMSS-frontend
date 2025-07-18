@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@radix-ui/themes";
 import { Input } from "@/components/ui/input";
 import { PersonAvatar } from "@/components/ui/person-avatar";
+import { SafeRender } from "@/components/ui/safe-render";
 
 export default function TeachersPage() {
   const router = useRouter();
@@ -39,7 +40,8 @@ export default function TeachersPage() {
     return teachers.teachers.filter((teacher) => {
       const name = teacher.user?.name?.toLowerCase() || "";
       const email = teacher.user?.email?.toLowerCase() || "";
-      return name.includes(term) || email.includes(term);
+      const employeeId = teacher.employeeId?.toLowerCase() || "";
+      return name.includes(term) || email.includes(term) || employeeId.includes(term);
     });
   }, [searchTerm, teachers]);
 
@@ -93,7 +95,7 @@ export default function TeachersPage() {
 
       {/* Search */}
       <Input
-        placeholder="Search teachers by name or email..."
+        placeholder="Search teachers by name, email, or employee ID..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="max-w-sm"
@@ -110,7 +112,11 @@ export default function TeachersPage() {
                     name={teacher.user?.name || "Unnamed Teacher"}
                     size="md"
                   />
-                  <span>{teacher.user?.name || "Unnamed Teacher"}</span>
+                  <span>
+                    <SafeRender fallback="Unnamed Teacher">
+                      {teacher.user?.name}
+                    </SafeRender>
+                  </span>
                 </div>
                 <Button asChild variant="outline" size="sm">
                   <Link href={`/portal/teachers/${teacher.id}`}>View</Link>
@@ -121,16 +127,27 @@ export default function TeachersPage() {
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>
                   <span className="font-medium">Email:</span>{" "}
-                  {teacher.user?.email || "Not provided"}
+                  <SafeRender fallback="Not provided">
+                    {teacher.user?.email}
+                  </SafeRender>
                 </p>
                 <p>
-                  <span className="font-medium">Subject:</span> Assigned
+                  <span className="font-medium">Subject:</span>{" "}
+                  <SafeRender fallback="Not assigned">
+                    {teacher.subject?.name}
+                  </SafeRender>
                 </p>
                 <p>
-                  <span className="font-medium">Phone:</span> Not provided
+                  <span className="font-medium">Phone:</span>{" "}
+                  <SafeRender fallback="Not provided">
+                    {teacher.phone}
+                  </SafeRender>
                 </p>
                 <p>
-                  <span className="font-medium">Teacher ID:</span> {teacher.id}
+                  <span className="font-medium">Employee ID:</span>{" "}
+                  <SafeRender fallback={`TCH-${teacher.id}`}>
+                    {teacher.employeeId}
+                  </SafeRender>
                 </p>
               </div>
             </CardContent>

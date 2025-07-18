@@ -58,7 +58,6 @@ export default function DashboardLayout({
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden w-fit">
-        {/* Navbar */}
         <PortalNavbar
           user={user}
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}

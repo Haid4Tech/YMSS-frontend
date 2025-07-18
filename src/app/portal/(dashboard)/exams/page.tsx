@@ -3,8 +3,12 @@
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import Link from "next/link";
-import { examsAPI, examListAtom, examLoadingAtom, examErrorAtom } from "@/jotai/exams/exams";
-import { Exam } from "@/jotai/exams/exams-type";
+import {
+  examsAPI,
+  examListAtom,
+  examLoadingAtom,
+  examErrorAtom,
+} from "@/jotai/exams/exams";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,12 +27,8 @@ export default function ExamsPage() {
   const filteredExams = Array.isArray(exams)
     ? exams.filter(
         (exam) =>
-          exam?.title
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          exam?.subject?.name
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase())
+          exam?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          exam?.subject?.name?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : [];
 
@@ -43,9 +43,7 @@ export default function ExamsPage() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">
-          Failed to load Exams. {error}
-        </p>
+        <p className="text-muted-foreground">Failed to load Exams. {error}</p>
         <Button onClick={() => getAllExams()}>Retry</Button>
       </div>
     );
@@ -96,7 +94,9 @@ export default function ExamsPage() {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Date:</span>{" "}
-                  {exam?.date ? new Date(exam.date).toLocaleDateString() : "Not scheduled"}
+                  {exam?.date
+                    ? new Date(exam.date).toLocaleDateString()
+                    : "Not scheduled"}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Class:</span>{" "}
@@ -128,4 +128,4 @@ export default function ExamsPage() {
       )}
     </div>
   );
-} 
+}

@@ -8,17 +8,63 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SelectContent, SelectItem } from "@/components/ui/select";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+  InputField,
+  SelectField,
+  TextareaField,
+} from "@/components/ui/form-field";
 import { teachersAPI } from "@/jotai/teachers/teachers";
 import { subjectsAPI } from "@/jotai/subject/subject";
 import { Subject } from "@/jotai/subject/subject-types";
+import DatePicker from "@/components/general/date-picker";
+
+interface TeacherFormData {
+  // Personal Information
+  firstName: string;
+  lastName: string;
+  email: string;
+  dateOfBirth: string;
+  gender: string;
+  nationality: string;
+  phone: string;
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+
+  // Address Information
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+
+  // Professional Information
+  employeeId: string;
+  joinDate: string;
+  subjectSpecialization: string;
+  qualification: string;
+  experience: string;
+  previousInstitution: string;
+  salary: string;
+  employmentType: string;
+
+  // Educational Background
+  degree: string;
+  university: string;
+  graduationYear: string;
+  additionalCertifications: string;
+
+  // Teaching Information
+  classesAssigned: string[];
+  maxClassesPerWeek: string;
+  preferredGrades: string;
+
+  // Additional Information
+  skills: string;
+  achievements: string;
+  notes: string;
+  photo: File | null;
+}
 
 export default function AddTeacherPage() {
   const router = useRouter();
@@ -26,8 +72,15 @@ export default function AddTeacherPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [activeTab, setActiveTab] = useState("personal");
   const [, getAllSubjects] = useAtom(subjectsAPI.getAll);
+  const [date, setDate] = useState<{
+    dob: Date | undefined;
+    joinDate: Date | undefined;
+  }>({
+    dob: undefined,
+    joinDate: undefined,
+  });
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<TeacherFormData>({
     // Personal Information
     firstName: "",
     lastName: "",
@@ -63,7 +116,7 @@ export default function AddTeacherPage() {
     additionalCertifications: "",
 
     // Teaching Information
-    classesAssigned: [] as string[],
+    classesAssigned: [],
     maxClassesPerWeek: "",
     preferredGrades: "",
 
@@ -71,8 +124,29 @@ export default function AddTeacherPage() {
     skills: "",
     achievements: "",
     notes: "",
-    photo: null as File | null,
+    photo: null,
   });
+
+  // Handle date changes for both DOB and Join Date
+  const handleDateChange =
+    (dateType: "dob" | "joinDate") => (selectedDate: Date | undefined) => {
+      // Update the date state
+      setDate((prev) => ({
+        ...prev,
+        [dateType]: selectedDate,
+      }));
+
+      // Update form data with string format
+      const dateString = selectedDate
+        ? selectedDate.toISOString().split("T")[0]
+        : "";
+      const formFieldName = dateType === "dob" ? "dateOfBirth" : "joinDate";
+
+      setFormData((prev) => ({
+        ...prev,
+        [formFieldName]: dateString,
+      }));
+    };
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -81,12 +155,13 @@ export default function AddTeacherPage() {
         setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
       } catch (error) {
         console.error("Failed to fetch subjects:", error);
+        setSubjects([]);
       }
     };
     fetchSubjects();
   }, [getAllSubjects]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: keyof TeacherFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -202,83 +277,74 @@ export default function AddTeacherPage() {
                   Personal Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InputField
+                    label="First Name"
+                    required
+                    id="firstName"
+                    value={formData.firstName}
+                    onChange={(e) =>
+                      handleInputChange("firstName", e.target.value)
+                    }
+                  />
+
+                  <InputField
+                    label="Last Name"
+                    required
+                    id="lastName"
+                    value={formData.lastName}
+                    onChange={(e) =>
+                      handleInputChange("lastName", e.target.value)
+                    }
+                  />
+
+                  <InputField
+                    label="Email Address"
+                    required
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                  />
+
+                  <InputField
+                    label="Phone Number"
+                    required
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                  />
                   <div>
-                    <Label htmlFor="firstName">First Name *</Label>
-                    <Input
-                      id="firstName"
-                      value={formData.firstName}
-                      onChange={(e) =>
-                        handleInputChange("firstName", e.target.value)
-                      }
-                      required
+                    <DatePicker
+                      label={"Date of Birth"}
+                      date={date.dob}
+                      setDate={handleDateChange("dob")}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="lastName">Last Name *</Label>
-                    <Input
-                      id="lastName"
-                      value={formData.lastName}
-                      onChange={(e) =>
-                        handleInputChange("lastName", e.target.value)
-                      }
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email Address *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) =>
-                        handleInputChange("email", e.target.value)
-                      }
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Phone Number *</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        handleInputChange("phone", e.target.value)
-                      }
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                    <Input
-                      id="dateOfBirth"
-                      type="date"
-                      value={formData.dateOfBirth}
-                      onChange={(e) =>
-                        handleInputChange("dateOfBirth", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="gender">Gender</Label>
-                    <Select
+                    <SelectField
+                      label={"Gender"}
                       value={formData.gender}
                       onValueChange={(value) =>
                         handleInputChange("gender", value)
                       }
+                      placeholder="Select gender"
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
-                      </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        {["male", "female", "other"].map((item, index) => (
+                          <SelectItem
+                            className="capitalize"
+                            key={index}
+                            value={item}
+                          >
+                            {item}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
-                    </Select>
+                    </SelectField>
                   </div>
                   <div>
-                    <Label htmlFor="nationality">Nationality</Label>
-                    <Input
+                    <InputField
+                      label="Nationality"
                       id="nationality"
                       value={formData.nationality}
                       onChange={(e) =>
@@ -296,10 +362,8 @@ export default function AddTeacherPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="emergencyContactName">
-                      Emergency Contact Name
-                    </Label>
-                    <Input
+                    <InputField
+                      label="Emergency Contact Name"
                       id="emergencyContactName"
                       value={formData.emergencyContactName}
                       onChange={(e) =>
@@ -311,10 +375,8 @@ export default function AddTeacherPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="emergencyContactPhone">
-                      Emergency Contact Phone
-                    </Label>
-                    <Input
+                    <InputField
+                      label=" Emergency Contact Phone"
                       id="emergencyContactPhone"
                       value={formData.emergencyContactPhone}
                       onChange={(e) =>
@@ -337,8 +399,8 @@ export default function AddTeacherPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <Label htmlFor="address">Street Address *</Label>
-                    <Textarea
+                    <TextareaField
+                      label={"Street Address"}
                       id="address"
                       value={formData.address}
                       onChange={(e) =>
@@ -348,9 +410,9 @@ export default function AddTeacherPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="city">City *</Label>
-                    <Input
+                    <InputField
                       id="city"
+                      label={"City"}
                       value={formData.city}
                       onChange={(e) =>
                         handleInputChange("city", e.target.value)
@@ -359,8 +421,8 @@ export default function AddTeacherPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="state">State/Province</Label>
-                    <Input
+                    <InputField
+                      label={"State/Province"}
                       id="state"
                       value={formData.state}
                       onChange={(e) =>
@@ -369,8 +431,8 @@ export default function AddTeacherPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="zipCode">ZIP/Postal Code</Label>
-                    <Input
+                    <InputField
+                      label={"ZIP/Postal Code"}
                       id="zipCode"
                       value={formData.zipCode}
                       onChange={(e) =>
@@ -379,8 +441,8 @@ export default function AddTeacherPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="country">Country</Label>
-                    <Input
+                    <InputField
+                      label={"Country"}
                       id="country"
                       value={formData.country}
                       onChange={(e) =>
@@ -400,8 +462,8 @@ export default function AddTeacherPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="employeeId">Employee ID *</Label>
-                    <Input
+                    <InputField
+                      label={"Employee ID"}
                       id="employeeId"
                       value={formData.employeeId}
                       onChange={(e) =>
@@ -412,99 +474,79 @@ export default function AddTeacherPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="joinDate">Join Date *</Label>
-                    <Input
-                      id="joinDate"
-                      type="date"
-                      value={formData.joinDate}
-                      onChange={(e) =>
-                        handleInputChange("joinDate", e.target.value)
-                      }
-                      required
+                    <DatePicker
+                      label="Join Date"
+                      date={date.joinDate}
+                      setDate={handleDateChange("joinDate")}
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="subjectSpecialization">
-                      Subject Specialization
-                    </Label>
-                    <Select
-                      value={formData.subjectSpecialization}
-                      onValueChange={(value) =>
-                        handleInputChange("subjectSpecialization", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select subject" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {subjects.map((subject) => (
-                          <SelectItem
-                            key={subject.id}
-                            value={subject.id.toString()}
-                          >
-                            {subject.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="experience">Years of Experience</Label>
-                    <Input
-                      id="experience"
-                      type="number"
-                      value={formData.experience}
-                      onChange={(e) =>
-                        handleInputChange("experience", e.target.value)
-                      }
-                      min="0"
-                      max="50"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="employmentType">Employment Type</Label>
-                    <Select
-                      value={formData.employmentType}
-                      onValueChange={(value) =>
-                        handleInputChange("employmentType", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select employment type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="full_time">Full Time</SelectItem>
-                        <SelectItem value="part_time">Part Time</SelectItem>
-                        <SelectItem value="contract">Contract</SelectItem>
-                        <SelectItem value="substitute">Substitute</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="salary">Monthly Salary</Label>
-                    <Input
-                      id="salary"
-                      type="number"
-                      value={formData.salary}
-                      onChange={(e) =>
-                        handleInputChange("salary", e.target.value)
-                      }
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="previousInstitution">
-                      Previous Institution
-                    </Label>
-                    <Input
-                      id="previousInstitution"
-                      value={formData.previousInstitution}
-                      onChange={(e) =>
-                        handleInputChange("previousInstitution", e.target.value)
-                      }
-                    />
-                  </div>
+                  <SelectField
+                    label="Subject Specialization"
+                    value={formData.subjectSpecialization}
+                    onValueChange={(value) =>
+                      handleInputChange("subjectSpecialization", value)
+                    }
+                    placeholder="Select subject"
+                  >
+                    {subjects.map((subject) => (
+                      <SelectItem
+                        key={subject.id}
+                        value={subject.id.toString()}
+                      >
+                        {subject.name}
+                      </SelectItem>
+                    ))}
+                  </SelectField>
+
+                  <InputField
+                    label="Years of Experience"
+                    id="experience"
+                    type="number"
+                    value={formData.experience}
+                    onChange={(e) =>
+                      handleInputChange("experience", e.target.value)
+                    }
+                    min="0"
+                    max="50"
+                    placeholder="e.g., 5"
+                  />
+
+                  <SelectField
+                    label="Employment Type"
+                    value={formData.employmentType}
+                    onValueChange={(value) =>
+                      handleInputChange("employmentType", value)
+                    }
+                    placeholder="Select employment type"
+                  >
+                    <SelectItem value="full-time">Full Time</SelectItem>
+                    <SelectItem value="part-time">Part Time</SelectItem>
+                    <SelectItem value="contract">Contract</SelectItem>
+                    <SelectItem value="substitute">Substitute</SelectItem>
+                  </SelectField>
+
+                  <InputField
+                    label="Monthly Salary"
+                    id="salary"
+                    type="number"
+                    value={formData.salary}
+                    onChange={(e) =>
+                      handleInputChange("salary", e.target.value)
+                    }
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g., 5000"
+                  />
+
+                  <InputField
+                    label="Previous Institution"
+                    id="previousInstitution"
+                    value={formData.previousInstitution}
+                    onChange={(e) =>
+                      handleInputChange("previousInstitution", e.target.value)
+                    }
+                    placeholder="e.g., ABC High School"
+                  />
                 </div>
               </div>
             )}
@@ -516,71 +558,60 @@ export default function AddTeacherPage() {
                   Educational Background
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="degree">Highest Degree *</Label>
-                    <Select
-                      value={formData.degree}
-                      onValueChange={(value) =>
-                        handleInputChange("degree", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select degree" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="bachelor">
-                          Bachelor&apos;s Degree
-                        </SelectItem>
-                        <SelectItem value="master">
-                          Master&apos;s Degree
-                        </SelectItem>
-                        <SelectItem value="doctorate">Doctorate</SelectItem>
-                        <SelectItem value="diploma">Diploma</SelectItem>
-                        <SelectItem value="certificate">Certificate</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="university">University/Institution</Label>
-                    <Input
-                      id="university"
-                      value={formData.university}
-                      onChange={(e) =>
-                        handleInputChange("university", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="graduationYear">Graduation Year</Label>
-                    <Input
-                      id="graduationYear"
-                      type="number"
-                      value={formData.graduationYear}
-                      onChange={(e) =>
-                        handleInputChange("graduationYear", e.target.value)
-                      }
-                      min="1950"
-                      max={new Date().getFullYear()}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="qualification">
-                      Teaching Qualification
-                    </Label>
-                    <Input
-                      id="qualification"
-                      value={formData.qualification}
-                      onChange={(e) =>
-                        handleInputChange("qualification", e.target.value)
-                      }
-                      placeholder="e.g., B.Ed, M.Ed, TESOL"
-                    />
-                  </div>
+                  <SelectField
+                    label="Highest Degree"
+                    required
+                    value={formData.degree}
+                    onValueChange={(value) =>
+                      handleInputChange("degree", value)
+                    }
+                    placeholder="Select degree"
+                  >
+                    <SelectItem value="bachelor">
+                      Bachelor&apos;s Degree
+                    </SelectItem>
+                    <SelectItem value="master">Master&apos;s Degree</SelectItem>
+                    <SelectItem value="doctorate">Doctorate</SelectItem>
+                    <SelectItem value="diploma">Diploma</SelectItem>
+                    <SelectItem value="certificate">Certificate</SelectItem>
+                  </SelectField>
+
+                  <InputField
+                    label="University/Institution"
+                    id="university"
+                    value={formData.university}
+                    onChange={(e) =>
+                      handleInputChange("university", e.target.value)
+                    }
+                    placeholder="e.g., Harvard University"
+                  />
+
+                  <InputField
+                    label="Graduation Year"
+                    id="graduationYear"
+                    type="number"
+                    value={formData.graduationYear}
+                    onChange={(e) =>
+                      handleInputChange("graduationYear", e.target.value)
+                    }
+                    min="1950"
+                    max={new Date().getFullYear()}
+                    placeholder="e.g., 2020"
+                  />
+
+                  <InputField
+                    label="Teaching Qualification"
+                    id="qualification"
+                    value={formData.qualification}
+                    onChange={(e) =>
+                      handleInputChange("qualification", e.target.value)
+                    }
+                    placeholder="e.g., B.Ed, M.Ed, TESOL"
+                  />
+
                   <div className="md:col-span-2">
-                    <Label htmlFor="additionalCertifications">
-                      Additional Certifications
-                    </Label>
-                    <Textarea
+                    <TextareaField
+                      label="Additional Certifications"
                       id="additionalCertifications"
                       value={formData.additionalCertifications}
                       onChange={(e) =>
@@ -589,7 +620,7 @@ export default function AddTeacherPage() {
                           e.target.value
                         )
                       }
-                      placeholder="List any additional certifications, courses, or training"
+                      placeholder="List any additional certifications, workshops, or professional development courses"
                     />
                   </div>
                 </div>
@@ -603,39 +634,32 @@ export default function AddTeacherPage() {
                   Teaching Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="maxClassesPerWeek">
-                      Max Classes Per Week
-                    </Label>
-                    <Input
-                      id="maxClassesPerWeek"
-                      type="number"
-                      value={formData.maxClassesPerWeek}
-                      onChange={(e) =>
-                        handleInputChange("maxClassesPerWeek", e.target.value)
-                      }
-                      min="1"
-                      max="40"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="preferredGrades">
-                      Preferred Grade Levels
-                    </Label>
-                    <Input
-                      id="preferredGrades"
-                      value={formData.preferredGrades}
-                      onChange={(e) =>
-                        handleInputChange("preferredGrades", e.target.value)
-                      }
-                      placeholder="e.g., Grade 9-12, Elementary"
-                    />
-                  </div>
+                  <InputField
+                    label="Max Classes Per Week"
+                    id="maxClassesPerWeek"
+                    type="number"
+                    value={formData.maxClassesPerWeek}
+                    onChange={(e) =>
+                      handleInputChange("maxClassesPerWeek", e.target.value)
+                    }
+                    min="1"
+                    max="40"
+                    placeholder="e.g., 20"
+                  />
+
+                  <InputField
+                    label="Preferred Grade Levels"
+                    id="preferredGrades"
+                    value={formData.preferredGrades}
+                    onChange={(e) =>
+                      handleInputChange("preferredGrades", e.target.value)
+                    }
+                    placeholder="e.g., Grade 9-12, Elementary"
+                  />
+
                   <div className="md:col-span-2">
-                    <Label htmlFor="skills">
-                      Teaching Skills & Specialties
-                    </Label>
-                    <Textarea
+                    <TextareaField
+                      label="Teaching Skills & Specialties"
                       id="skills"
                       value={formData.skills}
                       onChange={(e) =>
@@ -655,28 +679,23 @@ export default function AddTeacherPage() {
                   Additional Information
                 </h3>
                 <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <Label htmlFor="achievements">Achievements & Awards</Label>
-                    <Textarea
-                      id="achievements"
-                      value={formData.achievements}
-                      onChange={(e) =>
-                        handleInputChange("achievements", e.target.value)
-                      }
-                      placeholder="List any teaching awards, publications, or notable achievements"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="notes">Additional Notes</Label>
-                    <Textarea
-                      id="notes"
-                      value={formData.notes}
-                      onChange={(e) =>
-                        handleInputChange("notes", e.target.value)
-                      }
-                      placeholder="Any additional information about the teacher"
-                    />
-                  </div>
+                  <TextareaField
+                    label="Achievements & Awards"
+                    id="achievements"
+                    value={formData.achievements}
+                    onChange={(e) =>
+                      handleInputChange("achievements", e.target.value)
+                    }
+                    placeholder="List any teaching awards, publications, or notable achievements"
+                  />
+
+                  <TextareaField
+                    label="Additional Notes"
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange("notes", e.target.value)}
+                    placeholder="Any additional information about the teacher"
+                  />
                 </div>
               </div>
             )}

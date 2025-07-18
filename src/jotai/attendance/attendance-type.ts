@@ -6,4 +6,14 @@ export interface Attendance {
   date: string;
   present: boolean;
   student: Student;
+  
+  // Additional fields used in the application
+  lesson?: string;
+  notes?: string;
+  classId?: number;
+  lessonTitle?: string;
+  timeIn?: string;
+  timeOut?: string;
+  excused?: boolean;
+  reason?: string;
 }

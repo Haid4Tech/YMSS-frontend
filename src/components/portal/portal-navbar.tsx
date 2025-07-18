@@ -36,16 +36,21 @@ export default function PortalNavbar({ user, onMenuClick }: PortalNavbarProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const [navigationLoading, setNavigationLoading] = useState<string | null>(null);
+  const [navigationLoading, setNavigationLoading] = useState<string | null>(
+    null
+  );
   const router = useRouter();
   const [, triggerLogout] = useAtom(authAPI.logout);
 
   // Initialize theme from localStorage on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initialDarkMode = savedTheme === "dark" || (!savedTheme && prefersDark);
-    
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+    const initialDarkMode =
+      savedTheme === "dark" || (!savedTheme && prefersDark);
+
     setIsDarkMode(initialDarkMode);
     updateTheme(initialDarkMode);
   }, []);
@@ -138,12 +143,14 @@ export default function PortalNavbar({ user, onMenuClick }: PortalNavbarProps) {
           </Button>
 
           {/* Theme Toggle */}
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             onClick={toggleTheme}
             className="h-10 w-10"
-            aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label={
+              isDarkMode ? "Switch to light mode" : "Switch to dark mode"
+            }
           >
             {isDarkMode ? (
               <Sun className="h-5 w-5 text-yellow-500" />
@@ -156,7 +163,7 @@ export default function PortalNavbar({ user, onMenuClick }: PortalNavbarProps) {
           <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <button className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full">
-                <PersonAvatar 
+                <PersonAvatar
                   name={user.name}
                   size="lg"
                   className="cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all"

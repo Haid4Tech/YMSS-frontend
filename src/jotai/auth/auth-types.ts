@@ -6,6 +6,16 @@ export interface User {
   name: string;
   role: Role;
   createdAt: string;
+  
+  // Additional fields used in the application
+  phone?: string;
+  bio?: string;
+  profileImage?: string;
+  dateOfBirth?: string;
+  address?: string;
+  isActive?: boolean;
+  lastLogin?: string;
+  updatedAt?: string;
 }
 
 export interface SignUpProps {

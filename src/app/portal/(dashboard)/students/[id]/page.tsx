@@ -1,20 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { enhancedStudentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
 import { enhancedGradesAPI } from "@/jotai/grades/grades";
 import { Grade } from "@/jotai/grades/grades-types";
-import {
-  // attendanceAPI,
-  enhancedAttendanceAPI,
-} from "@/jotai/attendance/attendance";
+import { enhancedAttendanceAPI } from "@/jotai/attendance/attendance";
 import { Attendance } from "@/jotai/attendance/attendance-type";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PersonAvatar } from "@/components/ui/person-avatar";
+import { SafeRender } from "@/components/ui/safe-render";
 import {
   LineChart,
   Line,
@@ -33,7 +31,6 @@ import {
 
 export default function StudentDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const studentId = params.id as string;
 
   const [student, setStudent] = useState<Student | null>(null);
@@ -46,15 +43,12 @@ export default function StudentDetailPage() {
     const fetchStudentData = async () => {
       try {
         setLoading(true);
-        console.log("Fetching student data for ID:", studentId);
 
         const [studentData, gradesData, attendanceData] = await Promise.all([
           enhancedStudentsAPI.getById(parseInt(studentId)),
           enhancedGradesAPI.getByStudent(parseInt(studentId)),
           enhancedAttendanceAPI.getByStudent(parseInt(studentId)),
         ]);
-
-        console.log("Student data received:", studentData);
 
         // Validate student data structure
         if (studentData && typeof studentData === "object") {
@@ -154,14 +148,14 @@ export default function StudentDetailPage() {
     );
   }
 
-  if (!student || !student.user) {
+  if (!student?.user) {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">
           {!student ? "Student not found" : "Student data incomplete"}
         </p>
-        <Button onClick={() => router.back()} asChild className="mt-4">
-          Back to Students
+        <Button asChild className="mt-4">
+          <Link href="/portal/students">Back to Students</Link>
         </Button>
       </div>
     );
@@ -181,7 +175,9 @@ export default function StudentDetailPage() {
           />
           <div>
             <h1 className="text-3xl font-bold">
-              {student?.user?.name || "Unknown Student"}
+              <SafeRender fallback="Unknown Student">
+                {student?.user?.name}
+              </SafeRender>
             </h1>
             <p className="text-muted-foreground">Student Profile</p>
           </div>
@@ -288,26 +284,6 @@ export default function StudentDetailPage() {
                     {student.class?.name || "Not assigned"}
                   </p>
                 </div>
-                {/* TODO: Uncomment when dateOfBirth is added to Student schema */}
-                {/* <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Date of Birth
-                  </label>
-                  <p className="text-sm">
-                    {student.dateOfBirth
-                      ? new Date(student.dateOfBirth).toLocaleDateString()
-                      : "Not provided"}
-                  </p>
-                </div> */}
-
-                {/* TODO: Uncomment when phone is added to Student schema */}
-                {/* <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Phone
-                  </label>
-                  <p className="text-sm">{student.phone || "Not provided"}</p>
-                </div> */}
-
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">
                     Role
@@ -322,13 +298,6 @@ export default function StudentDetailPage() {
                     {new Date(student.user.createdAt).toLocaleDateString()}
                   </p>
                 </div>
-                {/* TODO: Uncomment when address is added to Student schema */}
-                {/* <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Address
-                  </label>
-                  <p className="text-sm">{student.address || "Not provided"}</p>
-                </div> */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">
                     Parent
@@ -453,11 +422,7 @@ export default function StudentDetailPage() {
                     className="flex items-center justify-between p-4 border rounded-lg"
                   >
                     <div>
-                      <p className="font-medium">
-                        {/* TODO: Uncomment when lesson is added to Attendance schema */}
-                        {/* {record.lesson?.title || "Unknown Lesson"} */}
-                        Attendance Record
-                      </p>
+                      <p className="font-medium">Attendance Record</p>
                       <p className="text-sm text-muted-foreground">
                         {record.date
                           ? new Date(record.date).toLocaleDateString()
@@ -507,25 +472,7 @@ export default function StudentDetailPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">
-                        {/* TODO: Uncomment when totalMarks is added to Exam schema */}
-                        {/* {grade.marks || 0}/{grade.exam?.totalMarks || 100} */}
-                        {grade.value || 0}/100
-                      </p>
-                      {/* TODO: Uncomment when letter grade is added to Grade schema */}
-                      {/* <p
-                        className={`text-sm font-medium ${
-                          grade.grade === "A"
-                            ? "text-green-600"
-                            : grade.grade === "B"
-                            ? "text-blue-600"
-                            : grade.grade === "C"
-                            ? "text-yellow-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        Grade: {grade.grade || "Not graded"}
-                      </p> */}
+                      <p className="font-medium">{grade.value || 0}/100</p>
                       <p className="text-sm font-medium text-blue-600">
                         Score: {grade.value || 0}%
                       </p>

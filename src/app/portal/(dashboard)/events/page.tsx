@@ -3,8 +3,12 @@
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import Link from "next/link";
-import { eventsAPI, eventListAtom, eventLoadingAtom, eventErrorAtom } from "@/jotai/events/event";
-import { Event } from "@/jotai/events/event-types";
+import {
+  eventsAPI,
+  eventListAtom,
+  eventLoadingAtom,
+  eventErrorAtom,
+} from "@/jotai/events/event";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,12 +27,8 @@ export default function EventsPage() {
   const filteredEvents = Array.isArray(events)
     ? events.filter(
         (event) =>
-          event?.title
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          event?.description
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase())
+          event?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event?.description?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : [];
 
@@ -43,9 +43,7 @@ export default function EventsPage() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">
-          Failed to load Events. {error}
-        </p>
+        <p className="text-muted-foreground">Failed to load Events. {error}</p>
         <Button onClick={() => getAllEvents()}>Retry</Button>
       </div>
     );
@@ -95,7 +93,9 @@ export default function EventsPage() {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Date:</span>{" "}
-                  {event?.date ? new Date(event.date).toLocaleDateString() : "Not scheduled"}
+                  {event?.date
+                    ? new Date(event.date).toLocaleDateString()
+                    : "Not scheduled"}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Created by:</span>{" "}
@@ -106,11 +106,13 @@ export default function EventsPage() {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Status:</span>{" "}
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    new Date(event?.date) > new Date()
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      new Date(event?.date) > new Date()
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
                     {new Date(event?.date) > new Date() ? "Upcoming" : "Past"}
                   </span>
                 </p>
@@ -137,4 +139,4 @@ export default function EventsPage() {
       )}
     </div>
   );
-} 
+}
