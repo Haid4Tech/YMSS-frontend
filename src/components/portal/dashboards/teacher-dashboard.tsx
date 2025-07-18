@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { User } from "@/lib/api";
+import { User } from "@/jotai/auth/auth-types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 

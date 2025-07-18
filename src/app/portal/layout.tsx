@@ -72,9 +72,9 @@ export default function PortalLayout({ children }: PortalLayoutProps) {
   }
 
   // Don't render children if not authenticated
-  if (!isAuthenticated || !user) {
-    return null;
-  }
+  // if (!isAuthenticated || !user) {
+  //   return null;
+  // }
 
   return <>{children}</>;
 }

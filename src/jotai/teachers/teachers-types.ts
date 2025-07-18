@@ -1,19 +1,16 @@
-import { UserType } from "../auth/auth-types";
-import { SubjectType } from "../subject/subject-types";
+import { User } from "../auth/auth-types";
+import { Subject } from "../subject/subject-types";
 
-export interface TeacherType {
+export interface Teacher {
   id: number;
-  subjects: SubjectType[];
-  user: UserType;
+  subjects: Array<Subject>;
+  user: User;
   userId: number;
 }
 
 export interface TeachersResponse {
-  state: "hasDate" | "loading" | "hasError";
-  data: {
-    limit: number;
-    page: number;
-    total: number;
-    teachers: TeacherType[];
-  };
+  limit: number;
+  page: number;
+  total: number;
+  teachers: Array<Teacher>;
 }

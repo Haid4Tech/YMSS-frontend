@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import { UserType } from "@/jotai/auth/auth-types";
-import { logoutTriggerAtom } from "@/jotai/auth/auth";
+import { authAPI } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -31,7 +31,7 @@ interface PortalNavbarProps {
 export default function PortalNavbar({ user, onMenuClick }: PortalNavbarProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
-  const [, triggerLogout] = useAtom(logoutTriggerAtom);
+  const [, triggerLogout] = useAtom(authAPI.logout);
 
   const dropDownItems = [
     {

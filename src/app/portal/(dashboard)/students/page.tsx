@@ -1,37 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAtom } from "jotai";
 import Link from "next/link";
-import { Student, studentsAPI } from "@/lib/api";
+import {
+  studentsAPI,
+  studentListAtom,
+  studentLoadingAtom,
+} from "@/jotai/students/student";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 export default function StudentsPage() {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-
-  // console.log("STUDENT ", students);
+  const [students] = useAtom(studentListAtom);
+  const [loading] = useAtom(studentLoadingAtom);
+  const [, getAllStudents] = useAtom(studentsAPI.getAll);
 
   useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const data = await studentsAPI.getAll();
-        setStudents(Array.isArray(data?.students) ? data.students : []);
-      } catch (error) {
-        console.error("Failed to fetch students:", error);
-        setStudents([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    (() => {
+      getAllStudents();
+    })();
+  }, [getAllStudents]);
 
-    fetchStudents();
-  }, []);
-
-  const filteredStudents = Array.isArray(students)
-    ? students.filter(
+  const filteredStudents = Array.isArray(students?.students)
+    ? students.students.filter(
         (student) =>
           student?.user?.name
             ?.toLowerCase()

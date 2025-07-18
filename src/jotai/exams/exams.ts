@@ -1,8 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axiosInstance from "@/utils/axios-instance";
 import { atom } from "jotai";
-import { loadable } from "jotai/utils";
-
-const url = process.env.NEXT_PUBLIC_API_URL;
+import { Exam } from "./exams-type";
 
 /*
   |--------------------------------------------------------------------------
@@ -11,29 +10,58 @@ const url = process.env.NEXT_PUBLIC_API_URL;
   | Consuming apis to get exams data
   |
 */
-export const getAllExamsAtom = atom(async () => {
-  try {
-    const response = await axiosInstance.get(`${url}/exams`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-});
-export const allExamsLoadableAtom = loadable(getAllExamsAtom);
 
-/*
-  |--------------------------------------------------------------------------
-  | GET INDIVIDUAL EXAMS DATA - JOTAI
-  |--------------------------------------------------------------------------
-  | Consuming apis to get a single exams data
-  |
-*/
-export const examsIdAtom = atom<number>(0);
-export const getIndividualExamAtom = atom(async () => {
-  try {
-    const response = await axiosInstance.get(`${url}/exams/${examsIdAtom}`);
+// State atoms for consistent pattern
+export const examListAtom = atom<Array<Exam> | null>(null);
+export const examLoadingAtom = atom<boolean>(false);
+export const examErrorAtom = atom<string | null>(null);
+
+export const examsAPI = {
+  getAll: atom(null, async (_get, set) => {
+    set(examLoadingAtom, true);
+    set(examErrorAtom, null);
+
+    try {
+      const response = await axiosInstance.get("/exams");
+      set(examListAtom, response.data);
+      return response.data;
+    } catch (error: any) {
+      set(examErrorAtom, error.message || "Failed to fetch exams");
+    } finally {
+      set(examLoadingAtom, false);
+    }
+  }),
+
+  getById: async (id: number): Promise<Exam> => {
+    const response = await axiosInstance.get(`/exams/${id}`);
     return response.data;
-  } catch (error) {
-    throw error;
-  }
-});
+  },
+
+  getByStudentId: async (studentId: number): Promise<Exam[]> => {
+    const response = await axiosInstance.get(`/exams/student/${studentId}`);
+    return response.data;
+  },
+
+  create: async (data: any) => {
+    const response = await axiosInstance.post("/exams", data);
+    return response.data;
+  },
+
+  update: async (id: number, data: any) => {
+    const response = await axiosInstance.patch(`/exams/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: number) => {
+    const response = await axiosInstance.delete(`/exams/${id}`);
+    return response.data;
+  },
+};
+
+export const enhancedExamsAPI = {
+  ...examsAPI,
+  getById: async (id: number): Promise<Exam> => {
+    const response = await axiosInstance.get(`/exams/${id}`);
+    return response.data;
+  },
+};

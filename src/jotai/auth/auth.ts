@@ -1,16 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { atom } from "jotai";
-import { SignUpType, SignInType, AuthSession, UserType } from "./auth-types";
-import { loadable } from "jotai/utils";
+import { SignUpProps, SignInProps, AuthSession, User } from "./auth-types";
 import axiosInstance from "@/utils/axios-instance";
 import { setCookie, deleteCookie, getCookie } from "cookies-next";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 
-const url = process.env.NEXT_PUBLIC_API_URL;
-
 /*
   |--------------------------------------------------------------------------
-  | AUTHENTICATION STATE ATOMS
+  | AUTHENTICATION 
   |--------------------------------------------------------------------------
   | Global auth state management using Jotai
   |
@@ -24,8 +21,100 @@ export const authPersistedAtom = atomWithStorage<AuthSession | null>(
   storage
 );
 
+export const loginFormAtom = atom<SignInProps>({ email: "", password: "" });
+export const signupFormAction = atom<SignUpProps>({
+  name: "",
+  email: "",
+  password: "",
+  role: undefined,
+});
+
+export const authAPI = {
+  register: atom(null, async (get, set) => {
+    try {
+      const form = get(signupFormAction);
+      const response = await axiosInstance.post(`/auth/register`, form);
+      const authData = response.data as AuthSession;
+
+      set(authPersistedAtom, authData);
+      setCookie("token", authData.token);
+
+      set(authLoadingAtom, false);
+      return authData;
+    } catch (error) {
+      let errorMessage = "Signup failed. Please try again.";
+      if (
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "data" in error.response &&
+        error.response.data &&
+        typeof error.response.data === "object" &&
+        "message" in error.response.data
+      ) {
+        errorMessage = (error.response as any).data.message || errorMessage;
+      }
+      set(authErrorAtom, errorMessage);
+      console.error("Signup error:", error);
+      throw error;
+    }
+  }),
+
+  login: atom(null, async (get, set) => {
+    // Clear previous errors and set loading
+    set(authErrorAtom, null);
+    set(authLoadingAtom, true);
+
+    try {
+      const form = get(loginFormAtom); // get form input
+      const response = await axiosInstance.post("/auth/login", form);
+      const authData = response.data as AuthSession;
+
+      set(authPersistedAtom, authData);
+      setCookie("token", authData.token);
+
+      set(authLoadingAtom, false);
+      return authData;
+    } catch (error) {
+      set(authLoadingAtom, false);
+      let errorMessage = "Login failed. Please try again.";
+      if (
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "data" in error.response &&
+        error.response.data &&
+        typeof error.response.data === "object" &&
+        "message" in error.response.data
+      ) {
+        errorMessage = (error.response as any).data.message || errorMessage;
+      }
+      set(authErrorAtom, errorMessage);
+      console.error("Login error:", error);
+      throw error;
+    }
+  }),
+
+  me: atom(null, async (): Promise<User> => {
+    const response = await axiosInstance.get("/auth/me");
+    return response.data;
+  }),
+
+  logout: atom(null, async (_get, set, reason?: string) => {
+    set(authPersistedAtom, null);
+    set(authErrorAtom, null);
+    deleteCookie("token");
+
+    console.log("Logout reason:", reason || "User initiated");
+  }),
+};
+
 // Derived atom to get just the user from auth state
-export const userAtom = atom<UserType | null>((get) => {
+export const userAtom = atom<User | null>((get) => {
   const authSession = get(authPersistedAtom);
   return authSession?.user ?? null;
 });
@@ -41,51 +130,6 @@ export const isAuthenticatedAtom = atom<boolean>((get) => {
   const authSession = get(authPersistedAtom);
   return !!(authSession?.user && authSession?.token);
 });
-
-/*
-  |--------------------------------------------------------------------------
-  | LOGIN AUTHENTICATION
-  |--------------------------------------------------------------------------
-*/
-
-// Store the login form input
-export const loginFormAtom = atom<SignInType>({ email: "", password: "" });
-
-// To trigger login (write-only atom)
-export const loginTriggerAtom = atom(null, async (get, set) => {
-  const form = get(loginFormAtom);
-
-  // Clear previous errors and set loading
-  set(authErrorAtom, null);
-  set(authLoadingAtom, true);
-
-  try {
-    const response = await axiosInstance.post(`${url}/auth/login`, form);
-    const authData = response.data as AuthSession;
-
-    // Store auth data
-    set(authPersistedAtom, authData);
-    setCookie("token", authData.token);
-
-    // Update localStorage token for API calls
-    if (typeof window !== "undefined") {
-      localStorage.setItem("authToken", authData.token || "");
-    }
-
-    set(authLoadingAtom, false);
-    return authData;
-  } catch (error: any) {
-    set(authLoadingAtom, false);
-    const errorMessage =
-      error.response?.data?.message || "Login failed. Please try again.";
-    set(authErrorAtom, errorMessage);
-    console.error("Login error:", error);
-    throw error;
-  }
-});
-
-// Loadable atom to track login state changes
-export const loadableLoginAtom = loadable(loginTriggerAtom);
 
 /*
   |--------------------------------------------------------------------------
@@ -107,7 +151,7 @@ export const autoLoginAtom = atom(null, async (get, set) => {
     }
 
     // Verify token with backend
-    const response = await axiosInstance.get(`${url}/auth/me`, {
+    const response = await axiosInstance.get(`/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -136,70 +180,11 @@ export const autoLoginAtom = atom(null, async (get, set) => {
 
 /*
   |--------------------------------------------------------------------------
-  | SIGN UP AUTHENTICATION
+  | GET USER ROLES
   |--------------------------------------------------------------------------
+  | Get User roles with Jotai
+  |
 */
-
-// Store the sign up form input
-export const signupFormAction = atom<SignUpType>({
-  name: "",
-  email: "",
-  password: "",
-  role: undefined,
-});
-
-export const signUpTriggerAtom = atom(null, async (get, set) => {
-  const form = get(signupFormAction);
-
-  set(authErrorAtom, null);
-  set(authLoadingAtom, true);
-
-  try {
-    const response = await axiosInstance.post(`${url}/auth/register`, form);
-    const authData = response.data as AuthSession;
-
-    set(authPersistedAtom, authData);
-    setCookie("token", authData.token);
-
-    if (typeof window !== "undefined") {
-      localStorage.setItem("authToken", authData.token || "");
-    }
-
-    set(authLoadingAtom, false);
-    return authData;
-  } catch (error: any) {
-    set(authLoadingAtom, false);
-    const errorMessage =
-      error.response?.data?.message || "Registration failed. Please try again.";
-    set(authErrorAtom, errorMessage);
-    console.error("Sign Up error:", error);
-    throw error;
-  }
-});
-
-export const loadableSignUpAtom = loadable(signUpTriggerAtom);
-
-/*
-  |--------------------------------------------------------------------------
-  | LOGOUT AUTHENTICATION
-  |--------------------------------------------------------------------------
-*/
-export const logoutTriggerAtom = atom(
-  null,
-  async (_get, set, reason?: string) => {
-    set(authPersistedAtom, null);
-    set(authErrorAtom, null);
-    deleteCookie("token");
-
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("authToken");
-    }
-
-    console.log("Logout reason:", reason || "User initiated");
-  }
-);
-
-// Helper atom to get user role
 export const userRoleAtom = atom<string | null>((get) => {
   const user = get(userAtom);
   return user?.role ?? null;

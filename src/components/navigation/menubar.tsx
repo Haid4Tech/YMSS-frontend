@@ -27,7 +27,10 @@ export default function MenuBar({ view }: IMenuBar) {
   const [result] = useAtom(authPersistedAtom);
   const pathName = usePathname();
 
-  const pathResult = isPathMatch(pathName, ["/admin/signin", "/admin/signup"]);
+  const pathResult = isPathMatch(pathName, [
+    "/portal/signin",
+    "/portal/signup",
+  ]);
 
   const handleDashboardRedirect = () => {
     setLoadingStates((prev) => ({

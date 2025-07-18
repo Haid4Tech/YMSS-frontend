@@ -1,20 +1,107 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import {
-  studentsAPI,
-  teachersAPI,
-  classesAPI,
-  announcementsAPI,
-} from "@/lib/api";
-import { UserType } from "@/jotai/auth/auth-types";
-import { Button } from "@/components/ui/button";
+import { useAtom } from "jotai";
+import { User } from "@/jotai/auth/auth-types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ManagementCard from "@/components/pages/dashboard/management-card";
+import { GraduationCap, Network, School, Megaphone } from "lucide-react";
+
+import { studentsAPI, studentListAtom } from "@/jotai/students/student";
+import { teachersAPI } from "@/jotai/teachers/teachers";
+import { classesAPI } from "@/jotai/class/class";
+import { announcementsAPI } from "@/jotai/announcement/announcement";
 
 interface AdminDashboardProps {
-  user: UserType;
+  user: User;
 }
+
+const managementData = [
+  {
+    title: "Student Management",
+    subtitle: "Manage student enrollments, records, and profiles",
+    actionItems: [
+      {
+        label: "View All",
+        url: "/portal/students",
+      },
+      {
+        label: "Add Student",
+        url: "/portal/students/new",
+      },
+    ],
+  },
+  {
+    title: "Teacher Management",
+    subtitle: "Manage faculty members and their assignments",
+    actionItems: [
+      {
+        label: "View All",
+        url: "/portal/teachers",
+      },
+      {
+        label: "Add Teacher",
+        url: "/portal/teachers/new",
+      },
+    ],
+  },
+  {
+    title: "Class & Subjects",
+    subtitle: "Organize classes and subject assignments",
+    actionItems: [
+      {
+        label: "Classes",
+        url: "/portal/classes",
+      },
+      {
+        label: "Subjects",
+        url: "/portal/subjects",
+      },
+    ],
+  },
+  {
+    title: "Exams & Results",
+    subtitle: "Schedule exams and manage academic results",
+    actionItems: [
+      {
+        label: "Exams",
+        url: "/portal/exams",
+      },
+      {
+        label: "Results",
+        url: "/portal/results",
+      },
+    ],
+  },
+  {
+    title: "Attendance",
+    subtitle: "Monitor and manage student attendance",
+    actionItems: [
+      {
+        label: "View Reports",
+        url: "/portal/attendance",
+      },
+      {
+        label: "Mark Attendance",
+        url: "/portal/attendance/mark",
+      },
+    ],
+  },
+  {
+    title: "Communications",
+    subtitle: "Manage announcements and events",
+    actionItems: [
+      {
+        label: "Announcements",
+        url: "/portal/announcements",
+      },
+      {
+        label: "Events",
+        url: "/portal/events",
+      },
+    ],
+  },
+];
 
 export default function AdminDashboard({ user }: AdminDashboardProps) {
   const [stats, setStats] = useState({
@@ -25,22 +112,29 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   });
 
   const [loading, setLoading] = useState(true);
+  const [announcements] = useAtom(announcementsAPI.getAll);
+
+  const [students] = useAtom(studentListAtom);
+  const [teachers] = useAtom(teachersAPI.getAll);
+  const [classes] = useAtom(classesAPI.getAll);
+
+  const [, getAllStudents] = useAtom(studentsAPI.getAll);
+  const [, getAllClasses] = useAtom(classesAPI.getAll);
+  const [, getAllTeachers] = useAtom(teachersAPI.getAll);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = () => {
       try {
-        const [students, teachers, classes, announcements] = await Promise.all([
-          studentsAPI.getAll(),
-          teachersAPI.getAll(),
-          classesAPI.getAll(),
-          announcementsAPI.getAll(),
-        ]);
+        // TRIGGER ATOMS
+        getAllStudents();
+        getAllClasses();
+        getAllTeachers();
 
         setStats({
-          totalStudents: students.length,
-          totalTeachers: teachers.length,
-          totalClasses: classes.length,
-          recentAnnouncements: announcements.slice(0, 5).length,
+          totalStudents: students?.students?.length ?? 0,
+          totalTeachers: teachers?.teachers?.length ?? 0,
+          totalClasses: classes?.length ?? 0,
+          recentAnnouncements: announcements.slice(0, 5).length ?? 0,
         });
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -50,7 +144,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [students, teachers, classes, announcements, getAllStudents]);
 
   if (loading) {
     return (
@@ -80,19 +174,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
             <CardTitle className="text-sm font-medium">
               Total Students
             </CardTitle>
-            <svg
-              className="h-4 w-4 text-muted-foreground"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-              />
-            </svg>
+            <GraduationCap className="text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalStudents}</div>
@@ -105,19 +187,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
             <CardTitle className="text-sm font-medium">
               Total Teachers
             </CardTitle>
-            <svg
-              className="h-4 w-4 text-muted-foreground"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
+            <Network className="text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalTeachers}</div>
@@ -128,19 +198,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Classes</CardTitle>
-            <svg
-              className="h-4 w-4 text-muted-foreground"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-              />
-            </svg>
+            <School className="text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalClasses}</div>
@@ -151,19 +209,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Announcements</CardTitle>
-            <svg
-              className="h-4 w-4 text-muted-foreground"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 11v5a2 2 0 002 2h6a2 2 0 002-2v-5M7 4h10l-1 10H8L7 4z"
-              />
-            </svg>
+            <Megaphone className="text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -176,119 +222,16 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Student Management</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Manage student enrollments, records, and profiles
-            </p>
-            <div className="flex gap-2">
-              <Button asChild variant="outline" size="sm">
-                <Link href="/portal/students">View All</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/portal/students/new">Add Student</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Teacher Management</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Manage faculty members and their assignments
-            </p>
-            <div className="flex gap-2">
-              <Button asChild variant="outline" size="sm">
-                <Link href="/portal/teachers">View All</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/portal/teachers/new">Add Teacher</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Class & Subjects</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Organize classes and subject assignments
-            </p>
-            <div className="flex gap-2">
-              <Button asChild variant="outline" size="sm">
-                <Link href="/portal/classes">Classes</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/portal/subjects">Subjects</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Exams & Results</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Schedule exams and manage academic results
-            </p>
-            <div className="flex gap-2">
-              <Button asChild variant="outline" size="sm">
-                <Link href="/portal/exams">Exams</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/portal/results">Results</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Attendance</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Monitor and manage student attendance
-            </p>
-            <div className="flex gap-2">
-              <Button asChild variant="outline" size="sm">
-                <Link href="/portal/attendance">View Reports</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/portal/attendance/mark">Mark Attendance</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Communications</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Manage announcements and events
-            </p>
-            <div className="flex gap-2">
-              <Button asChild variant="outline" size="sm">
-                <Link href="/portal/announcements">Announcements</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/portal/events">Events</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {managementData.map((item, index) => {
+          return (
+            <ManagementCard
+              key={index}
+              title={item.title}
+              subtitle={item.subtitle}
+              actionItems={item.actionItems}
+            />
+          );
+        })}
       </div>
     </div>
   );

@@ -12,8 +12,8 @@ import { SignInStates } from "@/common/states";
 
 import {
   userAtom,
+  authAPI,
   loginFormAtom,
-  loginTriggerAtom,
   isAuthenticatedAtom,
 } from "@/jotai/auth/auth";
 import { useAtom } from "jotai";
@@ -25,9 +25,9 @@ export default function SignIn() {
   const [loading, setLoading] = useState<SignInStatesProp>(SignInStates);
   const [error, setError] = useState("");
 
-  const [user] = useAtom(userAtom);
-  const [, triggerLogin] = useAtom(loginTriggerAtom);
   const [, setLoginFormData] = useAtom(loginFormAtom);
+  const [user] = useAtom(userAtom);
+  const [, triggerLogin] = useAtom(authAPI.login);
   const [isAuthenticated] = useAtom(isAuthenticatedAtom);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,7 +45,13 @@ export default function SignIn() {
           router.push("/portal/students");
         }
         if (response?.user?.role === "ADMIN") {
-          router.push("/portal/students");
+          router.push("/portal/dashboard");
+        }
+        if (response?.user?.role === "TEACHER") {
+          router.push("/portal/teacher");
+        }
+        if (response?.user?.role === "PARENT") {
+          router.push("/portal/parent");
         }
       }
     } catch (error: any) {
@@ -76,7 +82,7 @@ export default function SignIn() {
               Redirecting... <Spinner />
             </div>
           ) : (
-            "Go to Dashboard"
+            "Continue"
           )}
         </Button>
       </div>

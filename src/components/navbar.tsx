@@ -5,7 +5,8 @@ import { useState } from "react";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { useAtom } from "jotai";
-import { logoutTriggerAtom, authPersistedAtom } from "@/jotai/auth/auth";
+import { authAPI } from "@/jotai/auth/auth";
+import { authPersistedAtom } from "@/jotai/auth/auth";
 import { AuthSession } from "@/jotai/auth/auth-types";
 import { Spinner } from "@radix-ui/themes";
 // import UserProfile from "./navigation/userprofile";
@@ -14,7 +15,7 @@ const Navbar = () => {
   const router = useRouter();
   const [loadingStates, setLoadingStates] = useState<boolean>(false);
   const [auth] = useAtom(authPersistedAtom) as AuthSession[];
-  const [, logOutTrigger] = useAtom(logoutTriggerAtom);
+  const [, logOutTrigger] = useAtom(authAPI.logout);
 
   const handleLogout = async () => {
     setLoadingStates(true);

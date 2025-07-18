@@ -1,22 +1,35 @@
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { authAPI } from "@/lib/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import { useAtom } from "jotai";
+import { authAPI, signupFormAction } from "@/jotai/auth/auth";
+import { Role } from "@/common/enum";
 
 export default function SignUp() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState<Role | undefined | string>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+
+  const [, setSignUpFormData] = useAtom(signupFormAction);
+  const [, triggerSignUp] = useAtom(authAPI.register);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,16 +50,19 @@ export default function SignUp() {
     }
 
     try {
-      await authAPI.register({ name, email, password, role });
-      
-      // Auto login after registration
-      await authAPI.login({ email, password });
-      
+      setSignUpFormData({ name, email, password, role });
+      await triggerSignUp();
+
       // Redirect to dashboard
-      router.push('/portal/dashboard');
+      router.push("/portal/dashboard");
     } catch (error: any) {
-      console.error('Registration error:', error);
-      setError(error.response?.data?.message || 'Registration failed. Please try again.');
+      console.error("Registration error:", error);
+      const errorMessage =
+        error && typeof error === "object" && "response" in error
+          ? (error as any).response?.data?.message ||
+            "Registration failed. Please try again."
+          : "Registration failed. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -57,9 +73,7 @@ export default function SignUp() {
       {/* Header */}
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold">Create Account</h1>
-        <p className="text-muted-foreground">
-          Join the YMSS community today
-        </p>
+        <p className="text-muted-foreground">Join the YMSS community today</p>
       </div>
 
       {/* Error message */}
@@ -166,11 +180,7 @@ export default function SignUp() {
           </span>
         </div>
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={loading}
-        >
+        <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Creating account..." : "Create Account"}
         </Button>
       </form>
@@ -186,7 +196,7 @@ export default function SignUp() {
             Sign in
           </Link>
         </p>
-        
+
         <div className="text-center">
           <Link
             href="/"
@@ -198,4 +208,4 @@ export default function SignUp() {
       </div>
     </div>
   );
-} 
+}

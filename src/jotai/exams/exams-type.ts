@@ -1,8 +1,13 @@
-export interface ExamType {
-  classId: number;
-  createdAt: Date;
-  date: Date;
+import { Subject } from "../subject/subject-types";
+import { Class } from "../class/class-type";
+
+export interface Exam {
   id: number;
-  subjectId: number;
   title: string;
+  date: string;
+  classId: number;
+  subjectId: number;
+  class: Class;
+  subject: Subject;
+  createdAt: string;
 }

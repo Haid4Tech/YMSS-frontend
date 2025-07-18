@@ -3,11 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserType } from "@/jotai/auth/auth-types";
+import { User } from "@/jotai/auth/auth-types";
 import { cn } from "@/lib/utils";
 
 interface PortalSidebarProps {
-  user: UserType;
+  user: User;
   onClose: () => void;
 }
 
@@ -118,6 +118,17 @@ export default function PortalSidebar({ user, onClose }: PortalSidebarProps) {
     item.roles.includes(user?.role)
   );
 
+  // Helper function to check if a nav item is active
+  const isActiveRoute = (itemHref: string) => {
+    // Exact match for dashboard
+    if (itemHref === "/portal/dashboard") {
+      return pathname === itemHref;
+    }
+    // For other routes, check if pathname starts with the item href
+    // This handles dynamic routes like /portal/teachers/[id]
+    return pathname.startsWith(itemHref);
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
@@ -143,7 +154,7 @@ export default function PortalSidebar({ user, onClose }: PortalSidebarProps) {
               onClick={onClose}
               className={cn(
                 "group flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-                pathname === item.href
+                isActiveRoute(item.href)
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground"
               )}
@@ -155,8 +166,7 @@ export default function PortalSidebar({ user, onClose }: PortalSidebarProps) {
                 height={18}
                 className={cn(
                   "opacity-70",
-                  pathname === item.href &&
-                    "brightness-0 invert group-hover:brightness-100 group-hover:opacity-100"
+                  isActiveRoute(item.href) && "brightness-0 invert"
                 )}
               />
               {item.name}

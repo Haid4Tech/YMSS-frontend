@@ -24,7 +24,7 @@ export default function HeroSection() {
         </h1>
         <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto slide-up opacity-90">
           Welcome to YMSS, where academic excellence meets character development.
-          Join us in shaping tomorrow's innovators and leaders.
+          Join us in shaping tomorrow&apos;s innovators and leaders.
         </p>
         
         {/* CTA Buttons */}

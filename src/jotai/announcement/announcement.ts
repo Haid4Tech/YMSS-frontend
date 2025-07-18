@@ -1,26 +1,54 @@
-// import axiosInstance from "@/utils/axios-instance";
-// import { atom } from "jotai";
-// import { loadable } from "jotai/utils";
-// import { GetStudentResponse } from "./student-types";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import axiosInstance from "@/utils/axios-instance";
+import { atom } from "jotai";
+import { Announcement } from "./announcement-types";
 
-// const url = process.env.NEXT_PUBLIC_API_URL;
+/*
+  |--------------------------------------------------------------------------
+  | GET ALL ANNOUNCEMENTS - JOTAI
+  |--------------------------------------------------------------------------
+  | Consuming apis to get announcements
+  |
+*/
 
-// /*
-//   |--------------------------------------------------------------------------
-//   | GET ALL ANNOUCEMENTS - JOTAI
-//   |--------------------------------------------------------------------------
-//   | Consuming apis to get announcements
-//   |
-// */
-// export const allAnnoucements = atom<GetStudentResponse | null>(null);
+// State atoms for consistent pattern
+export const announcementListAtom = atom<Array<Announcement> | null>(null);
+export const announcementLoadingAtom = atom<boolean>(false);
+export const announcementErrorAtom = atom<string | null>(null);
 
-// export const getAllAnnoucementAtom = atom(async () => {
-//   try {
-//     const response = await axiosInstance.get(`${url}/students`);
-//     return response.data;
-//   } catch (error) {
-//     throw error;
-//   }
-// });
+export const announcementsAPI = {
+  getAll: atom(null, async (_get, set) => {
+    set(announcementLoadingAtom, true);
+    set(announcementErrorAtom, null);
 
-// export const allStudentLoadableAtom = loadable(getAllStudentsAtom);
+    try {
+      const response = await axiosInstance.get("/announcements");
+      set(announcementListAtom, response.data);
+      return response.data;
+    } catch (error: any) {
+      set(announcementErrorAtom, error.message || "Failed to fetch announcements");
+    } finally {
+      set(announcementLoadingAtom, false);
+    }
+  }),
+
+  getById: async (id: number): Promise<Announcement> => {
+    const response = await axiosInstance.get(`/announcements/${id}`);
+    return response.data;
+  },
+
+  create: async (data: any) => {
+    const response = await axiosInstance.post("/announcements", data);
+    return response.data;
+  },
+
+  update: async (id: number, data: any) => {
+    const response = await axiosInstance.patch(`/announcements/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: number) => {
+    const response = await axiosInstance.delete(`/announcements/${id}`);
+    return response.data;
+  },
+};
