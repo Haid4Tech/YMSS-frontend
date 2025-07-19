@@ -3,7 +3,12 @@
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import Link from "next/link";
-import { gradesAPI, gradeListAtom, gradeLoadingAtom } from "@/jotai/grades/grades";
+import {
+  gradesAPI,
+  gradeListAtom,
+  gradeLoadingAtom,
+} from "@/jotai/grades/grades";
+import { isParentAtom, isStudentAtom } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +18,8 @@ export default function ResultsPage() {
   const [grades] = useAtom(gradeListAtom);
   const [loading] = useAtom(gradeLoadingAtom);
   const [, getAllGrades] = useAtom(gradesAPI.getAll);
+  const [isParent] = useAtom(isParentAtom);
+  const [isStudent] = useAtom(isStudentAtom);
 
   useEffect(() => {
     getAllGrades();
@@ -51,9 +58,14 @@ export default function ResultsPage() {
             Manage student grades and exam results
           </p>
         </div>
-        <Button asChild>
-          <Link href="/portal/results/new">Add Grade</Link>
-        </Button>
+
+        {isParent || isStudent ? (
+          <></>
+        ) : (
+          <Button asChild>
+            <Link href="/portal/results/new">Add Grade</Link>
+          </Button>
+        )}
       </div>
 
       {/* Search */}
@@ -90,20 +102,31 @@ export default function ResultsPage() {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Score:</span>{" "}
-                  <span className={`font-bold ${
-                    (grade?.marks || 0) >= 80 ? 'text-green-600' : 
-                    (grade?.marks || 0) >= 60 ? 'text-yellow-600' : 'text-red-600'
-                  }`}>
+                  <span
+                    className={`font-bold ${
+                      (grade?.marks || 0) >= 80
+                        ? "text-green-600"
+                        : (grade?.marks || 0) >= 60
+                        ? "text-yellow-600"
+                        : "text-red-600"
+                    }`}
+                  >
                     {grade?.marks || 0}/{grade?.exam?.totalMarks || 100}
                   </span>
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Grade:</span>{" "}
-                  <span className={`font-bold ${
-                    grade?.grade === 'A' ? 'text-green-600' : 
-                    grade?.grade === 'B' ? 'text-blue-600' :
-                    grade?.grade === 'C' ? 'text-yellow-600' : 'text-red-600'
-                  }`}>
+                  <span
+                    className={`font-bold ${
+                      grade?.grade === "A"
+                        ? "text-green-600"
+                        : grade?.grade === "B"
+                        ? "text-blue-600"
+                        : grade?.grade === "C"
+                        ? "text-yellow-600"
+                        : "text-red-600"
+                    }`}
+                  >
                     {grade?.grade || "Not graded"}
                   </span>
                 </p>
@@ -130,4 +153,4 @@ export default function ResultsPage() {
       )}
     </div>
   );
-} 
+}

@@ -41,18 +41,7 @@ export default function SignIn() {
 
       if (response?.user !== null) {
         // Redirect to dashboard
-        if (response?.user?.role === "STUDENT") {
-          router.push("/portal/students");
-        }
-        if (response?.user?.role === "ADMIN") {
-          router.push("/portal/dashboard");
-        }
-        if (response?.user?.role === "TEACHER") {
-          router.push("/portal/teachers");
-        }
-        if (response?.user?.role === "PARENT") {
-          router.push("/portal/parents");
-        }
+        router.push("/portal/dashboard");
       }
     } catch (error: any) {
       console.error("Login error:", error);
@@ -68,8 +57,8 @@ export default function SignIn() {
     return (
       <div className={"flex flex-col gap-4 items-center justify-center"}>
         <p className="text-base">
-          Welcome back <span className="font-bold "> {user?.name} </span> you
-          are authenticated
+          Welcome back <span className="font-bold "> {user?.name} </span>. You
+          should be redirected in a few seconds, if not click the button below.
         </p>
         <Button
           onClick={() => {
