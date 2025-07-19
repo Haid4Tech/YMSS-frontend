@@ -6,9 +6,9 @@ import { authPersistedAtom } from "@/jotai/auth/auth";
 // Mapping role to url
 export const roleRedirectMap: Record<Role, string> = {
   [Role.ADMIN]: "/portal/dashboard",
-  [Role.PARENT]: "/portal/parents",
-  [Role.STUDENT]: "/portal/students",
-  [Role.TEACHER]: "/portal/teachers",
+  [Role.PARENT]: "/portal/dashboard",
+  [Role.STUDENT]: "/portal/dashboard",
+  [Role.TEACHER]: "/portal/dashboard",
 };
 
 // Get user auth token

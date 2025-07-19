@@ -41,7 +41,9 @@ export default function TeachersPage() {
       const name = teacher.user?.name?.toLowerCase() || "";
       const email = teacher.user?.email?.toLowerCase() || "";
       const employeeId = teacher.employeeId?.toLowerCase() || "";
-      return name.includes(term) || email.includes(term) || employeeId.includes(term);
+      return (
+        name.includes(term) || email.includes(term) || employeeId.includes(term)
+      );
     });
   }, [searchTerm, teachers]);
 
@@ -59,7 +61,7 @@ export default function TeachersPage() {
         <p className="text-muted-foreground">
           Failed to load Teachers Data. Return to Dashboard
         </p>
-        <Button 
+        <Button
           onClick={() => {
             setDashboardLoading(true);
             router.push("/portal/dashboard");
@@ -108,7 +110,7 @@ export default function TeachersPage() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <PersonAvatar 
+                  <PersonAvatar
                     name={teacher.user?.name || "Unnamed Teacher"}
                     size="md"
                   />

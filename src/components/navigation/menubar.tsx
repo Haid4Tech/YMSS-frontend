@@ -25,6 +25,7 @@ export default function MenuBar({ view }: IMenuBar) {
   const [loadingStates, setLoadingStates] =
     useState<MenuStatesProp>(menuBarStates);
   const [result] = useAtom(authPersistedAtom);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathName = usePathname();
 
   const pathResult = isPathMatch(pathName, [
@@ -69,61 +70,201 @@ export default function MenuBar({ view }: IMenuBar) {
     }, 5000);
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <div className="border-b border-neutral-200 flex flex-row items-center justify-between py-4 px-4 md:px-8 lg:px-12">
-      <Image
-        src={"/YMSS_logo-nobg.png"}
-        alt={"school logo"}
-        width={40}
-        height={40}
-      />
+    <>
+      <div className="border-b border-neutral-200 flex flex-row items-center justify-between py-4 px-4 md:px-8 lg:px-12">
+        <Image
+          src={"/YMSS_logo-nobg.png"}
+          alt={"school logo"}
+          width={40}
+          height={40}
+        />
 
-      <div className={"flex flex-row gap-10 items-center"}>
-        <div
-          className={cn(view === "admin" ? "hidden" : "flex", "flex-row gap-6")}
-        >
-          {navItem.map((items, index) => (
-            <Link
-              className="text-sm hover:text-purple-800"
-              href={items.url}
-              key={index}
-            >
-              {items.label}
-            </Link>
-          ))}
-        </div>
-
-        <div>
-          {result !== null ? (
-            <Button onClick={handleDashboardRedirect}>
-              {loadingStates.portalState ? (
-                <div className="flex flex-row gap-2 items-center">
-                  Redirecting
-                  <Spinner />
-                </div>
-              ) : (
-                "Go to Dashboard"
-              )}
-            </Button>
-          ) : (
-            <div>
-              <Button
-                className={cn(pathResult ? "hidden" : "block")}
-                onClick={handleAuthRedirect}
+        {/* Desktop Navigation */}
+        <div className="hidden lg:flex flex-row gap-10 items-center">
+          <div
+            className={cn(view === "admin" ? "hidden" : "flex", "flex-row gap-6")}
+          >
+            {navItem.map((items, index) => (
+              <Link
+                className="text-sm hover:text-purple-800 transition-colors duration-200"
+                href={items.url}
+                key={index}
               >
-                {loadingStates.isAuthLoading ? (
+                {items.label}
+              </Link>
+            ))}
+          </div>
+
+          <div>
+            {result !== null ? (
+              <Button onClick={handleDashboardRedirect}>
+                {loadingStates.portalState ? (
                   <div className="flex flex-row gap-2 items-center">
                     Redirecting
                     <Spinner />
                   </div>
                 ) : (
-                  "Portal"
+                  "Go to Dashboard"
                 )}
               </Button>
-            </div>
-          )}
+            ) : (
+              <div>
+                <Button
+                  className={cn(pathResult ? "hidden" : "block")}
+                  onClick={handleAuthRedirect}
+                >
+                  {loadingStates.isAuthLoading ? (
+                    <div className="flex flex-row gap-2 items-center">
+                      Redirecting
+                      <Spinner />
+                    </div>
+                  ) : (
+                    "Portal"
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Navigation Button */}
+        <div className="lg:hidden flex items-center gap-4">
+          {/* Mobile Portal Button */}
+          <div>
+            {result !== null ? (
+              <Button 
+                onClick={handleDashboardRedirect}
+                size="sm"
+              >
+                {loadingStates.portalState ? (
+                  <div className="flex flex-row gap-2 items-center">
+                    <Spinner size="1" />
+                  </div>
+                ) : (
+                  "Dashboard"
+                )}
+              </Button>
+            ) : (
+              <div>
+                <Button
+                  className={cn(pathResult ? "hidden" : "block")}
+                  onClick={handleAuthRedirect}
+                  size="sm"
+                >
+                  {loadingStates.isAuthLoading ? (
+                    <div className="flex flex-row gap-2 items-center">
+                      <Spinner size="1" />
+                    </div>
+                  ) : (
+                    "Portal"
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Hamburger Menu Button */}
+          <button
+            onClick={toggleMobileMenu}
+            className="flex flex-col justify-center items-center w-6 h-6 focus:outline-none"
+            aria-label="Toggle mobile menu"
+          >
+            <span
+              className={cn(
+                "block w-5 h-0.5 bg-gray-700 transition-all duration-300",
+                isMobileMenuOpen ? "rotate-45 translate-y-1.5" : ""
+              )}
+            ></span>
+            <span
+              className={cn(
+                "block w-5 h-0.5 bg-gray-700 transition-all duration-300 mt-1",
+                isMobileMenuOpen ? "opacity-0" : ""
+              )}
+            ></span>
+            <span
+              className={cn(
+                "block w-5 h-0.5 bg-gray-700 transition-all duration-300 mt-1",
+                isMobileMenuOpen ? "-rotate-45 -translate-y-1.5" : ""
+              )}
+            ></span>
+          </button>
         </div>
       </div>
-    </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={closeMobileMenu}
+        />
+      )}
+
+      {/* Mobile Menu */}
+      <div
+        className={cn(
+          "lg:hidden fixed top-0 right-0 h-full w-80 max-w-[80vw] bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-50",
+          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        <div className="flex flex-col h-full">
+          {/* Mobile Menu Header */}
+          <div className="flex items-center justify-between p-4 border-b border-neutral-200">
+            <div className="flex items-center gap-3">
+              <Image
+                src={"/YMSS_logo-nobg.png"}
+                alt={"school logo"}
+                width={32}
+                height={32}
+              />
+              <span className="font-semibold text-gray-800">YMSS</span>
+            </div>
+            <button
+              onClick={closeMobileMenu}
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
+              aria-label="Close mobile menu"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* Mobile Menu Items */}
+          <div className="flex-1 py-6">
+            <div className={cn(view === "admin" ? "hidden" : "block")}>
+              {navItem.map((items, index) => (
+                <Link
+                  className="block px-6 py-3 text-gray-700 hover:bg-purple-50 hover:text-purple-800 transition-colors duration-200 border-b border-gray-100 last:border-b-0"
+                  href={items.url}
+                  key={index}
+                  onClick={closeMobileMenu}
+                >
+                  {items.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
