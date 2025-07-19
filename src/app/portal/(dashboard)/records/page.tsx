@@ -11,7 +11,8 @@ import {
 } from "@/jotai/record/record";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { InputField } from "@/components/ui/form-field";
+import { isParentAtom, isStudentAtom } from "@/jotai/auth/auth";
 
 export default function RecordsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -19,6 +20,8 @@ export default function RecordsPage() {
   const [loading] = useAtom(recordLoadingAtom);
   const [error] = useAtom(recordErrorAtom);
   const [, getAllRecords] = useAtom(recordsAPI.getAll);
+  const [isParent] = useAtom(isParentAtom);
+  const [isStudent] = useAtom(isStudentAtom);
 
   useEffect(() => {
     getAllRecords();
@@ -42,6 +45,16 @@ export default function RecordsPage() {
     );
   }
 
+  if (isParent || isStudent) {
+    if (filteredRecords.length === 0) {
+      return (
+        <div className="flex h-96 items-center justify-center">
+          <p>No records yet</p>
+        </div>
+      );
+    }
+  }
+
   if (error) {
     return (
       <div className="text-center py-12">
@@ -63,18 +76,24 @@ export default function RecordsPage() {
             Manage student academic records and transcripts
           </p>
         </div>
-        <Button asChild>
-          <Link href="/portal/records/new">Create Record</Link>
-        </Button>
+
+        {isParent || isStudent ? (
+          <></>
+        ) : (
+          <Button asChild>
+            <Link href="/portal/records/new">Create Record</Link>
+          </Button>
+        )}
       </div>
 
       {/* Search */}
       <div className="flex items-center gap-4">
-        <Input
+        <InputField
+          label=""
           placeholder="Search records..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+          className="max-w-sm w-full md:w-[20rem]"
         />
       </div>
 
@@ -126,9 +145,15 @@ export default function RecordsPage() {
               : "No academic records created yet."}
           </p>
           {!searchTerm && (
-            <Button asChild className="mt-4">
-              <Link href="/portal/records/new">Create First Record</Link>
-            </Button>
+            <div>
+              {isParent || isStudent ? (
+                <></>
+              ) : (
+                <Button asChild className="mt-4">
+                  <Link href="/portal/records/new">Create First Record</Link>
+                </Button>
+              )}
+            </div>
           )}
         </div>
       )}

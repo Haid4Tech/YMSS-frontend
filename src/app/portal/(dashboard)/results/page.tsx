@@ -11,7 +11,7 @@ import {
 import { isParentAtom, isStudentAtom } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { InputField } from "@/components/ui/form-field";
 
 export default function ResultsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,6 +39,16 @@ export default function ResultsPage() {
             .includes(searchTerm.toLowerCase())
       )
     : [];
+
+  if (isParent || isStudent) {
+    if (filteredGrades.length === 0) {
+      return (
+        <div className="flex h-96 items-center justify-center">
+          <p>No results yet</p>
+        </div>
+      );
+    }
+  }
 
   if (loading) {
     return (
@@ -70,11 +80,12 @@ export default function ResultsPage() {
 
       {/* Search */}
       <div className="flex items-center gap-4">
-        <Input
+        <InputField
+          label=""
           placeholder="Search results..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+          className="max-w-sm w-full md:w-[20rem]"
         />
       </div>
 
@@ -145,9 +156,15 @@ export default function ResultsPage() {
               : "No grades recorded yet."}
           </p>
           {!searchTerm && (
-            <Button asChild className="mt-4">
-              <Link href="/portal/results/new">Record First Grade</Link>
-            </Button>
+            <div>
+              {isParent || isStudent ? (
+                <></>
+              ) : (
+                <Button asChild className="mt-4">
+                  <Link href="/portal/results/new">Record First Grade</Link>
+                </Button>
+              )}
+            </div>
           )}
         </div>
       )}

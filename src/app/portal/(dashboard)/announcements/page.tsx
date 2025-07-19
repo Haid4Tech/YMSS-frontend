@@ -11,7 +11,8 @@ import {
 } from "@/jotai/announcement/announcement";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { InputField } from "@/components/ui/form-field";
+import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
 
 export default function AnnouncementsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -19,6 +20,9 @@ export default function AnnouncementsPage() {
   const [loading] = useAtom(announcementLoadingAtom);
   const [error] = useAtom(announcementErrorAtom);
   const [, getAllAnnouncements] = useAtom(announcementsAPI.getAll);
+  const [isParent] = useAtom(isParentAtom);
+  const [isStudent] = useAtom(isStudentAtom);
+  const [isTeacher] = useAtom(isTeacherAtom);
 
   useEffect(() => {
     getAllAnnouncements();
@@ -44,6 +48,16 @@ export default function AnnouncementsPage() {
     );
   }
 
+  if (isParent || isStudent || isTeacher) {
+    if (filteredAnnouncements.length === 0) {
+      return (
+        <div className="flex h-96 items-center justify-center">
+          <p>No announcement yet</p>
+        </div>
+      );
+    }
+  }
+
   if (error) {
     return (
       <div className="text-center py-12">
@@ -65,18 +79,24 @@ export default function AnnouncementsPage() {
             Manage school announcements and notices
           </p>
         </div>
-        <Button asChild>
-          <Link href="/portal/announcements/new">Create Announcement</Link>
-        </Button>
+
+        {isParent || isStudent || isTeacher ? (
+          <></>
+        ) : (
+          <Button asChild>
+            <Link href="/portal/announcements/new">Create Announcement</Link>
+          </Button>
+        )}
       </div>
 
       {/* Search */}
       <div className="flex items-center gap-4">
-        <Input
+        <InputField
+          label={""}
           placeholder="Search announcements..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+          className="max-w-sm w-full md:w-[20rem]"
         />
       </div>
 
@@ -88,7 +108,9 @@ export default function AnnouncementsPage() {
               <CardTitle className="flex items-center justify-between">
                 <span className="truncate">{announcement?.title}</span>
                 <Button asChild variant="outline" size="sm">
-                  <Link href={`/portal/announcements/${announcement?.id}`}>View</Link>
+                  <Link href={`/portal/announcements/${announcement?.id}`}>
+                    View
+                  </Link>
                 </Button>
               </CardTitle>
             </CardHeader>
@@ -99,7 +121,9 @@ export default function AnnouncementsPage() {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Created:</span>{" "}
-                  {announcement?.createdAt ? new Date(announcement.createdAt).toLocaleDateString() : "Not set"}
+                  {announcement?.createdAt
+                    ? new Date(announcement.createdAt).toLocaleDateString()
+                    : "Not set"}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Author:</span>{" "}
@@ -123,12 +147,20 @@ export default function AnnouncementsPage() {
               : "No announcements posted yet."}
           </p>
           {!searchTerm && (
-            <Button asChild className="mt-4">
-              <Link href="/portal/announcements/new">Create First Announcement</Link>
-            </Button>
+            <div>
+              {isParent || isStudent || isTeacher ? (
+                <></>
+              ) : (
+                <Button asChild className="mt-4">
+                  <Link href="/portal/announcements/new">
+                    Create First Announcement
+                  </Link>
+                </Button>
+              )}
+            </div>
           )}
         </div>
       )}
     </div>
   );
-} 
+}

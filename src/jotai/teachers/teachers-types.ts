@@ -7,10 +7,10 @@ export interface Teacher {
   subject?: Subject; // Main subject assignment
   user: User;
   userId: number;
-  
+
   // Contact Information
   phone?: string;
-  
+
   // Professional Details
   department?: string;
   qualification?: string;
@@ -20,11 +20,11 @@ export interface Teacher {
   joinDate?: string;
   hireDate?: string; // Alternative naming used in components
   salary?: number;
-  
+
   // Class Assignment
   isClassTeacher?: boolean;
   classId?: number; // If they are a class teacher
-  
+
   // Additional fields for comprehensive teacher management
   dateOfBirth?: string;
   gender?: string;

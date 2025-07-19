@@ -18,7 +18,7 @@ import {
   UserCog,
   Settings,
   HelpCircle,
-  MessageSquare,
+  // MessageSquare,
   Megaphone,
   CalendarDays,
   FileText,
@@ -104,12 +104,12 @@ const navigationItems: NavItem[] = [
     lucideIcon: CalendarDays,
     roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"],
   },
-  {
-    name: "Messages",
-    href: "/portal/messages",
-    lucideIcon: MessageSquare,
-    roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"],
-  },
+  // {
+  //   name: "Messages",
+  //   href: "/portal/messages",
+  //   lucideIcon: MessageSquare,
+  //   roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"],
+  // },
   {
     name: "Academic Records",
     href: "/portal/records",
@@ -183,7 +183,7 @@ export default function PortalSidebar({ user, onClose }: PortalSidebarProps) {
                   className={cn(
                     "w-5 h-5 transition-colors",
                     isActiveRoute(item.href)
-                      ? "text-primary-foreground"
+                      ? "text-primary-foreground group-hover:text-muted-foreground"
                       : "text-muted-foreground group-hover:text-accent-foreground"
                   )}
                 />

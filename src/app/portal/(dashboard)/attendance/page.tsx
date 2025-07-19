@@ -7,7 +7,8 @@ import { attendanceAPI } from "@/jotai/attendance/attendance";
 import { Attendance } from "@/jotai/attendance/attendance-type";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { InputField } from "@/components/ui/form-field";
+import { isParentAtom, isStudentAtom } from "@/jotai/auth/auth";
 
 export default function AttendancePage() {
   const [attendance, setAttendance] = useState<Attendance[]>([]);
@@ -15,6 +16,8 @@ export default function AttendancePage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const [, getAllAttendance] = useAtom(attendanceAPI.getAll);
+  const [isParent] = useAtom(isParentAtom);
+  const [isStudent] = useAtom(isStudentAtom);
 
   useEffect(() => {
     const fetchAttendance = async () => {
@@ -48,6 +51,16 @@ export default function AttendancePage() {
     );
   }
 
+  if (isParent || isStudent) {
+    if (filteredAttendance.length === 0) {
+      return (
+        <div className="flex h-96 items-center justify-center">
+          <p>No attendance yet</p>
+        </div>
+      );
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -58,18 +71,24 @@ export default function AttendancePage() {
             Track and manage student attendance records
           </p>
         </div>
-        <Button asChild>
-          <Link href="/portal/attendance/new">Mark Attendance</Link>
-        </Button>
+
+        {isParent || isStudent ? (
+          <></>
+        ) : (
+          <Button asChild>
+            <Link href="/portal/attendance/new">Mark Attendance</Link>
+          </Button>
+        )}
       </div>
 
       {/* Search */}
       <div className="flex items-center gap-4">
-        <Input
+        <InputField
+          label=""
           placeholder="Search attendance..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+          className="max-w-sm w-full md:w-[20rem]"
         />
       </div>
 
@@ -128,9 +147,17 @@ export default function AttendancePage() {
               : "No attendance records yet."}
           </p>
           {!searchTerm && (
-            <Button asChild className="mt-4">
-              <Link href="/portal/attendance/new">Mark First Attendance</Link>
-            </Button>
+            <div>
+              {isParent || isStudent ? (
+                <></>
+              ) : (
+                <Button asChild className="mt-4">
+                  <Link href="/portal/attendance/new">
+                    Mark First Attendance
+                  </Link>
+                </Button>
+              )}
+            </div>
           )}
         </div>
       )}

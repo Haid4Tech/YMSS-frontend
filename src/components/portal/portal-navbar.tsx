@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Bell,
-  MessageCircleMore,
+  // MessageCircleMore,
   Menu,
   LogOut,
   User as UserIcon,
@@ -138,9 +138,9 @@ export default function PortalNavbar({ user, onMenuClick }: PortalNavbarProps) {
           </Button>
 
           {/* Messages */}
-          <Button variant="ghost">
+          {/* <Button variant="ghost">
             <MessageCircleMore />
-          </Button>
+          </Button> */}
 
           {/* Theme Toggle */}
           <Button

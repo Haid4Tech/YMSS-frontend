@@ -9,9 +9,11 @@ import {
   classLoadingAtom,
   classErrorAtom,
 } from "@/jotai/class/class";
+import { authPersistedAtom } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { teachersAPI } from "@/jotai/teachers/teachers";
 
 export default function ClassesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,9 +22,30 @@ export default function ClassesPage() {
   const [error] = useAtom(classErrorAtom);
   const [, getAllClasses] = useAtom(classesAPI.getAll);
 
+  const [auth] = useAtom(authPersistedAtom);
+
+  const [classData, setClassData] = useState<any>(null);
+
+  console.log("AUTH ", auth);
+
   useEffect(() => {
-    getAllClasses();
-  }, [getAllClasses]);
+    if (auth?.user?.role === "ADMIN") {
+      getAllClasses();
+    }
+
+    if (auth?.user?.role === "TEACHER") {
+      (async () => {
+        const teacherId = await teachersAPI.getById(1);
+
+        console.log("TEACHES id ", teacherId);
+
+        // if (teacherId) {
+        //   const classes = await classesAPI.getById(teacherId?.id);
+        //   setClassData(classes);
+        // }
+      })();
+    }
+  }, [getAllClasses, auth]);
 
   const filteredClasses = Array.isArray(classes)
     ? classes.filter((classItem) =>
@@ -40,7 +63,7 @@ export default function ClassesPage() {
 
   if (error) {
     return (
-      <div className="text-center py-12">
+      <div className="space-y-3 text-center py-12">
         <p className="text-muted-foreground">
           Failed to load Classes Data. {error}
         </p>
@@ -122,4 +145,4 @@ export default function ClassesPage() {
       )}
     </div>
   );
-} 
+}

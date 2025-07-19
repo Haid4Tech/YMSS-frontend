@@ -11,7 +11,8 @@ import {
 } from "@/jotai/exams/exams";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { InputField } from "@/components/ui/form-field";
+import { isParentAtom, isStudentAtom } from "@/jotai/auth/auth";
 
 export default function ExamsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -19,6 +20,8 @@ export default function ExamsPage() {
   const [loading] = useAtom(examLoadingAtom);
   const [error] = useAtom(examErrorAtom);
   const [, getAllExams] = useAtom(examsAPI.getAll);
+  const [isParent] = useAtom(isParentAtom);
+  const [isStudent] = useAtom(isStudentAtom);
 
   useEffect(() => {
     getAllExams();
@@ -40,6 +43,16 @@ export default function ExamsPage() {
     );
   }
 
+  if (isParent || isStudent) {
+    if (filteredExams.length === 0) {
+      return (
+        <div className="flex h-96 items-center justify-center">
+          <p>No exams yet</p>
+        </div>
+      );
+    }
+  }
+
   if (error) {
     return (
       <div className="text-center py-12">
@@ -59,18 +72,24 @@ export default function ExamsPage() {
             Manage exam schedules and assessment information
           </p>
         </div>
-        <Button asChild>
-          <Link href="/portal/exams/new">Schedule Exam</Link>
-        </Button>
+
+        {isParent || isStudent ? (
+          <></>
+        ) : (
+          <Button asChild>
+            <Link href="/portal/exams/new">Schedule Exam</Link>
+          </Button>
+        )}
       </div>
 
       {/* Search */}
       <div className="flex items-center gap-4">
-        <Input
+        <InputField
+          label=""
           placeholder="Search exams..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+          className="max-w-sm w-full md:w-[20rem]"
         />
       </div>
 
@@ -120,9 +139,15 @@ export default function ExamsPage() {
               : "No exams scheduled yet."}
           </p>
           {!searchTerm && (
-            <Button asChild className="mt-4">
-              <Link href="/portal/exams/new">Schedule First Exam</Link>
-            </Button>
+            <div>
+              {isParent || isStudent ? (
+                <></>
+              ) : (
+                <Button asChild className="mt-4">
+                  <Link href="/portal/exams/new">Schedule First Exam</Link>
+                </Button>
+              )}
+            </div>
           )}
         </div>
       )}

@@ -11,14 +11,19 @@ import {
 } from "@/jotai/events/event";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+
+import { InputField } from "@/components/ui/form-field";
+import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
 
 export default function EventsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [events] = useAtom(eventListAtom);
   const [loading] = useAtom(eventLoadingAtom);
   const [error] = useAtom(eventErrorAtom);
   const [, getAllEvents] = useAtom(eventsAPI.getAll);
+  const [isParent] = useAtom(isParentAtom);
+  const [isStudent] = useAtom(isStudentAtom);
+  const [isTeacher] = useAtom(isTeacherAtom);
 
   useEffect(() => {
     getAllEvents();
@@ -40,6 +45,16 @@ export default function EventsPage() {
     );
   }
 
+  if (isParent || isStudent || isTeacher) {
+    if (filteredEvents.length === 0) {
+      return (
+        <div className="flex h-96 items-center justify-center">
+          <p>No events yet</p>
+        </div>
+      );
+    }
+  }
+
   if (error) {
     return (
       <div className="text-center py-12">
@@ -59,18 +74,24 @@ export default function EventsPage() {
             Manage school events and calendar activities
           </p>
         </div>
-        <Button asChild>
-          <Link href="/portal/events/new">Create Event</Link>
-        </Button>
+
+        {isParent || isStudent || isTeacher ? (
+          <></>
+        ) : (
+          <Button asChild>
+            <Link href="/portal/events/new">Create Event</Link>
+          </Button>
+        )}
       </div>
 
       {/* Search */}
       <div className="flex items-center gap-4">
-        <Input
+        <InputField
+          label={""}
           placeholder="Search events..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+          className="max-w-sm w-full md:w-[20rem]"
         />
       </div>
 
@@ -131,9 +152,15 @@ export default function EventsPage() {
               : "No events scheduled yet."}
           </p>
           {!searchTerm && (
-            <Button asChild className="mt-4">
-              <Link href="/portal/events/new">Create First Event</Link>
-            </Button>
+            <div>
+              {isParent || isStudent || isTeacher ? (
+                <></>
+              ) : (
+                <Button asChild className="mt-4">
+                  <Link href="/portal/events/new">Create First Event</Link>
+                </Button>
+              )}
+            </div>
           )}
         </div>
       )}
