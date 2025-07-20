@@ -10,16 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PersonAvatar } from "@/components/ui/person-avatar";
 import { SafeText, ErrorBoundary, safeGet } from "@/components/ui/safe-render";
-import { 
-  Edit, 
-  Save, 
-  X, 
-  User, 
-  Mail, 
-  Calendar, 
-  Shield
-} from "lucide-react";
+import { Edit, Save, X, User, Mail, Calendar, Shield } from "lucide-react";
 import { Spinner } from "@radix-ui/themes";
+import { toast } from "sonner";
+import { parentsAPI } from "@/jotai/parent/parent";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -27,7 +21,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [navigationLoading, setNavigationLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -51,24 +45,28 @@ export default function ProfilePage() {
   }, [user]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSave = async () => {
     try {
       setIsLoading(true);
-      
+
       // TODO: Implement profile update API call
       console.log("Saving profile data:", formData);
-      
+
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      if (user) {
+        const response = await parentsAPI.update(user?.id, formData);
+
+        console.log("update response ", response);
+      }
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
+
       setIsEditing(false);
-      
+
       // TODO: Show success message
-      alert("Profile updated successfully!");
-      
+      toast.success("Profile updated successfully!");
     } catch (error) {
       console.error("Failed to update profile:", error);
       alert("Failed to update profile. Please try again.");
@@ -122,18 +120,15 @@ export default function ProfilePage() {
           <div className="flex gap-2">
             {isEditing ? (
               <>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleCancel}
                   disabled={isLoading}
                 >
                   <X className="h-4 w-4 mr-2" />
                   Cancel
                 </Button>
-                <Button 
-                  onClick={handleSave}
-                  disabled={isLoading}
-                >
+                <Button onClick={handleSave} disabled={isLoading}>
                   {isLoading ? (
                     <div className="flex flex-row gap-2 items-center">
                       <Spinner />
@@ -163,12 +158,12 @@ export default function ProfilePage() {
               <CardTitle>Profile Picture</CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
-              <PersonAvatar 
+              <PersonAvatar
                 name={safeGet(user, "name", "User")}
                 size="xl"
                 className="mx-auto w-24 h-24"
               />
-              
+
               {/* TODO: Uncomment when image upload is implemented */}
               {/* {isEditing && (
                 <Button variant="outline" size="sm">
@@ -176,13 +171,13 @@ export default function ProfilePage() {
                   Change Photo
                 </Button>
               )} */}
-              
+
               <div className="text-sm text-muted-foreground">
                 <SafeText fallback="No name provided">
                   {safeGet(user, "name", "")}
                 </SafeText>
               </div>
-              
+
               <div className="text-xs text-muted-foreground">
                 {safeGet(user, "role", "User")}
               </div>
@@ -197,7 +192,7 @@ export default function ProfilePage() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Full Name */}
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="name" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     Full Name
@@ -206,7 +201,9 @@ export default function ProfilePage() {
                     <Input
                       id="name"
                       value={formData.name}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("name", e.target.value)
+                      }
                       placeholder="Enter your full name"
                     />
                   ) : (
@@ -219,7 +216,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Email */}
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="email" className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
                     Email Address
@@ -229,7 +226,9 @@ export default function ProfilePage() {
                       id="email"
                       type="email"
                       value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("email", e.target.value)
+                      }
                       placeholder="Enter your email"
                     />
                   ) : (
@@ -242,7 +241,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Role */}
-                <div>
+                <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Shield className="h-4 w-4" />
                     Role
@@ -258,7 +257,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Member Since */}
-                <div>
+                <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
                     Member Since
@@ -324,7 +323,7 @@ export default function ProfilePage() {
                   {safeGet(user, "id", "N/A")}
                 </p>
               </div>
-              
+
               <div>
                 <Label>Account Type</Label>
                 <p className="text-sm mt-1 p-2 bg-muted rounded-md">
@@ -333,7 +332,7 @@ export default function ProfilePage() {
                   </SafeText>
                 </p>
               </div>
-              
+
               <div>
                 <Label>Account Status</Label>
                 <p className="text-sm mt-1 p-2 bg-green-100 text-green-800 rounded-md">
@@ -351,8 +350,8 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setNavigationLoading(true);
                   router.push("/portal/settings");
@@ -367,27 +366,28 @@ export default function ProfilePage() {
                   "Go to Settings"
                 )}
               </Button>
-              
+
               {/* TODO: Implement these actions */}
               <Button variant="outline" disabled>
                 Change Password
               </Button>
-              
+
               <Button variant="outline" disabled>
                 Download Data
               </Button>
-              
+
               <Button variant="destructive" disabled>
                 Delete Account
               </Button>
             </div>
-            
+
             <p className="text-xs text-muted-foreground mt-4">
-              Some actions are currently under development and will be available soon.
+              Some actions are currently under development and will be available
+              soon.
             </p>
           </CardContent>
         </Card>
       </div>
     </ErrorBoundary>
   );
-} 
+}

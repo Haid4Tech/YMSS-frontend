@@ -22,9 +22,9 @@ export const parentsAPI = {
     set(parentErrorAtom, null);
 
     try {
-    const response = await axiosInstance.get("/parents");
+      const response = await axiosInstance.get("/parents");
       set(parentListAtom, response.data);
-    return response.data;
+      return response.data;
     } catch (error: any) {
       set(parentErrorAtom, error.message || "Failed to fetch parents");
     } finally {

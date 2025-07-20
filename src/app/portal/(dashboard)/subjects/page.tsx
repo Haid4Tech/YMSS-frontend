@@ -10,6 +10,7 @@ import {
   subjectErrorAtom,
 } from "@/jotai/subject/subject";
 import { Button } from "@/components/ui/button";
+import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@radix-ui/themes";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,9 @@ export default function SubjectsPage() {
   const [loading] = useAtom(subjectLoadingAtom);
   const [error] = useAtom(subjectErrorAtom);
   const [, getAllSubjects] = useAtom(subjectsAPI.getAll);
+  const [isParent] = useAtom(isParentAtom);
+  const [isStudent] = useAtom(isStudentAtom);
+  const [isTeacher] = useAtom(isTeacherAtom);
 
   useEffect(() => {
     getAllSubjects();
@@ -40,13 +44,23 @@ export default function SubjectsPage() {
     );
   }
 
+  if (isParent || isStudent || isTeacher) {
+    if (filteredSubjects.length === 0) {
+      return (
+        <div className="flex h-96 items-center justify-center">
+          <p>No Subjects yet</p>
+        </div>
+      );
+    }
+  }
+
   if (error) {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">
           Failed to load Subjects. {error}
         </p>
-        <Button 
+        <Button
           onClick={async () => {
             setRetryLoading(true);
             try {
@@ -79,9 +93,14 @@ export default function SubjectsPage() {
             Manage academic subjects and teacher assignments
           </p>
         </div>
-        <Button asChild>
-          <Link href="/portal/subjects/new">Add Subject</Link>
-        </Button>
+
+        {isParent || isStudent || isTeacher ? (
+          <></>
+        ) : (
+          <Button asChild>
+            <Link href="/portal/subjects/new">Add Subject</Link>
+          </Button>
+        )}
       </div>
 
       {/* Search */}
@@ -134,12 +153,18 @@ export default function SubjectsPage() {
               : "No subjects created yet."}
           </p>
           {!searchTerm && (
-            <Button asChild className="mt-4">
-              <Link href="/portal/subjects/new">Create First Subject</Link>
-            </Button>
+            <div>
+              {isParent || isStudent || isTeacher ? (
+                <></>
+              ) : (
+                <Button asChild className="mt-4">
+                  <Link href="/portal/subjects/new">Create First Subject</Link>
+                </Button>
+              )}
+            </div>
           )}
         </div>
       )}
     </div>
   );
-} 
+}
