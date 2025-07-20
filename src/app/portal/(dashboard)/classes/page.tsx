@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { teachersAPI } from "@/jotai/teachers/teachers";
+import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
 
 export default function ClassesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,6 +24,9 @@ export default function ClassesPage() {
   const [loading] = useAtom(classLoadingAtom);
   const [error] = useAtom(classErrorAtom);
   const [, getAllClasses] = useAtom(classesAPI.getAll);
+  const [isParent] = useAtom(isParentAtom);
+  const [isStudent] = useAtom(isStudentAtom);
+  const [isTeacher] = useAtom(isTeacherAtom);
 
   useEffect(() => {
     if (auth?.user?.role === "ADMIN") {
@@ -58,6 +62,16 @@ export default function ClassesPage() {
     );
   }
 
+  if (isParent || isStudent || isTeacher) {
+    if (filteredClasses.length === 0) {
+      return (
+        <div className="flex h-96 items-center justify-center">
+          <p>No classes yet</p>
+        </div>
+      );
+    }
+  }
+
   if (error) {
     return (
       <div className="space-y-3 text-center py-12">
@@ -79,9 +93,13 @@ export default function ClassesPage() {
             Manage class information and student assignments
           </p>
         </div>
-        <Button asChild>
-          <Link href="/portal/classes/new">Add Class</Link>
-        </Button>
+        {isParent || isStudent || isTeacher ? (
+          <></>
+        ) : (
+          <Button asChild>
+            <Link href="/portal/classes/new">Add Class</Link>
+          </Button>
+        )}
       </div>
 
       {/* Search */}
@@ -134,9 +152,15 @@ export default function ClassesPage() {
               : "No classes created yet."}
           </p>
           {!searchTerm && (
-            <Button asChild className="mt-4">
-              <Link href="/portal/classes/new">Create First Class</Link>
-            </Button>
+            <div>
+              {isParent || isStudent || isTeacher ? (
+                <></>
+              ) : (
+                <Button asChild className="mt-4">
+                  <Link href="/portal/classes/new">Create First Class</Link>
+                </Button>
+              )}
+            </div>
           )}
         </div>
       )}

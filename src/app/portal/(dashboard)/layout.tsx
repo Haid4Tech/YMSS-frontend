@@ -2,6 +2,7 @@
 
 import { ReactNode, useState } from "react";
 import { useAtom } from "jotai";
+import { useRouter } from "next/navigation";
 import {
   userAtom,
   isAuthenticatedAtom,
@@ -9,12 +10,15 @@ import {
 } from "@/jotai/auth/auth";
 import PortalSidebar from "@/components/portal/portal-sidebar";
 import PortalNavbar from "@/components/portal/portal-navbar";
+import { deleteCookie } from "cookies-next";
+import { Button } from "@/components/ui/button";
 
 export default function DashboardLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
+  const router = useRouter();
   const [user] = useAtom(userAtom);
   const [isAuthenticated] = useAtom(isAuthenticatedAtom);
   const [loading] = useAtom(authLoadingAtom);
@@ -34,7 +38,24 @@ export default function DashboardLayout({
 
   // Don't render if not authenticated or no user
   if (!isAuthenticated || !user) {
-    return null;
+    deleteCookie("token");
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="text-red-500 text-lg font-semibold">
+            Authentication Error
+          </div>
+
+          <Button
+            onClick={() => router.push("/portal/signin")}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
+          >
+            Go to Sign In
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (

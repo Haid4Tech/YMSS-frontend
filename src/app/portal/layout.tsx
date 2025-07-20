@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
+import { Button } from "@/components/ui/button";
 import {
   userAtom,
   authLoadingAtom,
@@ -60,12 +61,12 @@ export default function PortalLayout({ children }: PortalLayoutProps) {
             Authentication Error
           </div>
           <p className="text-muted-foreground">{authError}</p>
-          <button
+          <Button
             onClick={() => router.push("/portal/signin")}
             className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
           >
             Go to Sign In
-          </button>
+          </Button>
         </div>
       </div>
     );
