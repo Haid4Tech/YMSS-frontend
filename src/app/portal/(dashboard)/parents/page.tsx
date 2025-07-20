@@ -3,7 +3,12 @@
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import Link from "next/link";
-import { parentsAPI, parentListAtom, parentLoadingAtom, parentErrorAtom } from "@/jotai/parent/parent";
+import {
+  parentsAPI,
+  parentListAtom,
+  parentLoadingAtom,
+  parentErrorAtom,
+} from "@/jotai/parent/parent";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -40,9 +45,7 @@ export default function ParentsPage() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">
-          Failed to load Parents. {error}
-        </p>
+        <p className="text-muted-foreground">Failed to load Parents. {error}</p>
         <Button onClick={() => getAllParents()}>Retry</Button>
       </div>
     );
@@ -92,8 +95,7 @@ export default function ParentsPage() {
                   {parent?.user?.email}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">User ID:</span>{" "}
-                  {parent?.userId}
+                  <span className="font-medium">User ID:</span> {parent?.userId}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Children:</span>{" "}
@@ -125,4 +127,4 @@ export default function ParentsPage() {
       )}
     </div>
   );
-} 
+}

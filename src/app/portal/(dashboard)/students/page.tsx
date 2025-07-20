@@ -8,6 +8,7 @@ import {
   studentListAtom,
   studentLoadingAtom,
 } from "@/jotai/students/student";
+import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,12 @@ export default function StudentsPage() {
   const [students] = useAtom(studentListAtom);
   const [loading] = useAtom(studentLoadingAtom);
   const [, getAllStudents] = useAtom(studentsAPI.getAll);
+
+  const [isParent] = useAtom(isParentAtom);
+  const [isStudent] = useAtom(isStudentAtom);
+  const [isTeacher] = useAtom(isTeacherAtom);
+
+  console.log(students);
 
   useEffect(() => {
     (() => {
@@ -43,6 +50,16 @@ export default function StudentsPage() {
     );
   }
 
+  if (isParent || isStudent || isTeacher) {
+    if (filteredStudents.length === 0) {
+      return (
+        <div className="flex h-96 items-center justify-center">
+          <p>No student yet</p>
+        </div>
+      );
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -53,9 +70,14 @@ export default function StudentsPage() {
             Manage student enrollments and information
           </p>
         </div>
-        <Button asChild>
-          <Link href="/portal/students/new">Add Student</Link>
-        </Button>
+
+        {isParent || isStudent || isTeacher ? (
+          <></>
+        ) : (
+          <Button asChild>
+            <Link href="/portal/students/new">Add Student</Link>
+          </Button>
+        )}
       </div>
 
       {/* Search */}
@@ -120,9 +142,15 @@ export default function StudentsPage() {
               : "No students enrolled yet."}
           </p>
           {!searchTerm && (
-            <Button asChild className="mt-4">
-              <Link href="/portal/students/new">Add First Student</Link>
-            </Button>
+            <div>
+              {isParent || isStudent || isTeacher ? (
+                <></>
+              ) : (
+                <Button asChild className="mt-4">
+                  <Link href="/portal/students/new">Add First Student</Link>
+                </Button>
+              )}
+            </div>
           )}
         </div>
       )}

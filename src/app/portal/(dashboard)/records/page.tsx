@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputField } from "@/components/ui/form-field";
-import { isParentAtom, isStudentAtom } from "@/jotai/auth/auth";
+import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
 
 export default function RecordsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,6 +22,7 @@ export default function RecordsPage() {
   const [, getAllRecords] = useAtom(recordsAPI.getAll);
   const [isParent] = useAtom(isParentAtom);
   const [isStudent] = useAtom(isStudentAtom);
+  const [isTeacher] = useAtom(isTeacherAtom);
 
   useEffect(() => {
     getAllRecords();
@@ -45,7 +46,7 @@ export default function RecordsPage() {
     );
   }
 
-  if (isParent || isStudent) {
+  if (isParent || isStudent || isTeacher) {
     if (filteredRecords.length === 0) {
       return (
         <div className="flex h-96 items-center justify-center">
@@ -77,7 +78,7 @@ export default function RecordsPage() {
           </p>
         </div>
 
-        {isParent || isStudent ? (
+        {isParent || isStudent || isTeacher ? (
           <></>
         ) : (
           <Button asChild>
@@ -146,7 +147,7 @@ export default function RecordsPage() {
           </p>
           {!searchTerm && (
             <div>
-              {isParent || isStudent ? (
+              {isParent || isStudent || isTeacher ? (
                 <></>
               ) : (
                 <Button asChild className="mt-4">

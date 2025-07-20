@@ -16,6 +16,8 @@ import { Button } from "../ui/button";
 import { Role } from "@/common/enum";
 import { isPathMatch } from "@/common/helper";
 
+import { authAPI } from "@/jotai/auth/auth";
+
 interface IMenuBar {
   view?: "admin" | "main";
 }
@@ -27,6 +29,8 @@ export default function MenuBar({ view }: IMenuBar) {
   const [result] = useAtom(authPersistedAtom);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathName = usePathname();
+
+  const [, logOutTrigger] = useAtom(authAPI.logout);
 
   const pathResult = isPathMatch(pathName, [
     "/portal/signin",
@@ -91,7 +95,10 @@ export default function MenuBar({ view }: IMenuBar) {
         {/* Desktop Navigation */}
         <div className="hidden lg:flex flex-row gap-10 items-center">
           <div
-            className={cn(view === "admin" ? "hidden" : "flex", "flex-row gap-6")}
+            className={cn(
+              view === "admin" ? "hidden" : "flex",
+              "flex-row gap-6"
+            )}
           >
             {navItem.map((items, index) => (
               <Link
@@ -134,6 +141,14 @@ export default function MenuBar({ view }: IMenuBar) {
               </div>
             )}
           </div>
+
+          <Button
+            className="cursor-pointer"
+            onClick={() => logOutTrigger("logout triggered")}
+          >
+            {" "}
+            Logout
+          </Button>
         </div>
 
         {/* Mobile Navigation Button */}
@@ -141,10 +156,7 @@ export default function MenuBar({ view }: IMenuBar) {
           {/* Mobile Portal Button */}
           <div>
             {result !== null ? (
-              <Button 
-                onClick={handleDashboardRedirect}
-                size="sm"
-              >
+              <Button onClick={handleDashboardRedirect} size="sm">
                 {loadingStates.portalState ? (
                   <div className="flex flex-row gap-2 items-center">
                     <Spinner size="1" />
@@ -202,7 +214,7 @@ export default function MenuBar({ view }: IMenuBar) {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={closeMobileMenu}
         />
