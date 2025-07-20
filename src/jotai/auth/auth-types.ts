@@ -6,7 +6,7 @@ export interface User {
   name: string;
   role: Role;
   createdAt: string;
-  
+
   // Additional fields used in the application
   phone?: string;
   bio?: string;
@@ -30,7 +30,13 @@ export interface SignInProps {
   password: string;
 }
 
+interface UserRole {
+  id: number;
+  userId: number;
+}
+
 export interface AuthSession {
   user: User;
   token: string | null;
+  teacher: UserRole;
 }

@@ -5,10 +5,10 @@ import { useAtom } from "jotai";
 import Link from "next/link";
 import {
   classesAPI,
-  classListAtom,
   classLoadingAtom,
   classErrorAtom,
 } from "@/jotai/class/class";
+import { Class } from "@/jotai/class/class-type";
 import { authPersistedAtom } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,32 +17,29 @@ import { teachersAPI } from "@/jotai/teachers/teachers";
 
 export default function ClassesPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [classes] = useAtom(classListAtom);
+  const [classes, setClasses] = useState<Class[] | null>(null);
+
+  const [auth] = useAtom(authPersistedAtom);
   const [loading] = useAtom(classLoadingAtom);
   const [error] = useAtom(classErrorAtom);
   const [, getAllClasses] = useAtom(classesAPI.getAll);
 
-  const [auth] = useAtom(authPersistedAtom);
-
-  const [classData, setClassData] = useState<any>(null);
-
-  console.log("AUTH ", auth);
-
   useEffect(() => {
     if (auth?.user?.role === "ADMIN") {
-      getAllClasses();
+      (async () => {
+        const classes = await getAllClasses();
+        setClasses(classes);
+      })();
     }
 
     if (auth?.user?.role === "TEACHER") {
       (async () => {
-        const teacherId = await teachersAPI.getById(1);
+        const teacherId = await teachersAPI.getById(auth?.teacher?.id);
 
-        console.log("TEACHES id ", teacherId);
-
-        // if (teacherId) {
-        //   const classes = await classesAPI.getById(teacherId?.id);
-        //   setClassData(classes);
-        // }
+        if (teacherId) {
+          const classes = await classesAPI.getById(teacherId?.id);
+          setClasses([classes]);
+        }
       })();
     }
   }, [getAllClasses, auth]);

@@ -156,7 +156,8 @@ export const autoLoginAtom = atom(null, async (get, set) => {
     });
 
     const authData: AuthSession = {
-      user: response.data,
+      user: response.data.user,
+      teacher: response.data.teacher,
       token: token as string,
     };
 
@@ -190,7 +191,6 @@ export const userRoleAtom = atom<string | null>((get) => {
   return user?.role ?? null;
 });
 
-// Helper atom to check specific roles
 export const isAdminAtom = atom<boolean>((get) => {
   const role = get(userRoleAtom);
   return role === "ADMIN";
