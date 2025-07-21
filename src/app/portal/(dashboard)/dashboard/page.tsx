@@ -19,16 +19,8 @@ export default function Dashboard() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">Failed to load dashboard</p>
-      </div>
-    );
-  }
-
   // Render role-specific dashboard
-  switch (user.role) {
+  switch (user?.role) {
     case "ADMIN":
       return <AdminDashboard user={user} />;
     case "TEACHER":

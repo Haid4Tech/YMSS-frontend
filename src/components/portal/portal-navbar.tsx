@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { PersonAvatar } from "@/components/ui/person-avatar";
 import { Spinner } from "@radix-ui/themes";
+import { toast } from "sonner";
 
 interface PortalNavbarProps {
   user: User;
@@ -96,10 +97,12 @@ export default function PortalNavbar({ user, onMenuClick }: PortalNavbarProps) {
   const handleLogout = async () => {
     try {
       setLogoutLoading(true);
-      await triggerLogout("User logout");
+      await triggerLogout("User logout from PortalNavbar");
+      toast.success("Logged out successfully!");
       router.push("/portal/signin");
     } catch (error) {
       console.error("Logout error:", error);
+      toast.error("Logout failed, but redirecting anyway");
       // Force redirect even if logout fails
       router.push("/portal/signin");
     } finally {

@@ -4,6 +4,8 @@ import { Provider } from "jotai";
 import "./globals.css";
 import "@radix-ui/themes/styles.css";
 import { Theme } from "@radix-ui/themes";
+import AuthProvider from "@/components/auth/AuthProvider";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +33,17 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Theme>
-          <Provider>{children}</Provider>
+          <Provider>
+            <AuthProvider>
+              {children}
+              <Toaster
+                position="top-right"
+                richColors
+                closeButton
+                duration={4000}
+              />
+            </AuthProvider>
+          </Provider>
         </Theme>
       </body>
     </html>

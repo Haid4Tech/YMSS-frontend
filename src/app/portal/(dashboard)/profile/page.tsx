@@ -12,6 +12,8 @@ import { PersonAvatar } from "@/components/ui/person-avatar";
 import { SafeText, ErrorBoundary, safeGet } from "@/components/ui/safe-render";
 import { Edit, Save, X, User, Mail, Calendar, Shield } from "lucide-react";
 import { Spinner } from "@radix-ui/themes";
+import { toast } from "sonner";
+import { isAdminAtom } from "@/jotai/auth/auth";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -19,6 +21,8 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [navigationLoading, setNavigationLoading] = useState(false);
+
+  const [isAdmin] = useAtom(isAdminAtom);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -54,12 +58,16 @@ export default function ProfilePage() {
       console.log("Saving profile data:", formData);
 
       // Simulate API call
+      if (user) {
+        if (user?.role === "ADMIN") {
+        }
+      }
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setIsEditing(false);
 
       // TODO: Show success message
-      alert("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
     } catch (error) {
       console.error("Failed to update profile:", error);
       alert("Failed to update profile. Please try again.");
@@ -136,10 +144,14 @@ export default function ProfilePage() {
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setIsEditing(true)}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Profile
-              </Button>
+              <div>
+                {isAdmin && (
+                  <Button onClick={() => setIsEditing(true)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                )}
+              </div>
             )}
           </div>
         </div>
