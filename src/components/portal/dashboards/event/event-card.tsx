@@ -16,8 +16,8 @@ const EventCard: FC<IEventCard> = ({ event, canModify, onDelete }) => {
     <Card key={event?.id} className="hover-scale">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span className="truncate">{event?.title}</span>
-          <div className="flex gap-2">
+          <span className="text-wrap truncate">{event?.title}</span>
+          <div className="col-span-1 flex gap-2">
             <Button asChild variant="outline" size="sm">
               <Link href={`/portal/events/${event?.id}`}>View</Link>
             </Button>
