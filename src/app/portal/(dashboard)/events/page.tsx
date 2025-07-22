@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
-import Link from "next/link";
 import {
   eventsAPI,
   eventListAtom,
@@ -12,15 +12,20 @@ import {
 import { Event } from "@/jotai/events/event-types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { InputField } from "@/components/ui/form-field";
-import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
+import {
+  isParentAtom,
+  isStudentAtom,
+  isTeacherAtom,
+  userAtom,
+} from "@/jotai/auth/auth";
 import {
   EventCalendar,
   AddEventModal,
   CalendarEvent,
 } from "@/components/calendar";
 import { toast } from "sonner";
+import EventCard from "@/components/portal/dashboards/event/event-card";
 
 export default function EventsPage() {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -28,6 +33,7 @@ export default function EventsPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
 
+  const [user] = useAtom(userAtom);
   const [events] = useAtom(eventListAtom);
   const [loading] = useAtom(eventLoadingAtom);
   const [error] = useAtom(eventErrorAtom);
@@ -62,12 +68,7 @@ export default function EventsPage() {
     return {
       ...calendarEvent,
       date: calendarEvent.date.toISOString(),
-      // title: calendarEvent.title,
-      // description: calendarEvent.description || "",
-      // startTime: calendarEvent.startTime,
-      // endTime: calendarEvent.endTime,
-      // category: calendarEvent.category,
-      // color: calendarEvent.color,
+      createdById: user?.id,
     };
   };
 
@@ -191,9 +192,6 @@ export default function EventsPage() {
               >
                 Add Event
               </Button>
-              <Button asChild variant="outline">
-                <Link href="/portal/events/new">Create Event (Form)</Link>
-              </Button>
             </>
           )}
         </div>
@@ -280,65 +278,13 @@ export default function EventsPage() {
 
           {/* Events Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents.map((event) => (
-              <Card key={event?.id} className="hover-scale">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="truncate">{event?.title}</span>
-                    <div className="flex gap-2">
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/portal/events/${event?.id}`}>View</Link>
-                      </Button>
-                      {canModifyEvents && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() =>
-                            handleDeleteEvent(event.id, event.title)
-                          }
-                        >
-                          Delete
-                        </Button>
-                      )}
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {event?.description || "No description"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">Date:</span>{" "}
-                      {event?.date
-                        ? new Date(event.date).toLocaleDateString()
-                        : "Not scheduled"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">Created by:</span>{" "}
-                      {event?.createdBy?.name || "Unknown"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">Event ID:</span> {event?.id}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">Status:</span>{" "}
-                      <Badge
-                        variant="secondary"
-                        className={`text-xs ${
-                          new Date(event?.date) > new Date()
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {new Date(event?.date) > new Date()
-                          ? "Upcoming"
-                          : "Past"}
-                      </Badge>
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+            {filteredEvents.map((event, index) => (
+              <EventCard
+                key={index}
+                event={event}
+                canModify={canModifyEvents}
+                onDelete={() => handleDeleteEvent(event.id, event.title)}
+              />
             ))}
           </div>
 
