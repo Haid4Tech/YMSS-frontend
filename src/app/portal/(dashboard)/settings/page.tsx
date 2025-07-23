@@ -8,13 +8,8 @@ import { userAtom } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectField } from "@/components/ui/form-field";
+import { SelectItem } from "@/components/ui/select";
 import { ErrorBoundary, safeGet } from "@/components/ui/safe-render";
 import {
   Settings as SettingsIcon,
@@ -301,91 +296,76 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label>Theme</Label>
-                <Select
+                <SelectField
+                  label="Theme"
                   value={settings.appearance.theme}
                   onValueChange={(value) =>
                     updateSetting("appearance", "theme", value)
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="light">
-                      <div className="flex items-center gap-2">
-                        <Sun className="h-4 w-4" />
-                        Light
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="dark">
-                      <div className="flex items-center gap-2">
-                        <Moon className="h-4 w-4" />
-                        Dark
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="system">
-                      <div className="flex items-center gap-2">
-                        <Monitor className="h-4 w-4" />
-                        System
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                  <SelectItem value="light">
+                    <div className="flex items-center gap-2">
+                      <Sun className="h-4 w-4" />
+                      Light
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="dark">
+                    <div className="flex items-center gap-2">
+                      <Moon className="h-4 w-4" />
+                      Dark
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="system">
+                    <div className="flex items-center gap-2">
+                      <Monitor className="h-4 w-4" />
+                      System
+                    </div>
+                  </SelectItem>
+                </SelectField>
               </div>
 
               <div>
-                <Label>Language</Label>
-                <Select
+                <SelectField
+                  label="Language"
                   value={settings.appearance.language}
                   onValueChange={(value) =>
                     updateSetting("appearance", "language", value)
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="es" disabled>
-                      Spanish (Coming Soon)
-                    </SelectItem>
-                    <SelectItem value="fr" disabled>
-                      French (Coming Soon)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="es" disabled>
+                    Spanish (Coming Soon)
+                  </SelectItem>
+                  <SelectItem value="fr" disabled>
+                    French (Coming Soon)
+                  </SelectItem>
+                </SelectField>
               </div>
 
               <div>
-                <Label>Timezone</Label>
-                <Select
+                <SelectField
+                  label={"Timezone"}
                   value={settings.appearance.timezone}
                   onValueChange={(value) =>
                     updateSetting("appearance", "timezone", value)
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="UTC">
-                      UTC (Coordinated Universal Time)
-                    </SelectItem>
-                    <SelectItem value="EST">
-                      EST (Eastern Standard Time)
-                    </SelectItem>
-                    <SelectItem value="PST">
-                      PST (Pacific Standard Time)
-                    </SelectItem>
-                    <SelectItem value="CST">
-                      CST (Central Standard Time)
-                    </SelectItem>
-                    <SelectItem value="MST">
-                      MST (Mountain Standard Time)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                  <SelectItem value="UTC">
+                    UTC (Coordinated Universal Time)
+                  </SelectItem>
+                  <SelectItem value="EST">
+                    EST (Eastern Standard Time)
+                  </SelectItem>
+                  <SelectItem value="PST">
+                    PST (Pacific Standard Time)
+                  </SelectItem>
+                  <SelectItem value="CST">
+                    CST (Central Standard Time)
+                  </SelectItem>
+                  <SelectItem value="MST">
+                    MST (Mountain Standard Time)
+                  </SelectItem>
+                </SelectField>
               </div>
             </CardContent>
           </Card>
@@ -400,51 +380,41 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label>Profile Visibility</Label>
-                <Select
+                <SelectField
+                  label={"Profile Visibility"}
                   value={settings.privacy.profileVisibility}
                   onValueChange={(value) =>
                     updateSetting("privacy", "profileVisibility", value)
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">
-                      Public - Everyone can see
-                    </SelectItem>
-                    <SelectItem value="school">
-                      School Only - School members only
-                    </SelectItem>
-                    <SelectItem value="teachers">
-                      Teachers Only - Teachers and admin
-                    </SelectItem>
-                    <SelectItem value="private">
-                      Private - Only you and admin
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                  <SelectItem value="public">
+                    Public - Everyone can see
+                  </SelectItem>
+                  <SelectItem value="school">
+                    School Only - School members only
+                  </SelectItem>
+                  <SelectItem value="teachers">
+                    Teachers Only - Teachers and admin
+                  </SelectItem>
+                  <SelectItem value="private">
+                    Private - Only you and admin
+                  </SelectItem>
+                </SelectField>
               </div>
 
               <div>
-                <Label>Contact Information Visibility</Label>
-                <Select
+                <SelectField
+                  label="Contact Information Visibility"
                   value={settings.privacy.contactInfo}
                   onValueChange={(value) =>
                     updateSetting("privacy", "contactInfo", value)
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="everyone">Everyone</SelectItem>
-                    <SelectItem value="teachers">Teachers and Admin</SelectItem>
-                    <SelectItem value="admin">Admin Only</SelectItem>
-                    <SelectItem value="none">No one</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <SelectItem value="everyone">Everyone</SelectItem>
+                  <SelectItem value="teachers">Teachers and Admin</SelectItem>
+                  <SelectItem value="admin">Admin Only</SelectItem>
+                  <SelectItem value="none">No one</SelectItem>
+                </SelectField>
               </div>
             </CardContent>
           </Card>
