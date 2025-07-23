@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { SelectItem } from "@/components/ui/select";
+import PageHeader from "@/components/general/page-header";
 
 import {
   InputField,
@@ -197,19 +198,10 @@ export default function AddClassPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/portal/classes">← Back to Classes</Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Create New Class</h1>
-            <p className="text-muted-foreground">
-              Set up a new class with all details
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={"Add New Class"}
+        subtitle={"Set up a new class with all details"}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}

@@ -4,6 +4,7 @@ import { SignUpProps, SignInProps, AuthSession, User } from "./auth-types";
 import axiosInstance from "@/utils/axios-instance";
 import { setCookie, deleteCookie, getCookie } from "cookies-next";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
+import { extractErrorMessage } from "@/utils/helpers";
 
 /*
   |--------------------------------------------------------------------------
@@ -29,73 +30,67 @@ export const signupFormAction = atom<SignUpProps>({
   role: undefined,
 });
 
+// Auth loading state
+export const authLoadingAtom = atom<boolean>(false);
+export const authErrorAtom = atom<string | null>(null);
+export const isLoggingOutAtom = atom<boolean>(false);
+
+// Profile update loading state
+export const profileUpdateLoadingAtom = atom<boolean>(false);
+export const profileUpdateErrorAtom = atom<string | null>(null);
+
 export const authAPI = {
   register: atom(null, async (get, set) => {
+    set(authLoadingAtom, true);
+    set(authErrorAtom, null);
+
     try {
       const form = get(signupFormAction);
       const response = await axiosInstance.post(`/auth/register`, form);
       const authData = response.data as AuthSession;
 
       set(authPersistedAtom, authData);
-      setCookie("token", authData.token);
+      setCookie("token", authData.token, {
+        maxAge: 7 * 24 * 60 * 60, // 7 days
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
 
-      set(authLoadingAtom, false);
       return authData;
     } catch (error) {
-      let errorMessage = "Signup failed. Please try again.";
-      if (
-        error &&
-        typeof error === "object" &&
-        "response" in error &&
-        error.response &&
-        typeof error.response === "object" &&
-        "data" in error.response &&
-        error.response.data &&
-        typeof error.response.data === "object" &&
-        "message" in error.response.data
-      ) {
-        errorMessage = (error.response as any).data.message || errorMessage;
-      }
+      const errorMessage = extractErrorMessage(error);
+      console.error("Signup error:", errorMessage);
       set(authErrorAtom, errorMessage);
-      console.error("Signup error:", error);
-      throw error;
+      throw new Error(errorMessage);
+    } finally {
+      set(authLoadingAtom, false);
     }
   }),
 
   login: atom(null, async (get, set) => {
-    // Clear previous errors and set loading
     set(authErrorAtom, null);
     set(authLoadingAtom, true);
 
     try {
-      const form = get(loginFormAtom); // get form input
+      const form = get(loginFormAtom);
       const response = await axiosInstance.post("/auth/login", form);
       const authData = response.data as AuthSession;
 
       set(authPersistedAtom, authData);
-      setCookie("token", authData.token);
+      setCookie("token", authData.token, {
+        maxAge: 7 * 24 * 60 * 60, // 7 days
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
 
-      set(authLoadingAtom, false);
       return authData;
     } catch (error) {
-      set(authLoadingAtom, false);
-      let errorMessage = "Login failed. Please try again.";
-      if (
-        error &&
-        typeof error === "object" &&
-        "response" in error &&
-        error.response &&
-        typeof error.response === "object" &&
-        "data" in error.response &&
-        error.response.data &&
-        typeof error.response.data === "object" &&
-        "message" in error.response.data
-      ) {
-        errorMessage = (error.response as any).data.message || errorMessage;
-      }
+      const errorMessage = extractErrorMessage(error);
+      console.error("Login error:", errorMessage);
       set(authErrorAtom, errorMessage);
-      console.error("Login error:", error);
-      throw error;
+      throw new Error(errorMessage);
+    } finally {
+      set(authLoadingAtom, false);
     }
   }),
 
@@ -104,12 +99,56 @@ export const authAPI = {
     return response.data;
   }),
 
-  logout: atom(null, async (_get, set, reason?: string) => {
-    set(authPersistedAtom, null);
-    set(authErrorAtom, null);
-    deleteCookie("token");
+  updateProfile: atom(null, async (get, set, userData: Partial<User>) => {
+    set(profileUpdateLoadingAtom, true);
+    set(profileUpdateErrorAtom, null);
 
-    console.log("Logout reason:", reason || "User initiated");
+    try {
+      const response = await axiosInstance.put("/auth/profile", userData);
+      const updatedUser = response.data.user || response.data;
+
+      // Update the auth session with the new user data
+      const currentSession = get(authPersistedAtom);
+      if (currentSession) {
+        const updatedSession: AuthSession = {
+          ...currentSession,
+          user: { ...currentSession.user, ...updatedUser }
+        };
+        set(authPersistedAtom, updatedSession);
+      }
+
+      return updatedUser;
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error);
+      console.error("Profile update error:", errorMessage);
+      set(profileUpdateErrorAtom, errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      set(profileUpdateLoadingAtom, false);
+    }
+  }),
+
+  logout: atom(null, async (_get, set, reason?: string) => {
+    console.log("🚪 Starting logout process:", reason || "User initiated");
+
+    // Set logout state immediately
+    set(isLoggingOutAtom, true);
+    set(authLoadingAtom, false);
+    set(authErrorAtom, null);
+
+    // Clear auth state immediately (don't wait for anything)
+    set(authPersistedAtom, null);
+
+    // Clear storage immediately
+    deleteCookie("token");
+    localStorage.removeItem("auth_session");
+
+    // Reset logout state
+    setTimeout(() => {
+      set(isLoggingOutAtom, false);
+    }, 100);
+
+    return true;
   }),
 };
 
@@ -119,16 +158,16 @@ export const userAtom = atom<User | null>((get) => {
   return authSession?.user ?? null;
 });
 
-// Auth loading state
-export const authLoadingAtom = atom<boolean>(false);
-
-// Auth error state
-export const authErrorAtom = atom<string | null>(null);
-
 // Check if user is authenticated
 export const isAuthenticatedAtom = atom<boolean>((get) => {
   const authSession = get(authPersistedAtom);
-  return !!(authSession?.user && authSession?.token);
+  const token = getCookie("token");
+  const isLoggingOut = get(isLoggingOutAtom);
+
+  // If currently logging out, return false immediately
+  if (isLoggingOut) return false;
+
+  return !!(authSession?.user && authSession?.token && token);
 });
 
 /*
@@ -139,43 +178,63 @@ export const isAuthenticatedAtom = atom<boolean>((get) => {
 
 // Auto-login atom to restore session from token
 export const autoLoginAtom = atom(null, async (get, set) => {
+  // Don't auto-login if currently logging out
+  if (get(isLoggingOutAtom)) {
+    return null;
+  }
+
   set(authLoadingAtom, true);
   set(authErrorAtom, null);
 
   try {
-    const token = getCookie("token") || localStorage.getItem("authToken");
+    const token = getCookie("token");
+    const existingSession = get(authPersistedAtom);
 
     if (!token) {
+      console.log("No token found, skipping auto-login");
       set(authLoadingAtom, false);
       return null;
     }
 
+    // If we already have a valid session with the same token, use it
+    if (existingSession?.token === token && existingSession?.user) {
+      console.log("Valid session found, using existing auth data");
+      set(authLoadingAtom, false);
+      return existingSession;
+    }
+
+    console.log("Verifying token with backend...");
+
     // Verify token with backend
-    const response = await axiosInstance.get(`/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axiosInstance.get(`/auth/me`);
 
     const authData: AuthSession = {
-      user: response.data.user,
+      user: response.data.user || response.data,
       teacher: response.data.teacher,
       token: token as string,
     };
 
     set(authPersistedAtom, authData);
-    set(authLoadingAtom, false);
+    console.log("Auto-login successful");
 
     return authData;
   } catch (error: any) {
+    console.log("Auto-login failed, clearing auth state");
+
     // Token is invalid, clear everything
     set(authPersistedAtom, null);
     deleteCookie("token");
-    localStorage.removeItem("authToken");
-    set(authLoadingAtom, false);
+    localStorage.removeItem("auth_session");
 
-    const errorMessage = error.response?.data?.message || "Session expired";
+    const errorMessage =
+      error.response?.status === 401
+        ? "Session expired"
+        : error.response?.data?.message || "Authentication failed";
+
     set(authErrorAtom, errorMessage);
-
     return null;
+  } finally {
+    set(authLoadingAtom, false);
   }
 });
 

@@ -6,16 +6,15 @@ import { useAtom } from "jotai";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  InputField,
+  SelectField,
+  TextareaField,
+} from "@/components/ui/form-field";
+import PageHeader from "@/components/general/page-header";
+import { SelectItem } from "@/components/ui/select";
+import DatePicker from "@/components/general/date-picker";
 import { announcementsAPI } from "@/jotai/announcement/announcement";
 import { classesAPI } from "@/jotai/class/class";
 import { Class } from "@/jotai/class/class-type";
@@ -25,21 +24,21 @@ export default function AddAnnouncementPage() {
   const [loading, setLoading] = useState(false);
   const [classes, setClasses] = useState<Class[]>([]);
   const [, getAllClasses] = useAtom(classesAPI.getAll);
-  
+
   const [formData, setFormData] = useState({
     title: "",
     content: "",
     priority: "",
     targetAudience: "",
     classId: "",
-    publishDate: new Date().toISOString().split('T')[0],
+    publishDate: new Date().toISOString().split("T")[0],
     expiryDate: "",
     category: "",
     attachments: [] as File[],
     isPublished: true,
     sendNotification: true,
     emailNotification: false,
-    smsNotification: false
+    smsNotification: false,
   });
 
   useEffect(() => {
@@ -55,12 +54,12 @@ export default function AddAnnouncementPage() {
   }, [getAllClasses]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setFormData(prev => ({ ...prev, attachments: files }));
+    setFormData((prev) => ({ ...prev, attachments: files }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,8 +80,8 @@ export default function AddAnnouncementPage() {
         notificationSettings: {
           push: formData.sendNotification,
           email: formData.emailNotification,
-          sms: formData.smsNotification
-        }
+          sms: formData.smsNotification,
+        },
       };
 
       await announcementsAPI.create(announcementData);
@@ -98,17 +97,10 @@ export default function AddAnnouncementPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/portal/announcements">← Back to Announcements</Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Create Announcement</h1>
-            <p className="text-muted-foreground">Share important information with students and parents</p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={"Create Announcement"}
+        subtitle={"Share important information with students and parents"}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
@@ -118,8 +110,8 @@ export default function AddAnnouncementPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="title">Title *</Label>
-              <Input
+              <InputField
+                label={"Title"}
                 id="title"
                 value={formData.title}
                 onChange={(e) => handleInputChange("title", e.target.value)}
@@ -127,10 +119,10 @@ export default function AddAnnouncementPage() {
                 required
               />
             </div>
-            
+
             <div>
-              <Label htmlFor="content">Content *</Label>
-              <Textarea
+              <TextareaField
+                label="Content"
                 id="content"
                 value={formData.content}
                 onChange={(e) => handleInputChange("content", e.target.value)}
@@ -142,37 +134,40 @@ export default function AddAnnouncementPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="priority">Priority Level *</Label>
-                <Select value={formData.priority} onValueChange={(value) => handleInputChange("priority", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="LOW">🟢 Low Priority</SelectItem>
-                    <SelectItem value="MEDIUM">🟡 Medium Priority</SelectItem>
-                    <SelectItem value="HIGH">🔴 High Priority</SelectItem>
-                    <SelectItem value="URGENT">⚠️ Urgent</SelectItem>
-                  </SelectContent>
-                </Select>
+                <SelectField
+                  label={"Priority Level"}
+                  placeholder="Select priority"
+                  value={formData.priority}
+                  onValueChange={(value) =>
+                    handleInputChange("priority", value)
+                  }
+                >
+                  <SelectItem value="LOW">🟢 Low Priority</SelectItem>
+                  <SelectItem value="MEDIUM">🟡 Medium Priority</SelectItem>
+                  <SelectItem value="HIGH">🔴 High Priority</SelectItem>
+                  <SelectItem value="URGENT">⚠️ Urgent</SelectItem>
+                </SelectField>
               </div>
 
               <div>
-                <Label htmlFor="category">Category</Label>
-                <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="general">📢 General</SelectItem>
-                    <SelectItem value="academic">📚 Academic</SelectItem>
-                    <SelectItem value="events">🎉 Events</SelectItem>
-                    <SelectItem value="exams">📝 Exams</SelectItem>
-                    <SelectItem value="holidays">🏖️ Holidays</SelectItem>
-                    <SelectItem value="sports">⚽ Sports</SelectItem>
-                    <SelectItem value="health">🏥 Health & Safety</SelectItem>
-                    <SelectItem value="admission">🎓 Admissions</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="category"></Label>
+                <SelectField
+                  label="Category"
+                  placeholder="Select category"
+                  value={formData.category}
+                  onValueChange={(value) =>
+                    handleInputChange("category", value)
+                  }
+                >
+                  <SelectItem value="general">📢 General</SelectItem>
+                  <SelectItem value="academic">📚 Academic</SelectItem>
+                  <SelectItem value="events">🎉 Events</SelectItem>
+                  <SelectItem value="exams">📝 Exams</SelectItem>
+                  <SelectItem value="holidays">🏖️ Holidays</SelectItem>
+                  <SelectItem value="sports">⚽ Sports</SelectItem>
+                  <SelectItem value="health">🏥 Health & Safety</SelectItem>
+                  <SelectItem value="admission">🎓 Admissions</SelectItem>
+                </SelectField>
               </div>
             </div>
           </CardContent>
@@ -186,37 +181,42 @@ export default function AddAnnouncementPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="targetAudience">Audience *</Label>
-                <Select value={formData.targetAudience} onValueChange={(value) => handleInputChange("targetAudience", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select target audience" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">👥 Everyone</SelectItem>
-                    <SelectItem value="students">🎓 Students Only</SelectItem>
-                    <SelectItem value="parents">👨‍👩‍👧‍👦 Parents Only</SelectItem>
-                    <SelectItem value="teachers">👨‍🏫 Teachers Only</SelectItem>
-                    <SelectItem value="staff">💼 Staff Only</SelectItem>
-                    <SelectItem value="specific_class">🏫 Specific Class</SelectItem>
-                  </SelectContent>
-                </Select>
+                <SelectField
+                  label="Audience"
+                  value={formData.targetAudience}
+                  placeholder="Select target audience"
+                  onValueChange={(value) =>
+                    handleInputChange("targetAudience", value)
+                  }
+                >
+                  <SelectItem value="all">👥 Everyone</SelectItem>
+                  <SelectItem value="students">🎓 Students Only</SelectItem>
+                  <SelectItem value="parents">👨‍👩‍👧‍👦 Parents Only</SelectItem>
+                  <SelectItem value="teachers">👨‍🏫 Teachers Only</SelectItem>
+                  <SelectItem value="staff">💼 Staff Only</SelectItem>
+                  <SelectItem value="specific_class">
+                    🏫 Specific Class
+                  </SelectItem>
+                </SelectField>
               </div>
 
               {formData.targetAudience === "specific_class" && (
                 <div>
-                  <Label htmlFor="classId">Select Class</Label>
-                  <Select value={formData.classId} onValueChange={(value) => handleInputChange("classId", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select class" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {classes.map((cls) => (
-                        <SelectItem key={cls.id} value={cls.id.toString()}>
-                          {cls.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="classId"></Label>
+                  <SelectField
+                    label={"Select Class"}
+                    placeholder="Select class"
+                    value={formData.classId}
+                    onValueChange={(value) =>
+                      handleInputChange("classId", value)
+                    }
+                  >
+                    {classes.map((cls) => (
+                      <SelectItem key={cls.id} value={cls.id.toString()}>
+                        {cls.name}
+                      </SelectItem>
+                    ))}
+                  </SelectField>
                 </div>
               )}
             </div>
@@ -230,26 +230,33 @@ export default function AddAnnouncementPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="publishDate">Publish Date *</Label>
-                <Input
-                  id="publishDate"
-                  type="date"
-                  value={formData.publishDate}
-                  onChange={(e) => handleInputChange("publishDate", e.target.value)}
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="expiryDate">Expiry Date (Optional)</Label>
-                <Input
-                  id="expiryDate"
-                  type="date"
-                  value={formData.expiryDate}
-                  onChange={(e) => handleInputChange("expiryDate", e.target.value)}
-                />
-              </div>
+              <DatePicker
+                required
+                label={"Publish Date"}
+                date={formData ? new Date(formData.publishDate) : undefined}
+                setDate={(date: Date | undefined) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    publishDate: date ? date.toISOString() : "",
+                  }))
+                }
+              />
+
+              <DatePicker
+                label={"Expiry Date (Optional)"}
+                date={formData ? new Date(formData.expiryDate) : undefined}
+                setDate={(date: Date | undefined) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    expiryDate: date ? date.toISOString() : "",
+                  }))
+                }
+                minDate={
+                  formData.publishDate
+                    ? new Date(formData.publishDate)
+                    : undefined
+                }
+              />
             </div>
 
             <div className="space-y-3">
@@ -258,7 +265,9 @@ export default function AddAnnouncementPage() {
                   id="isPublished"
                   type="checkbox"
                   checked={formData.isPublished}
-                  onChange={(e) => handleInputChange("isPublished", e.target.checked)}
+                  onChange={(e) =>
+                    handleInputChange("isPublished", e.target.checked)
+                  }
                   className="w-4 h-4"
                 />
                 <Label htmlFor="isPublished">Publish immediately</Label>
@@ -279,29 +288,37 @@ export default function AddAnnouncementPage() {
                   id="sendNotification"
                   type="checkbox"
                   checked={formData.sendNotification}
-                  onChange={(e) => handleInputChange("sendNotification", e.target.checked)}
+                  onChange={(e) =>
+                    handleInputChange("sendNotification", e.target.checked)
+                  }
                   className="w-4 h-4"
                 />
                 <Label htmlFor="sendNotification">Send push notification</Label>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <input
                   id="emailNotification"
                   type="checkbox"
                   checked={formData.emailNotification}
-                  onChange={(e) => handleInputChange("emailNotification", e.target.checked)}
+                  onChange={(e) =>
+                    handleInputChange("emailNotification", e.target.checked)
+                  }
                   className="w-4 h-4"
                 />
-                <Label htmlFor="emailNotification">Send email notification</Label>
+                <Label htmlFor="emailNotification">
+                  Send email notification
+                </Label>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <input
                   id="smsNotification"
                   type="checkbox"
                   checked={formData.smsNotification}
-                  onChange={(e) => handleInputChange("smsNotification", e.target.checked)}
+                  onChange={(e) =>
+                    handleInputChange("smsNotification", e.target.checked)
+                  }
                   className="w-4 h-4"
                 />
                 <Label htmlFor="smsNotification">Send SMS notification</Label>
@@ -317,8 +334,8 @@ export default function AddAnnouncementPage() {
           </CardHeader>
           <CardContent>
             <div>
-              <Label htmlFor="attachments">Upload Files (Optional)</Label>
-              <Input
+              <InputField
+                label={"Upload Files (Optional)"}
                 id="attachments"
                 type="file"
                 multiple
@@ -350,13 +367,20 @@ export default function AddAnnouncementPage() {
           <CardContent>
             <div className="border rounded-lg p-4 bg-muted/50">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium">{formData.title || "Announcement Title"}</h3>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  formData.priority === "HIGH" ? "bg-red-100 text-red-800" :
-                  formData.priority === "MEDIUM" ? "bg-yellow-100 text-yellow-800" :
-                  formData.priority === "URGENT" ? "bg-purple-100 text-purple-800" :
-                  "bg-green-100 text-green-800"
-                }`}>
+                <h3 className="font-medium">
+                  {formData.title || "Announcement Title"}
+                </h3>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    formData.priority === "HIGH"
+                      ? "bg-red-100 text-red-800"
+                      : formData.priority === "MEDIUM"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : formData.priority === "URGENT"
+                      ? "bg-purple-100 text-purple-800"
+                      : "bg-green-100 text-green-800"
+                  }`}
+                >
                   {formData.priority || "Low Priority"}
                 </span>
               </div>
@@ -378,19 +402,23 @@ export default function AddAnnouncementPage() {
             <Link href="/portal/announcements">Cancel</Link>
           </Button>
           <div className="flex gap-2">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => handleInputChange("isPublished", false)}
             >
               Save as Draft
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : formData.isPublished ? "Publish Announcement" : "Save Draft"}
+              {loading
+                ? "Creating..."
+                : formData.isPublished
+                ? "Publish Announcement"
+                : "Save Draft"}
             </Button>
           </div>
         </div>
       </form>
     </div>
   );
-} 
+}

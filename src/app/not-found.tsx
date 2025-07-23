@@ -32,7 +32,8 @@ export default function NotFound() {
 
         {/* Description */}
         <p className="text-muted-foreground text-lg">
-          The page you&apos;re looking for doesn&apos;t exist. It might have been moved, deleted, or you entered the wrong URL.
+          The page you&apos;re looking for doesn&apos;t exist. It might have
+          been moved, deleted, or you entered the wrong URL.
         </p>
 
         {/* Action Buttons */}
@@ -46,7 +47,7 @@ export default function NotFound() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Go Back
           </Button>
-          
+
           <Button
             onClick={handleGoHome}
             variant="outline"
@@ -67,4 +68,4 @@ export default function NotFound() {
       </div>
     </div>
   );
-} 
+}

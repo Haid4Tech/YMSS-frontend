@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { subjectsAPI } from "@/jotai/subject/subject";
 import { teachersAPI } from "@/jotai/teachers/teachers";
 import { Teacher } from "@/jotai/teachers/teachers-types";
+import PageHeader from "@/components/general/page-header";
 
 export default function AddSubjectPage() {
   const router = useRouter();
@@ -73,7 +74,10 @@ export default function AddSubjectPage() {
         credits: parseInt(formData.credits) || 0,
         grade: formData.grade,
         category: formData.category,
-        teacherId: formData.teacherId && formData.teacherId !== "none" ? parseInt(formData.teacherId) : null,
+        teacherId:
+          formData.teacherId && formData.teacherId !== "none"
+            ? parseInt(formData.teacherId)
+            : null,
         syllabus: formData.syllabus,
         objectives: formData.objectives,
         prerequisites: formData.prerequisites,
@@ -97,19 +101,10 @@ export default function AddSubjectPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/portal/subjects">← Back to Subjects</Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Add New Subject</h1>
-            <p className="text-muted-foreground">
-              Create a new subject with curriculum details
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={"Add New Subject"}
+        subtitle={"Create a new subject with curriculum details"}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}

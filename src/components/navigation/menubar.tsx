@@ -16,6 +16,8 @@ import { Button } from "../ui/button";
 import { Role } from "@/common/enum";
 import { isPathMatch } from "@/common/helper";
 
+import { authAPI } from "@/jotai/auth/auth";
+
 interface IMenuBar {
   view?: "admin" | "main";
 }
@@ -24,14 +26,38 @@ export default function MenuBar({ view }: IMenuBar) {
   const router = useRouter();
   const [loadingStates, setLoadingStates] =
     useState<MenuStatesProp>(menuBarStates);
+  const [logoutLoading, setLogoutLoading] = useState(false);
   const [result] = useAtom(authPersistedAtom);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathName = usePathname();
+
+  const [, triggerLogout] = useAtom(authAPI.logout);
 
   const pathResult = isPathMatch(pathName, [
     "/portal/signin",
     "/portal/signup",
   ]);
+
+  const handleLogout = async () => {
+    try {
+      setLogoutLoading(true);
+      console.log("🚪 MenuBar: Starting logout...");
+      
+      await triggerLogout("User logout from MenuBar");
+      
+      console.log("🚪 MenuBar: Logout completed, redirecting...");
+      
+      // Immediate redirect after logout
+      router.push("/portal/signin");
+      
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Force redirect even if logout fails
+      router.push("/portal/signin");
+    } finally {
+      setLogoutLoading(false);
+    }
+  };
 
   const handleDashboardRedirect = () => {
     setLoadingStates((prev) => ({
@@ -91,7 +117,10 @@ export default function MenuBar({ view }: IMenuBar) {
         {/* Desktop Navigation */}
         <div className="hidden lg:flex flex-row gap-10 items-center">
           <div
-            className={cn(view === "admin" ? "hidden" : "flex", "flex-row gap-6")}
+            className={cn(
+              view === "admin" ? "hidden" : "flex",
+              "flex-row gap-6"
+            )}
           >
             {navItem.map((items, index) => (
               <Link
@@ -134,6 +163,23 @@ export default function MenuBar({ view }: IMenuBar) {
               </div>
             )}
           </div>
+
+          {result && (
+            <Button 
+              onClick={handleLogout}
+              disabled={logoutLoading}
+              variant="outline"
+            >
+              {logoutLoading ? (
+                <div className="flex flex-row gap-2 items-center">
+                  Signing out...
+                  <Spinner />
+                </div>
+              ) : (
+                "Logout"
+              )}
+            </Button>
+          )}
         </div>
 
         {/* Mobile Navigation Button */}
@@ -141,10 +187,7 @@ export default function MenuBar({ view }: IMenuBar) {
           {/* Mobile Portal Button */}
           <div>
             {result !== null ? (
-              <Button 
-                onClick={handleDashboardRedirect}
-                size="sm"
-              >
+              <Button onClick={handleDashboardRedirect} size="sm">
                 {loadingStates.portalState ? (
                   <div className="flex flex-row gap-2 items-center">
                     <Spinner size="1" />
@@ -202,7 +245,7 @@ export default function MenuBar({ view }: IMenuBar) {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={closeMobileMenu}
         />
@@ -262,6 +305,27 @@ export default function MenuBar({ view }: IMenuBar) {
                 </Link>
               ))}
             </div>
+            
+            {/* Mobile Logout Button */}
+            {result && (
+              <div className="px-6 py-4 border-t border-gray-200 mt-4">
+                <Button 
+                  onClick={handleLogout}
+                  disabled={logoutLoading}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {logoutLoading ? (
+                    <div className="flex flex-row gap-2 items-center">
+                      Signing out...
+                      <Spinner size="1" />
+                    </div>
+                  ) : (
+                    "Logout"
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

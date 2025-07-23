@@ -6,16 +6,23 @@ import { useAtom } from "jotai";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+  InputField,
+  TextareaField,
+  SelectField,
+} from "@/components/ui/form-field";
+import { Label } from "@/components/ui/label";
+import { SelectItem } from "@/components/ui/select";
+import DatePicker from "@/components/general/date-picker";
+import {
+  GraduationCap,
+  Users,
+  House,
+  ShieldPlus,
+  BookPlus,
+  User,
+} from "lucide-react";
+import PageHeader from "@/components/general/page-header";
 
 import { studentsAPI } from "@/jotai/students/student";
 
@@ -155,30 +162,22 @@ export default function AddStudentPage() {
   };
 
   const tabs = [
-    { id: "personal", label: "Personal Info", icon: "👤" },
-    { id: "address", label: "Address", icon: "🏠" },
-    { id: "academic", label: "Academic", icon: "🎓" },
-    { id: "parent", label: "Parent/Guardian", icon: "👨‍👩‍👧‍👦" },
-    { id: "medical", label: "Medical", icon: "🏥" },
-    { id: "additional", label: "Additional", icon: "📝" },
+    { id: "personal", label: "Personal Info", Icon: User },
+    { id: "address", label: "Address", Icon: House },
+    { id: "academic", label: "Academic", Icon: GraduationCap },
+    { id: "parent", label: "Parent/Guardian", Icon: Users },
+    { id: "medical", label: "Medical", Icon: ShieldPlus },
+    { id: "additional", label: "Additional", Icon: BookPlus },
   ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/portal/students">← Back to Students</Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Add New Student</h1>
-            <p className="text-muted-foreground">
-              Complete student registration form
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={"Add New Student"}
+        subtitle={"Complete student registration form"}
+        btnTitle="Back to Students"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Tab Navigation */}
@@ -186,19 +185,20 @@ export default function AddStudentPage() {
           <CardContent className="p-6">
             <div className="flex flex-wrap gap-2 mb-6">
               {tabs.map((tab) => (
-                <button
+                <Button
                   key={tab.id}
                   type="button"
+                  variant={"outline"}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                     activeTab === tab.id
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary hover:bg-primary/50 text-primary-foreground"
                       : "bg-muted hover:bg-muted/80"
                   }`}
                 >
-                  <span>{tab.icon}</span>
+                  <tab.Icon size={15} />
                   {tab.label}
-                </button>
+                </Button>
               ))}
             </div>
 
@@ -210,9 +210,10 @@ export default function AddStudentPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="firstName">First Name *</Label>
-                    <Input
+                    <InputField
+                      label="First Name"
                       id="firstName"
+                      placeholder="Enter first name"
                       value={formData.firstName}
                       onChange={(e) =>
                         handleInputChange("firstName", e.target.value)
@@ -221,9 +222,10 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="lastName">Last Name *</Label>
-                    <Input
+                    <InputField
+                      label="Last Name"
                       id="lastName"
+                      placeholder="Enter last name"
                       value={formData.lastName}
                       onChange={(e) =>
                         handleInputChange("lastName", e.target.value)
@@ -232,10 +234,11 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email">Email Address *</Label>
-                    <Input
+                    <InputField
+                      label={"Email Address"}
                       id="email"
                       type="email"
+                      placeholder="Enter email address"
                       value={formData.email}
                       onChange={(e) =>
                         handleInputChange("email", e.target.value)
@@ -244,39 +247,48 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="dateOfBirth">Date of Birth *</Label>
-                    <Input
-                      id="dateOfBirth"
-                      type="date"
-                      value={formData.dateOfBirth}
-                      onChange={(e) =>
-                        handleInputChange("dateOfBirth", e.target.value)
-                      }
+                    <DatePicker
+                      label={"Date of Birth"}
                       required
+                      date={
+                        formData.dateOfBirth
+                          ? new Date(formData.dateOfBirth)
+                          : undefined
+                      }
+                      setDate={(date: Date | undefined) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          dateOfBirth: date ? date.toISOString() : "",
+                        }))
+                      }
                     />
                   </div>
                   <div>
-                    <Label htmlFor="gender">Gender *</Label>
-                    <Select
+                    <SelectField
+                      required
+                      label={"Gender"}
+                      placeholder="Select gender"
                       value={formData.gender}
                       onValueChange={(value) =>
                         handleInputChange("gender", value)
                       }
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      {["male", "female", "other"].map((item, index) => (
+                        <SelectItem
+                          className="capitalize"
+                          key={index}
+                          value={item}
+                        >
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectField>
                   </div>
                   <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
+                    <InputField
+                      label={"Phone Number"}
                       id="phone"
+                      placeholder="e.g, 08099999999"
                       value={formData.phone}
                       onChange={(e) =>
                         handleInputChange("phone", e.target.value)
@@ -284,9 +296,10 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="nationality">Nationality</Label>
-                    <Input
+                    <InputField
+                      label={"Nationality"}
                       id="nationality"
+                      placeholder="Enter nationality"
                       value={formData.nationality}
                       onChange={(e) =>
                         handleInputChange("nationality", e.target.value)
@@ -294,9 +307,10 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="religion">Religion</Label>
-                    <Input
+                    <InputField
+                      label={"Religion"}
                       id="religion"
+                      placeholder="Enter religion"
                       value={formData.religion}
                       onChange={(e) =>
                         handleInputChange("religion", e.target.value)
@@ -304,31 +318,30 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="bloodGroup">Blood Group</Label>
-                    <Select
+                    <SelectField
+                      label={"Blood Group"}
+                      placeholder="Select blood group"
                       value={formData.bloodGroup}
                       onValueChange={(value) =>
                         handleInputChange("bloodGroup", value)
                       }
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select blood group" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="A+">A+</SelectItem>
-                        <SelectItem value="A-">A-</SelectItem>
-                        <SelectItem value="B+">B+</SelectItem>
-                        <SelectItem value="B-">B-</SelectItem>
-                        <SelectItem value="AB+">AB+</SelectItem>
-                        <SelectItem value="AB-">AB-</SelectItem>
-                        <SelectItem value="O+">O+</SelectItem>
-                        <SelectItem value="O-">O-</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(
+                        (item, index) => (
+                          <SelectItem
+                            className="capitalize"
+                            key={index}
+                            value={item}
+                          >
+                            {item}
+                          </SelectItem>
+                        )
+                      )}
+                    </SelectField>
                   </div>
                   <div>
-                    <Label htmlFor="photo">Student Photo</Label>
-                    <Input
+                    <InputField
+                      label={"Student Photo"}
                       id="photo"
                       type="file"
                       accept="image/*"
@@ -347,9 +360,10 @@ export default function AddStudentPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <Label htmlFor="address">Street Address *</Label>
-                    <Textarea
+                    <TextareaField
+                      label={"Street Address"}
                       id="address"
+                      placeholder="Enter street sddress"
                       value={formData.address}
                       onChange={(e) =>
                         handleInputChange("address", e.target.value)
@@ -358,9 +372,10 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="city">City *</Label>
-                    <Input
+                    <InputField
+                      label={"City"}
                       id="city"
+                      placeholder="Enter city"
                       value={formData.city}
                       onChange={(e) =>
                         handleInputChange("city", e.target.value)
@@ -369,9 +384,10 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="state">State/Province *</Label>
-                    <Input
+                    <InputField
+                      label="State/Province"
                       id="state"
+                      placeholder="Enter state or province"
                       value={formData.state}
                       onChange={(e) =>
                         handleInputChange("state", e.target.value)
@@ -380,9 +396,10 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="zipCode">ZIP/Postal Code</Label>
-                    <Input
+                    <InputField
+                      label="ZIP/Postal Code"
                       id="zipCode"
+                      placeholder="Enter region ZIP code"
                       value={formData.zipCode}
                       onChange={(e) =>
                         handleInputChange("zipCode", e.target.value)
@@ -390,9 +407,10 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="country">Country *</Label>
-                    <Input
+                    <InputField
+                      label={"Country"}
                       id="country"
+                      placeholder={"Enter country"}
                       value={formData.country}
                       onChange={(e) =>
                         handleInputChange("country", e.target.value)
@@ -412,28 +430,24 @@ export default function AddStudentPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="classId">Assign to Class *</Label>
-                    <Select
+                    <SelectField
+                      label={"Assign to Class"}
+                      placeholder="Select class to assign"
                       value={formData.classId}
                       onValueChange={(value) =>
                         handleInputChange("classId", value)
                       }
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select class" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {classes.map((cls) => (
-                          <SelectItem key={cls.id} value={cls.id.toString()}>
-                            {cls.name} (Grade?)
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      {classes.map((cls) => (
+                        <SelectItem key={cls.id} value={cls.id.toString()}>
+                          {cls.name} (Grade?)
+                        </SelectItem>
+                      ))}
+                    </SelectField>
                   </div>
                   <div>
-                    <Label htmlFor="studentId">Student ID *</Label>
-                    <Input
+                    <InputField
+                      label={"Student ID"}
                       id="studentId"
                       value={formData.studentId}
                       onChange={(e) =>
@@ -444,41 +458,44 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="admissionDate">Admission Date *</Label>
-                    <Input
-                      id="admissionDate"
-                      type="date"
-                      value={formData.admissionDate}
-                      onChange={(e) =>
-                        handleInputChange("admissionDate", e.target.value)
-                      }
+                    <DatePicker
+                      label={"Admission Date"}
                       required
+                      date={
+                        formData.admissionDate
+                          ? new Date(formData.admissionDate)
+                          : undefined
+                      }
+                      setDate={(date: Date | undefined) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          admissionDate: date ? date.toISOString() : "",
+                        }))
+                      }
                     />
                   </div>
                   <div>
-                    <Label htmlFor="grade">Current Grade</Label>
-                    <Select
+                    <Label htmlFor="grade"></Label>
+                    <SelectField
+                      label="Current Grade"
                       value={formData.grade}
+                      placeholder="Select grade"
                       onValueChange={(value) =>
                         handleInputChange("grade", value)
                       }
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select grade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({ length: 12 }, (_, i) => (
-                          <SelectItem key={i + 1} value={(i + 1).toString()}>
-                            Grade {i + 1}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <SelectItem key={i + 1} value={(i + 1).toString()}>
+                          Grade {i + 1}
+                        </SelectItem>
+                      ))}
+                    </SelectField>
                   </div>
                   <div className="md:col-span-2">
-                    <Label htmlFor="previousSchool">Previous School</Label>
-                    <Input
+                    <InputField
+                      label={"Previous School"}
                       id="previousSchool"
+                      placeholder={"If none, write N/A"}
                       value={formData.previousSchool}
                       onChange={(e) =>
                         handleInputChange("previousSchool", e.target.value)
@@ -497,35 +514,30 @@ export default function AddStudentPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="parentId">Select Parent/Guardian</Label>
-                    <Select
+                    <SelectField
+                      label="Select Parent/Guardian"
+                      placeholder="Select parent"
                       value={formData.parentId}
                       onValueChange={(value) =>
                         handleInputChange("parentId", value)
                       }
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select parent" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">No parent assigned</SelectItem>
-                        {parents.map((parent) => (
-                          <SelectItem
-                            key={parent.id}
-                            value={parent.id.toString()}
-                          >
-                            {parent.user.name} - {parent.user.email}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <SelectItem value="N/A">No parent assigned</SelectItem>
+                      {parents.map((parent) => (
+                        <SelectItem
+                          key={parent.id}
+                          value={parent.id.toString()}
+                        >
+                          {parent.user.name} - {parent.user.email}
+                        </SelectItem>
+                      ))}
+                    </SelectField>
                   </div>
                   <div>
-                    <Label htmlFor="emergencyContactName">
-                      Emergency Contact Name *
-                    </Label>
-                    <Input
+                    <InputField
+                      label={"Emergency Contact Name"}
                       id="emergencyContactName"
+                      placeholder="Enter Emergency contact name"
                       value={formData.emergencyContactName}
                       onChange={(e) =>
                         handleInputChange(
@@ -537,11 +549,10 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="emergencyContactPhone">
-                      Emergency Contact Phone *
-                    </Label>
-                    <Input
+                    <InputField
+                      label="Emergency Contact Phone"
                       id="emergencyContactPhone"
+                      placeholder="e.g 08055223344"
                       value={formData.emergencyContactPhone}
                       onChange={(e) =>
                         handleInputChange(
@@ -553,28 +564,34 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="emergencyContactRelation">
-                      Relationship *
-                    </Label>
-                    <Select
+                    <SelectField
+                      label={"Relationship"}
+                      placeholder="Select relationship"
                       value={formData.emergencyContactRelation}
                       onValueChange={(value) =>
                         handleInputChange("emergencyContactRelation", value)
                       }
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select relationship" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="father">Father</SelectItem>
-                        <SelectItem value="mother">Mother</SelectItem>
-                        <SelectItem value="guardian">Guardian</SelectItem>
-                        <SelectItem value="grandparent">Grandparent</SelectItem>
-                        <SelectItem value="uncle">Uncle</SelectItem>
-                        <SelectItem value="aunt">Aunt</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      {[
+                        "father",
+                        "mother",
+                        "brother",
+                        "sister",
+                        "guardian",
+                        "grandparent",
+                        "uncle",
+                        "aunt",
+                        "other",
+                      ].map((item, index) => (
+                        <SelectItem
+                          className="capitalize"
+                          key={index}
+                          value={item}
+                        >
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectField>
                   </div>
                 </div>
               </div>
@@ -588,10 +605,8 @@ export default function AddStudentPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <Label htmlFor="medicalConditions">
-                      Medical Conditions
-                    </Label>
-                    <Textarea
+                    <TextareaField
+                      label={"Medical Conditions"}
                       id="medicalConditions"
                       value={formData.medicalConditions}
                       onChange={(e) =>
@@ -601,8 +616,8 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <Label htmlFor="allergies">Allergies</Label>
-                    <Textarea
+                    <TextareaField
+                      label={"Allergies"}
                       id="allergies"
                       value={formData.allergies}
                       onChange={(e) =>
@@ -612,8 +627,8 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <Label htmlFor="medications">Current Medications</Label>
-                    <Textarea
+                    <TextareaField
+                      label={"Current Medications"}
                       id="medications"
                       value={formData.medications}
                       onChange={(e) =>
@@ -623,8 +638,9 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="doctorName">Family Doctor Name</Label>
-                    <Input
+                    <InputField
+                      label="Family Doctor Name"
+                      placeholder="Enter Doctors phone name"
                       id="doctorName"
                       value={formData.doctorName}
                       onChange={(e) =>
@@ -633,9 +649,10 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="doctorPhone">Doctor&apos;s Phone</Label>
-                    <Input
+                    <InputField
+                      label="Doctor's Phone"
                       id="doctorPhone"
+                      placeholder="Enter Doctors phone number"
                       value={formData.doctorPhone}
                       onChange={(e) =>
                         handleInputChange("doctorPhone", e.target.value)
@@ -654,33 +671,27 @@ export default function AddStudentPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="transportationMethod">
-                      Transportation Method
-                    </Label>
-                    <Select
+                    <SelectField
+                      label="Transportation Method"
+                      placeholder="Select transportation"
                       value={formData.transportationMethod}
                       onValueChange={(value) =>
                         handleInputChange("transportationMethod", value)
                       }
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select transportation" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="school_bus">School Bus</SelectItem>
-                        <SelectItem value="private_car">Private Car</SelectItem>
-                        <SelectItem value="public_transport">
-                          Public Transport
-                        </SelectItem>
-                        <SelectItem value="walking">Walking</SelectItem>
-                        <SelectItem value="bicycle">Bicycle</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <SelectItem value="school_bus">School Bus</SelectItem>
+                      <SelectItem value="private_car">Private Car</SelectItem>
+                      <SelectItem value="public_transport">
+                        Public Transport
+                      </SelectItem>
+                      <SelectItem value="walking">Walking</SelectItem>
+                      <SelectItem value="bicycle">Bicycle</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectField>
                   </div>
                   <div>
-                    <Label htmlFor="hobbies">Hobbies & Interests</Label>
-                    <Input
+                    <InputField
+                      label={"Hobbies & Interests"}
                       id="hobbies"
                       value={formData.hobbies}
                       onChange={(e) =>
@@ -690,8 +701,8 @@ export default function AddStudentPage() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <Label htmlFor="notes">Additional Notes</Label>
-                    <Textarea
+                    <TextareaField
+                      label={"Additional Notes"}
                       id="notes"
                       value={formData.notes}
                       onChange={(e) =>

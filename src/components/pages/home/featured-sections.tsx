@@ -17,7 +17,8 @@ export default function FeaturedSections() {
               <Image
                 src="/announcement.png"
                 alt="School News"
-                fill
+                width={200}
+                height={200}
                 className="object-cover"
               />
             </div>
@@ -27,7 +28,8 @@ export default function FeaturedSections() {
                 National Science Fair Winners
               </h3>
               <p className="text-muted-foreground mb-4">
-                Our students secured top positions in the National Science Fair 2024.
+                Our students secured top positions in the National Science Fair
+                2024.
               </p>
               <Button variant="link" asChild>
                 <Link href="/news">Read More →</Link>
@@ -41,15 +43,14 @@ export default function FeaturedSections() {
               <Image
                 src="/calendar.png"
                 alt="School Event"
-                fill
+                width={200}
+                height={200}
                 className="object-cover"
               />
             </div>
             <div className="p-6">
               <span className="text-sm text-secondary font-medium">Event</span>
-              <h3 className="text-xl font-bold mt-2 mb-3">
-                Annual Sports Day
-              </h3>
+              <h3 className="text-xl font-bold mt-2 mb-3">Annual Sports Day</h3>
               <p className="text-muted-foreground mb-4">
                 Join us for an exciting day of sports and activities.
               </p>
@@ -65,12 +66,15 @@ export default function FeaturedSections() {
               <Image
                 src="/result.png"
                 alt="School Achievement"
-                fill
+                width={200}
+                height={200}
                 className="object-cover"
               />
             </div>
             <div className="p-6">
-              <span className="text-sm text-primary font-medium">Achievement</span>
+              <span className="text-sm text-primary font-medium">
+                Achievement
+              </span>
               <h3 className="text-xl font-bold mt-2 mb-3">
                 100% College Acceptance
               </h3>
@@ -97,7 +101,8 @@ export default function FeaturedSections() {
               <Image
                 src="/teacher.png"
                 alt="Expert Faculty"
-                fill
+                width={200}
+                height={200}
                 className="object-contain"
               />
             </div>
@@ -113,7 +118,8 @@ export default function FeaturedSections() {
               <Image
                 src="/class.png"
                 alt="Modern Facilities"
-                fill
+                width={200}
+                height={200}
                 className="object-contain"
               />
             </div>
@@ -129,7 +135,8 @@ export default function FeaturedSections() {
               <Image
                 src="/subject.png"
                 alt="Diverse Programs"
-                fill
+                width={200}
+                height={200}
                 className="object-contain"
               />
             </div>
@@ -145,7 +152,8 @@ export default function FeaturedSections() {
               <Image
                 src="/globe.svg"
                 alt="Global Perspective"
-                fill
+                width={200}
+                height={200}
                 className="object-contain"
               />
             </div>
@@ -158,4 +166,4 @@ export default function FeaturedSections() {
       </section>
     </div>
   );
-} 
+}

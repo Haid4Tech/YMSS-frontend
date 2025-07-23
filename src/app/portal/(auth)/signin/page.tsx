@@ -53,11 +53,11 @@ export default function SignIn() {
     }
   };
 
-  if (isAuthenticated) {
+  if (isAuthenticated || user !== null) {
     return (
       <div className={"flex flex-col gap-4 items-center justify-center"}>
-        <p className="text-base">
-          Welcome back <span className="font-bold "> {user?.name} </span>. You
+        <p className="text-base text-center">
+          Welcome back <span className="font-bold "> {user?.name}</span>. You
           should be redirected in a few seconds, if not click the button below.
         </p>
         <Button
@@ -150,7 +150,7 @@ export default function SignIn() {
         >
           {loading.portalLoginState ? (
             <div className="flex flex-row gap-2 items-center">
-              Signing <Spinner />
+              Signing In... <Spinner />
             </div>
           ) : (
             "Sign In"

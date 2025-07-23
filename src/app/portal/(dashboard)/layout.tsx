@@ -1,45 +1,49 @@
 "use client";
 
 import { ReactNode, useState } from "react";
-import { useAtom } from "jotai";
-import {
-  userAtom,
-  isAuthenticatedAtom,
-  authLoadingAtom,
-} from "@/jotai/auth/auth";
+import { useAtomValue, useAtom } from "jotai";
+import { useRouter } from "next/navigation";
+
+import { userAtom, authErrorAtom, authLoadingAtom } from "@/jotai/auth/auth";
 import PortalSidebar from "@/components/portal/portal-sidebar";
 import PortalNavbar from "@/components/portal/portal-navbar";
+import { Button } from "@/components/ui/button";
 
-export default function DashboardLayout({
-  children,
-}: Readonly<{
+type DashboardLayoutProps = {
   children: ReactNode;
-}>) {
-  const [user] = useAtom(userAtom);
-  const [isAuthenticated] = useAtom(isAuthenticatedAtom);
-  const [loading] = useAtom(authLoadingAtom);
+};
+
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  const router = useRouter();
+  const user = useAtomValue(userAtom);
+  const loading = useAtomValue(authLoadingAtom);
+  const [authError] = useAtom(authErrorAtom);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Show loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
+      <FullScreenCenter>
+        <Spinner />
+        <p className="text-muted-foreground">Loading dashboard...</p>
+      </FullScreenCenter>
     );
   }
 
-  // Don't render if not authenticated or no user
-  if (!isAuthenticated || !user) {
-    return null;
+  if (authError !== null) {
+    return (
+      <FullScreenCenter>
+        <div className="text-red-500 text-lg font-semibold">
+          Authentication Error
+        </div>
+        <Button onClick={() => router.push("/portal/signin")}>
+          Go to Sign In
+        </Button>
+      </FullScreenCenter>
+    );
   }
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Sidebar overlay for mobile */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-20 bg-black/50 dark:bg-black/70 lg:hidden"
@@ -47,23 +51,25 @@ export default function DashboardLayout({
         />
       )}
 
-      {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-background border-r border-border shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+      <aside
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-background border-r border-border shadow-lg transform transition-transform duration-300 ease-in-out
+        ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } lg:translate-x-0 lg:static lg:inset-0`}
       >
-        <PortalSidebar user={user} onClose={() => setSidebarOpen(false)} />
-      </div>
+        {user && (
+          <PortalSidebar user={user} onClose={() => setSidebarOpen(false)} />
+        )}
+      </aside>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden w-fit">
-        <PortalNavbar
-          user={user}
-          onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-        />
+        {user && (
+          <PortalNavbar
+            user={user}
+            onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+          />
+        )}
 
-        {/* Content */}
         <main className="flex-1 overflow-y-auto p-6 scrollbar-width">
           {children}
         </main>
@@ -71,3 +77,14 @@ export default function DashboardLayout({
     </div>
   );
 }
+// --- Supporting Components for cleaner composition ---
+
+const FullScreenCenter = ({ children }: { children: ReactNode }) => (
+  <div className="min-h-screen flex flex-col items-center justify-center bg-background space-y-4 max-w-md mx-auto text-center">
+    {children}
+  </div>
+);
+
+const Spinner = () => (
+  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+);

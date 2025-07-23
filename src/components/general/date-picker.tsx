@@ -18,22 +18,30 @@ interface IDatePicker {
   setDate: (date: Date | undefined) => void;
   minDate?: Date;
   maxDate?: Date;
+  required?: boolean;
 }
 
-const DatePicker: FC<IDatePicker> = ({ label, date, setDate, minDate, maxDate }) => {
+const DatePicker: FC<IDatePicker> = ({
+  label,
+  date,
+  setDate,
+  minDate,
+  maxDate,
+  required,
+}) => {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor="date" className="px-1">
-        {label}
+        {label} {required ? "*" : ""}
       </Label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             id="date"
-            className="justify-between font-normal"
+            className="h-10 rounded-sm justify-between font-normal"
           >
             {date ? date.toLocaleDateString() : "Select date"}
             <ChevronDownIcon />
