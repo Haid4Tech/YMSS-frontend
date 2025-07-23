@@ -110,8 +110,6 @@ export const authAPI = {
     deleteCookie("token");
     localStorage.removeItem("auth_session");
 
-    console.log("✅ Logout completed immediately");
-
     // Reset logout state
     setTimeout(() => {
       set(isLoggingOutAtom, false);

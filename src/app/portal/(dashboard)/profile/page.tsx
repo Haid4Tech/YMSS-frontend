@@ -58,10 +58,6 @@ export default function ProfilePage() {
       console.log("Saving profile data:", formData);
 
       // Simulate API call
-      if (user) {
-        if (user?.role === "ADMIN") {
-        }
-      }
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setIsEditing(false);
@@ -197,9 +193,9 @@ export default function ProfilePage() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Full Name */}
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="name" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
+                    <User size={15} />
                     Full Name
                   </Label>
                   {isEditing ? (
@@ -221,9 +217,9 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Email */}
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="email" className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
+                    <Mail size={15} />
                     Email Address
                   </Label>
                   {isEditing ? (
@@ -246,9 +242,9 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Role */}
-                <div>
+                <div className="space-y-2">
                   <Label className="flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
+                    <Shield size={15} />
                     Role
                   </Label>
                   <p className="text-sm mt-1 p-2 bg-muted rounded-md">
@@ -262,9 +258,9 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Member Since */}
-                <div>
+                <div className="space-y-2">
                   <Label className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
+                    <Calendar size={15} />
                     Member Since
                   </Label>
                   <p className="text-sm mt-1 p-2 bg-muted rounded-md">
