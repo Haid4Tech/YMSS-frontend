@@ -7,15 +7,15 @@ import {
   getDayNames,
   getPreviousMonth,
   getNextMonth,
-  generateEventId,
+  // generateEventId,
 } from "@/utils/calendar";
 import { cn } from "@/lib/utils";
 
 export function EventCalendar({
   events = [],
   onEventAdd,
-  onEventEdit,
-  onEventDelete,
+  // onEventEdit,
+  // onEventDelete,
   onDateSelect,
   className,
 }: CalendarProps) {

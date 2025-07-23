@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
-import { userAtom } from "@/jotai/auth/auth";
+import { userAtom, authAPI } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { Edit, Save, X, User, Mail, Calendar, Shield } from "lucide-react";
 import { Spinner } from "@radix-ui/themes";
 import { toast } from "sonner";
 import { isAdminAtom } from "@/jotai/auth/auth";
+import { extractErrorMessage } from "@/utils/helpers";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function ProfilePage() {
   const [navigationLoading, setNavigationLoading] = useState(false);
 
   const [isAdmin] = useAtom(isAdminAtom);
+  const [, updateProfile] = useAtom(authAPI.updateProfile);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -54,19 +56,28 @@ export default function ProfilePage() {
     try {
       setIsLoading(true);
 
-      // TODO: Implement profile update API call
-      console.log("Saving profile data:", formData);
+      // Prepare the update data - only send fields that can be updated
+      const updateData = {
+        name: formData.name,
+        email: formData.email,
+        // Add other fields when they're available in the schema
+        // phone: formData.phone,
+        // bio: formData.bio,
+      };
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log("Saving profile data:", updateData);
+
+      // Use Jotai updateProfile atom
+      await updateProfile(updateData);
 
       setIsEditing(false);
-
-      // TODO: Show success message
       toast.success("Profile updated successfully!");
     } catch (error) {
       console.error("Failed to update profile:", error);
-      alert("Failed to update profile. Please try again.");
+      const errorMessage = extractErrorMessage(
+        error ?? "Failed to update profile. Please try again."
+      );
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -114,42 +125,40 @@ export default function ProfilePage() {
               Manage your personal information and preferences
             </p>
           </div>
-          <div className="flex gap-2">
-            {isEditing ? (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={handleCancel}
-                  disabled={isLoading}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button onClick={handleSave} disabled={isLoading}>
-                  {isLoading ? (
-                    <div className="flex flex-row gap-2 items-center">
-                      <Spinner />
-                      Saving...
-                    </div>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              </>
-            ) : (
-              <div>
-                {isAdmin && (
-                  <Button onClick={() => setIsEditing(true)}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Profile
+          {isAdmin && (
+            <div className="flex gap-2">
+              {isEditing ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleCancel}
+                    disabled={isLoading}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
                   </Button>
-                )}
-              </div>
-            )}
-          </div>
+                  <Button onClick={handleSave} disabled={isLoading}>
+                    {isLoading ? (
+                      <div className="flex flex-row gap-2 items-center">
+                        <Spinner />
+                        Saving...
+                      </div>
+                    ) : (
+                      <>
+                        <Save size={18} className="mr-2" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={() => setIsEditing(true)}>
+                  <Edit size={18} className="mr-2" />
+                  Edit Profile
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

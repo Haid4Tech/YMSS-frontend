@@ -35,6 +35,10 @@ export const authLoadingAtom = atom<boolean>(false);
 export const authErrorAtom = atom<string | null>(null);
 export const isLoggingOutAtom = atom<boolean>(false);
 
+// Profile update loading state
+export const profileUpdateLoadingAtom = atom<boolean>(false);
+export const profileUpdateErrorAtom = atom<string | null>(null);
+
 export const authAPI = {
   register: atom(null, async (get, set) => {
     set(authLoadingAtom, true);
@@ -93,6 +97,35 @@ export const authAPI = {
   me: atom(null, async (): Promise<User> => {
     const response = await axiosInstance.get("/auth/me");
     return response.data;
+  }),
+
+  updateProfile: atom(null, async (get, set, userData: Partial<User>) => {
+    set(profileUpdateLoadingAtom, true);
+    set(profileUpdateErrorAtom, null);
+
+    try {
+      const response = await axiosInstance.put("/auth/profile", userData);
+      const updatedUser = response.data.user || response.data;
+
+      // Update the auth session with the new user data
+      const currentSession = get(authPersistedAtom);
+      if (currentSession) {
+        const updatedSession: AuthSession = {
+          ...currentSession,
+          user: { ...currentSession.user, ...updatedUser }
+        };
+        set(authPersistedAtom, updatedSession);
+      }
+
+      return updatedUser;
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error);
+      console.error("Profile update error:", errorMessage);
+      set(profileUpdateErrorAtom, errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      set(profileUpdateLoadingAtom, false);
+    }
   }),
 
   logout: atom(null, async (_get, set, reason?: string) => {
