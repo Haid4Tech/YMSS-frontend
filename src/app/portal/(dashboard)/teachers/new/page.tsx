@@ -14,6 +14,7 @@ import {
   SelectField,
   TextareaField,
 } from "@/components/ui/form-field";
+import PageHeader from "@/components/general/page-header";
 import { teachersAPI } from "@/jotai/teachers/teachers";
 import { subjectsAPI } from "@/jotai/subject/subject";
 import { Subject } from "@/jotai/subject/subject-types";
@@ -234,19 +235,11 @@ export default function AddTeacherPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/portal/teachers">← Back to Teachers</Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Add New Teacher</h1>
-            <p className="text-muted-foreground">
-              Complete teacher registration form
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={"Add New Teacher"}
+        subtitle={"Complete teacher registration form"}
+        btnTitle="Back to Teachers"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Tab Navigation */}

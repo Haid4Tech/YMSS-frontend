@@ -22,6 +22,7 @@ import {
   BookPlus,
   User,
 } from "lucide-react";
+import PageHeader from "@/components/general/page-header";
 
 import { studentsAPI } from "@/jotai/students/student";
 
@@ -172,19 +173,11 @@ export default function AddStudentPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/portal/students">← Back to Students</Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Add New Student</h1>
-            <p className="text-muted-foreground">
-              Complete student registration form
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={"Add New Student"}
+        subtitle={"Complete student registration form"}
+        btnTitle="Back to Students"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Tab Navigation */}

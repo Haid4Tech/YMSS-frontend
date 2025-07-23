@@ -6,16 +6,16 @@ import { useAtom } from "jotai";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+  InputField,
+  TextareaField,
+  SelectField,
+} from "@/components/ui/form-field";
+import DatePicker from "@/components/general/date-picker";
+import { formatDate, formatTime } from "@/utils/calendar";
+
+import { SelectItem } from "@/components/ui/select";
+import PageHeader from "@/components/general/page-header";
 import { examsAPI } from "@/jotai/exams/exams";
 import { subjectsAPI } from "@/jotai/subject/subject";
 import { classesAPI } from "@/jotai/class/class";
@@ -105,19 +105,10 @@ export default function AddExamPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/portal/exams">← Back to Exams</Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Schedule New Exam</h1>
-            <p className="text-muted-foreground">
-              Create and schedule an examination
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={"Schedule New Exam"}
+        subtitle={"Create and schedule an examination"}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
@@ -128,8 +119,8 @@ export default function AddExamPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <Label htmlFor="title">Exam Title *</Label>
-                <Input
+                <InputField
+                  label={"Exam Title"}
                   id="title"
                   value={formData.title}
                   onChange={(e) => handleInputChange("title", e.target.value)}
@@ -138,82 +129,71 @@ export default function AddExamPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="subjectId">Subject *</Label>
-                <Select
+                <SelectField
+                  label={"Subject"}
+                  placeholder="Select subject"
                   value={formData.subjectId}
                   onValueChange={(value) =>
                     handleInputChange("subjectId", value)
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjects.map((subject) => (
-                      <SelectItem
-                        key={subject.id}
-                        value={subject.id.toString()}
-                      >
-                        {subject.name} ({subject.code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {subjects.map((subject) => (
+                    <SelectItem key={subject.id} value={subject.id.toString()}>
+                      {subject.name} ({subject.code})
+                    </SelectItem>
+                  ))}
+                </SelectField>
               </div>
               <div>
-                <Label htmlFor="classId">Class</Label>
-                <Select
+                <SelectField
+                  label="Class"
+                  placeholder="Select class"
                   value={formData.classId}
                   onValueChange={(value) => handleInputChange("classId", value)}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select class" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Classes</SelectItem>
-                    {classes.map((cls) => (
-                      <SelectItem key={cls.id} value={cls.id.toString()}>
-                        {cls.name} (Grade {cls.grade})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {/* <SelectItem value="">All Classes</SelectItem> */}
+                  {classes.map((cls) => (
+                    <SelectItem key={cls.id} value={cls.id.toString()}>
+                      {cls.name} (Grade {cls.grade})
+                    </SelectItem>
+                  ))}
+                </SelectField>
               </div>
               <div>
-                <Label htmlFor="examType">Exam Type *</Label>
-                <Select
+                <SelectField
+                  label="Exam Type"
+                  placeholder="Select exam type"
                   value={formData.examType}
                   onValueChange={(value) =>
                     handleInputChange("examType", value)
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select exam type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="quiz">Quiz</SelectItem>
-                    <SelectItem value="midterm">Mid-term Exam</SelectItem>
-                    <SelectItem value="final">Final Exam</SelectItem>
-                    <SelectItem value="unit_test">Unit Test</SelectItem>
-                    <SelectItem value="assignment">Assignment</SelectItem>
-                    <SelectItem value="practical">Practical Exam</SelectItem>
-                    <SelectItem value="oral">Oral Exam</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <SelectItem value="quiz">Quiz</SelectItem>
+                  <SelectItem value="midterm">Mid-term Exam</SelectItem>
+                  <SelectItem value="final">Final Exam</SelectItem>
+                  <SelectItem value="unit_test">Unit Test</SelectItem>
+                  <SelectItem value="assignment">Assignment</SelectItem>
+                  <SelectItem value="practical">Practical Exam</SelectItem>
+                  <SelectItem value="oral">Oral Exam</SelectItem>
+                </SelectField>
               </div>
               <div>
-                <Label htmlFor="date">Exam Date *</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => handleInputChange("date", e.target.value)}
+                <DatePicker
                   required
+                  label={"Exam Date"}
+                  date={formData.date ? new Date(formData.date) : undefined}
+                  setDate={(date: Date | undefined) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      date: date ? date.toISOString() : "",
+                    }))
+                  }
+                  minDate={new Date()}
                 />
               </div>
               <div>
-                <Label htmlFor="startTime">Start Time *</Label>
-                <Input
+                <InputField
+                  label={"Start Time"}
                   id="startTime"
                   type="time"
                   value={formData.startTime}
@@ -224,8 +204,8 @@ export default function AddExamPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="duration">Duration (minutes) *</Label>
-                <Input
+                <InputField
+                  label="Duration (minutes)"
                   id="duration"
                   type="number"
                   value={formData.duration}
@@ -238,8 +218,8 @@ export default function AddExamPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="totalMarks">Total Marks *</Label>
-                <Input
+                <InputField
+                  label="Total Marks"
                   id="totalMarks"
                   type="number"
                   value={formData.totalMarks}
@@ -252,8 +232,8 @@ export default function AddExamPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="passingMarks">Passing Marks *</Label>
-                <Input
+                <InputField
+                  label="Passing Marks"
                   id="passingMarks"
                   type="number"
                   value={formData.passingMarks}
@@ -266,8 +246,8 @@ export default function AddExamPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="roomNumber">Room/Venue</Label>
-                <Input
+                <InputField
+                  label={"Room/Venue"}
                   id="roomNumber"
                   value={formData.roomNumber}
                   onChange={(e) =>
@@ -277,8 +257,8 @@ export default function AddExamPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="supervisor">Supervisor/Invigilator</Label>
-                <Input
+                <InputField
+                  label={"Supervisor/Invigilator"}
                   id="supervisor"
                   value={formData.supervisor}
                   onChange={(e) =>
@@ -298,8 +278,8 @@ export default function AddExamPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="syllabusTopics">Syllabus Topics</Label>
-              <Textarea
+              <TextareaField
+                label="Syllabus Topics"
                 id="syllabusTopics"
                 value={formData.syllabusTopics}
                 onChange={(e) =>
@@ -309,8 +289,8 @@ export default function AddExamPage() {
               />
             </div>
             <div>
-              <Label htmlFor="instructions">Exam Instructions</Label>
-              <Textarea
+              <TextareaField
+                label="Exam Instructions"
                 id="instructions"
                 value={formData.instructions}
                 onChange={(e) =>
@@ -320,8 +300,8 @@ export default function AddExamPage() {
               />
             </div>
             <div>
-              <Label htmlFor="materials">Required Materials</Label>
-              <Textarea
+              <TextareaField
+                label="Required Materials"
                 id="materials"
                 value={formData.materials}
                 onChange={(e) => handleInputChange("materials", e.target.value)}
@@ -329,8 +309,8 @@ export default function AddExamPage() {
               />
             </div>
             <div>
-              <Label htmlFor="gradingCriteria">Grading Criteria</Label>
-              <Textarea
+              <TextareaField
+                label="Grading Criteria"
                 id="gradingCriteria"
                 value={formData.gradingCriteria}
                 onChange={(e) =>
@@ -357,7 +337,8 @@ export default function AddExamPage() {
                 </p>
                 <p>
                   <span className="font-medium">Date & Time:</span>{" "}
-                  {formData.date} at {formData.startTime}
+                  {formatDate(new Date(formData.date))} at{" "}
+                  {formatTime(formData.startTime)}
                 </p>
                 <p>
                   <span className="font-medium">Duration:</span>{" "}

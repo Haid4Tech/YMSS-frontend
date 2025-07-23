@@ -246,4 +246,4 @@ export const getCategoryColor = (categoryLabel?: string): string => {
 export const findCategoryByLabel = (label: string) => {
   const categories = getCategories();
   return categories.find((cat) => cat.label === label);
-}; 
+};
