@@ -42,14 +42,13 @@ export default function MenuBar({ view }: IMenuBar) {
     try {
       setLogoutLoading(true);
       console.log("🚪 MenuBar: Starting logout...");
-      
+
       await triggerLogout("User logout from MenuBar");
-      
+
       console.log("🚪 MenuBar: Logout completed, redirecting...");
-      
+
       // Immediate redirect after logout
       router.push("/portal/signin");
-      
     } catch (error) {
       console.error("Logout error:", error);
       // Force redirect even if logout fails
@@ -107,12 +106,14 @@ export default function MenuBar({ view }: IMenuBar) {
   return (
     <>
       <div className="border-b border-neutral-200 flex flex-row items-center justify-between py-4 px-4 md:px-8 lg:px-12">
-        <Image
-          src={"/YMSS_logo-nobg.png"}
-          alt={"school logo"}
-          width={40}
-          height={40}
-        />
+        <div className="bg-gradient-to-r from-purple-200 to-orange-100 p-1 rounded-lg">
+          <Image
+            src="/YMSS_logo-nobg.png"
+            alt="YMSS Logo"
+            width={32}
+            height={32}
+          />
+        </div>
 
         {/* Desktop Navigation */}
         <div className="hidden lg:flex flex-row gap-10 items-center">
@@ -124,7 +125,7 @@ export default function MenuBar({ view }: IMenuBar) {
           >
             {navItem.map((items, index) => (
               <Link
-                className="text-sm hover:text-purple-800 transition-colors duration-200"
+                className="text-sm hover:text-primary transition-colors duration-200"
                 href={items.url}
                 key={index}
               >
@@ -165,7 +166,7 @@ export default function MenuBar({ view }: IMenuBar) {
           </div>
 
           {result && (
-            <Button 
+            <Button
               onClick={handleLogout}
               disabled={logoutLoading}
               variant="outline"
@@ -305,11 +306,11 @@ export default function MenuBar({ view }: IMenuBar) {
                 </Link>
               ))}
             </div>
-            
+
             {/* Mobile Logout Button */}
             {result && (
               <div className="px-6 py-4 border-t border-gray-200 mt-4">
-                <Button 
+                <Button
                   onClick={handleLogout}
                   disabled={logoutLoading}
                   variant="outline"

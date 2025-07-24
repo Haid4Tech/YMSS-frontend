@@ -5,18 +5,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
+import { InputField, SelectField } from "@/components/ui/form-field";
+import { SelectItem } from "@/components/ui/select";
 import { useAtom } from "jotai";
 import { authAPI, signupFormAction } from "@/jotai/auth/auth";
 import { Role } from "@/common/enum";
+import { ArrowLeft } from "lucide-react";
 
 export default function SignUp() {
   const [name, setName] = useState("");
@@ -86,10 +80,8 @@ export default function SignUp() {
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <label htmlFor="name" className="text-sm font-medium">
-            Full Name
-          </label>
-          <Input
+          <InputField
+            label={" Full Name"}
             id="name"
             type="text"
             placeholder="Enter your full name"
@@ -101,10 +93,8 @@ export default function SignUp() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email Address
-          </label>
-          <Input
+          <InputField
+            label={" Email Address"}
             id="email"
             type="email"
             placeholder="Enter your email"
@@ -116,27 +106,23 @@ export default function SignUp() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="role" className="text-sm font-medium">
-            Role
-          </label>
-          <Select value={role} onValueChange={setRole} disabled={loading}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select your role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="STUDENT">Student</SelectItem>
-              <SelectItem value="PARENT">Parent</SelectItem>
-              <SelectItem value="TEACHER">Teacher</SelectItem>
-              <SelectItem value="ADMIN">Administrator</SelectItem>
-            </SelectContent>
-          </Select>
+          <SelectField
+            label={"Role"}
+            value={role ?? ""}
+            onValueChange={setRole}
+            placeholder="Select your role"
+          >
+            {Object.values(Role).map((item, index) => (
+              <SelectItem className="capitalize" key={index} value={item}>
+                {item}
+              </SelectItem>
+            ))}
+          </SelectField>
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium">
-            Password
-          </label>
-          <Input
+          <InputField
+            label="Password"
             id="password"
             type="password"
             placeholder="Create a password"
@@ -148,10 +134,8 @@ export default function SignUp() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="confirmPassword" className="text-sm font-medium">
-            Confirm Password
-          </label>
-          <Input
+          <InputField
+            label="Confirm Password"
             id="confirmPassword"
             type="password"
             placeholder="Confirm your password"
@@ -197,14 +181,14 @@ export default function SignUp() {
           </Link>
         </p>
 
-        <div className="text-center">
-          <Link
-            href="/"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            ← Back to Homepage
-          </Link>
-        </div>
+        <Button
+          onClick={() => router.push("/")}
+          variant={"link"}
+          className="flex flex-row items-center text-center mx-auto"
+        >
+          <ArrowLeft size={18} />
+          <p>Back to Homepage</p>
+        </Button>
       </div>
     </div>
   );

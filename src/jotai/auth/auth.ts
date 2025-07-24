@@ -112,7 +112,7 @@ export const authAPI = {
       if (currentSession) {
         const updatedSession: AuthSession = {
           ...currentSession,
-          user: { ...currentSession.user, ...updatedUser }
+          user: { ...currentSession.user, ...updatedUser },
         };
         set(authPersistedAtom, updatedSession);
       }
