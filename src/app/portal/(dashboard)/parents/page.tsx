@@ -61,9 +61,9 @@ export default function ParentsPage() {
             Manage parent accounts and student relationships
           </p>
         </div>
-        <Button asChild>
+        {/* <Button asChild>
           <Link href="/portal/parents/new">Add Parent</Link>
-        </Button>
+        </Button> */}
       </div>
 
       {/* Search */}
@@ -118,11 +118,11 @@ export default function ParentsPage() {
               ? "No parents found matching your search."
               : "No parents registered yet."}
           </p>
-          {!searchTerm && (
+          {/* {!searchTerm && (
             <Button asChild className="mt-4">
               <Link href="/portal/parents/new">Add First Parent</Link>
             </Button>
-          )}
+          )} */}
         </div>
       )}
     </div>

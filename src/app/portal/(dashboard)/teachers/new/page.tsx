@@ -6,9 +6,14 @@ import { useAtom } from "jotai";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  GraduationCap,
+  House,
+  BookOpenCheck,
+  User,
+  BriefcaseBusiness,
+} from "lucide-react";
 import {
   InputField,
   SelectField,
@@ -19,6 +24,7 @@ import { teachersAPI } from "@/jotai/teachers/teachers";
 import { subjectsAPI } from "@/jotai/subject/subject";
 import { Subject } from "@/jotai/subject/subject-types";
 import DatePicker from "@/components/general/date-picker";
+import { TeacherFormInitialData } from "@/common/form";
 
 interface TeacherFormData {
   // Personal Information
@@ -73,6 +79,7 @@ export default function AddTeacherPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [activeTab, setActiveTab] = useState("personal");
   const [, getAllSubjects] = useAtom(subjectsAPI.getAll);
+
   const [date, setDate] = useState<{
     dob: Date | undefined;
     joinDate: Date | undefined;
@@ -80,53 +87,9 @@ export default function AddTeacherPage() {
     dob: undefined,
     joinDate: undefined,
   });
-
-  const [formData, setFormData] = useState<TeacherFormData>({
-    // Personal Information
-    firstName: "",
-    lastName: "",
-    email: "",
-    dateOfBirth: "",
-    gender: "",
-    nationality: "",
-    phone: "",
-    emergencyContactName: "",
-    emergencyContactPhone: "",
-
-    // Address Information
-    address: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    country: "",
-
-    // Professional Information
-    employeeId: "",
-    joinDate: "",
-    subjectSpecialization: "",
-    qualification: "",
-    experience: "",
-    previousInstitution: "",
-    salary: "",
-    employmentType: "",
-
-    // Educational Background
-    degree: "",
-    university: "",
-    graduationYear: "",
-    additionalCertifications: "",
-
-    // Teaching Information
-    classesAssigned: [],
-    maxClassesPerWeek: "",
-    preferredGrades: "",
-
-    // Additional Information
-    skills: "",
-    achievements: "",
-    notes: "",
-    photo: null,
-  });
+  const [formData, setFormData] = useState<TeacherFormData>(
+    TeacherFormInitialData
+  );
 
   // Handle date changes for both DOB and Join Date
   const handleDateChange =
@@ -186,33 +149,29 @@ export default function AddTeacherPage() {
         role: "TEACHER",
         phone: formData.phone,
         address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
-        qualification: formData.qualification,
-        experience: parseInt(formData.experience) || 0,
+        experience: formData.experience,
         subjectId: formData.subjectSpecialization
           ? parseInt(formData.subjectSpecialization)
           : null,
-        employeeId: formData.employeeId,
         hireDate: formData.joinDate,
-        dateOfBirth: formData.dateOfBirth,
+        DOB: formData.dateOfBirth,
         gender: formData.gender,
         nationality: formData.nationality,
         emergencyContact: {
           name: formData.emergencyContactName,
           phone: formData.emergencyContactPhone,
         },
+        previousInstitution: formData.previousInstitution,
         salary: parseFloat(formData.salary) || 0,
         employmentType: formData.employmentType,
         education: {
           degree: formData.degree,
           university: formData.university,
           graduationYear: parseInt(formData.graduationYear) || null,
-          certifications: formData.additionalCertifications,
         },
-        skills: formData.skills,
-        achievements: formData.achievements,
-        notes: formData.notes,
       };
 
+      console.log(teacherData);
       await teachersAPI.create(teacherData);
       router.push("/portal/teachers");
     } catch (error) {
@@ -224,12 +183,12 @@ export default function AddTeacherPage() {
   };
 
   const tabs = [
-    { id: "personal", label: "Personal Info", icon: "👤" },
-    { id: "address", label: "Address", icon: "🏠" },
-    { id: "professional", label: "Professional", icon: "💼" },
-    { id: "education", label: "Education", icon: "🎓" },
-    { id: "teaching", label: "Teaching", icon: "📚" },
-    { id: "additional", label: "Additional", icon: "📝" },
+    { id: "personal", label: "Personal Info", icon: User },
+    { id: "address", label: "Address", icon: House },
+    { id: "professional", label: "Professional", icon: BriefcaseBusiness },
+    { id: "education", label: "Education", icon: GraduationCap },
+    { id: "teaching", label: "Teaching", icon: BookOpenCheck },
+    { id: "finish" },
   ];
 
   return (
@@ -246,21 +205,23 @@ export default function AddTeacherPage() {
         <Card>
           <CardContent className="p-6">
             <div className="flex flex-wrap gap-2 mb-6">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted hover:bg-muted/80"
-                  }`}
-                >
-                  <span>{tab.icon}</span>
-                  {tab.label}
-                </button>
-              ))}
+              {tabs
+                .filter((tab) => tab.id !== "finish")
+                .map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                      activeTab === tab.id
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted hover:bg-muted/80"
+                    }`}
+                  >
+                    {tab.icon && <tab.icon size={15} />}
+                    {tab.label}
+                  </button>
+                ))}
             </div>
 
             {/* Personal Information Tab */}
@@ -272,6 +233,7 @@ export default function AddTeacherPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InputField
                     label="First Name"
+                    placeholder="Enter First Name"
                     required
                     id="firstName"
                     value={formData.firstName}
@@ -282,6 +244,7 @@ export default function AddTeacherPage() {
 
                   <InputField
                     label="Last Name"
+                    placeholder="Enter Last Name"
                     required
                     id="lastName"
                     value={formData.lastName}
@@ -292,6 +255,7 @@ export default function AddTeacherPage() {
 
                   <InputField
                     label="Email Address"
+                    placeholder="Enter Email Address"
                     required
                     id="email"
                     type="email"
@@ -301,6 +265,7 @@ export default function AddTeacherPage() {
 
                   <InputField
                     label="Phone Number"
+                    placeholder="e.g, 08083445454"
                     required
                     id="phone"
                     value={formData.phone}
@@ -338,6 +303,7 @@ export default function AddTeacherPage() {
                   <div>
                     <InputField
                       label="Nationality"
+                      placeholder="Enter Nationality"
                       id="nationality"
                       value={formData.nationality}
                       onChange={(e) =>
@@ -346,8 +312,8 @@ export default function AddTeacherPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="photo">Profile Photo</Label>
-                    <Input
+                    <InputField
+                      label={"Profile Photo"}
                       id="photo"
                       type="file"
                       accept="image/*"
@@ -357,6 +323,7 @@ export default function AddTeacherPage() {
                   <div>
                     <InputField
                       label="Emergency Contact Name"
+                      placeholder="Enter Emergency Contact Name"
                       id="emergencyContactName"
                       value={formData.emergencyContactName}
                       onChange={(e) =>
@@ -370,6 +337,7 @@ export default function AddTeacherPage() {
                   <div>
                     <InputField
                       label=" Emergency Contact Phone"
+                      placeholder="e.g, 080473434832"
                       id="emergencyContactPhone"
                       value={formData.emergencyContactPhone}
                       onChange={(e) =>
@@ -394,6 +362,7 @@ export default function AddTeacherPage() {
                   <div className="md:col-span-2">
                     <TextareaField
                       label={"Street Address"}
+                      placeholder="Enter Street Address"
                       id="address"
                       value={formData.address}
                       onChange={(e) =>
@@ -402,47 +371,43 @@ export default function AddTeacherPage() {
                       required
                     />
                   </div>
-                  <div>
-                    <InputField
-                      id="city"
-                      label={"City"}
-                      value={formData.city}
-                      onChange={(e) =>
-                        handleInputChange("city", e.target.value)
-                      }
-                      required
-                    />
-                  </div>
-                  <div>
-                    <InputField
-                      label={"State/Province"}
-                      id="state"
-                      value={formData.state}
-                      onChange={(e) =>
-                        handleInputChange("state", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div>
-                    <InputField
-                      label={"ZIP/Postal Code"}
-                      id="zipCode"
-                      value={formData.zipCode}
-                      onChange={(e) =>
-                        handleInputChange("zipCode", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div>
-                    <InputField
-                      label={"Country"}
-                      id="country"
-                      value={formData.country}
-                      onChange={(e) =>
-                        handleInputChange("country", e.target.value)
-                      }
-                    />
-                  </div>
+
+                  <InputField
+                    id="city"
+                    placeholder="Enter City"
+                    label={"City"}
+                    value={formData.city}
+                    onChange={(e) => handleInputChange("city", e.target.value)}
+                    required
+                  />
+
+                  <InputField
+                    label={"State/Province"}
+                    placeholder="Enter State/Province"
+                    id="state"
+                    value={formData.state}
+                    onChange={(e) => handleInputChange("state", e.target.value)}
+                  />
+
+                  <InputField
+                    label={"ZIP/Postal Code"}
+                    placeholder="Enter ZIP/Postal Code"
+                    id="zipCode"
+                    value={formData.zipCode}
+                    onChange={(e) =>
+                      handleInputChange("zipCode", e.target.value)
+                    }
+                  />
+
+                  <InputField
+                    label={"Country"}
+                    placeholder="Enter Country"
+                    id="country"
+                    value={formData.country}
+                    onChange={(e) =>
+                      handleInputChange("country", e.target.value)
+                    }
+                  />
                 </div>
               </div>
             )}
@@ -454,25 +419,12 @@ export default function AddTeacherPage() {
                   Professional Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <InputField
-                      label={"Employee ID"}
-                      id="employeeId"
-                      value={formData.employeeId}
-                      onChange={(e) =>
-                        handleInputChange("employeeId", e.target.value)
-                      }
-                      placeholder="e.g., TCH2024001"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <DatePicker
-                      label="Join Date"
-                      date={date.joinDate}
-                      setDate={handleDateChange("joinDate")}
-                    />
-                  </div>
+                  <DatePicker
+                    label="Join Date"
+                    date={date.joinDate}
+                    setDate={handleDateChange("joinDate")}
+                  />
+
                   <SelectField
                     label="Subject Specialization"
                     value={formData.subjectSpecialization}
@@ -649,47 +601,16 @@ export default function AddTeacherPage() {
                     }
                     placeholder="e.g., Grade 9-12, Elementary"
                   />
-
-                  <div className="md:col-span-2">
-                    <TextareaField
-                      label="Teaching Skills & Specialties"
-                      id="skills"
-                      value={formData.skills}
-                      onChange={(e) =>
-                        handleInputChange("skills", e.target.value)
-                      }
-                      placeholder="List teaching methods, technologies, and special skills"
-                    />
-                  </div>
                 </div>
               </div>
             )}
 
-            {/* Additional Information Tab */}
-            {activeTab === "additional" && (
+            {/* Form data validation */}
+            {activeTab === "finish" && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold mb-4">
-                  Additional Information
-                </h3>
-                <div className="grid grid-cols-1 gap-4">
-                  <TextareaField
-                    label="Achievements & Awards"
-                    id="achievements"
-                    value={formData.achievements}
-                    onChange={(e) =>
-                      handleInputChange("achievements", e.target.value)
-                    }
-                    placeholder="List any teaching awards, publications, or notable achievements"
-                  />
-
-                  <TextareaField
-                    label="Additional Notes"
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) => handleInputChange("notes", e.target.value)}
-                    placeholder="Any additional information about the teacher"
-                  />
-                </div>
+                <h3 className="text-lg font-semibold mb-4">Review & Submit</h3>
+                <p>Please review the information before submitting the form.</p>
+                {/* You can render a summary here */}
               </div>
             )}
           </CardContent>
@@ -715,7 +636,7 @@ export default function AddTeacherPage() {
             >
               Previous
             </Button>
-            {activeTab !== "additional" ? (
+            {activeTab !== "finish" && (
               <Button
                 type="button"
                 onClick={() => {
@@ -729,7 +650,10 @@ export default function AddTeacherPage() {
               >
                 Next
               </Button>
-            ) : (
+            )}
+
+            {/* Form submission trigger */}
+            {activeTab === "finish" && (
               <Button type="submit" disabled={loading}>
                 {loading ? "Creating Teacher..." : "Create Teacher"}
               </Button>

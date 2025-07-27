@@ -6,11 +6,7 @@ import { useAtom } from "jotai";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  InputField,
-  TextareaField,
-  SelectField,
-} from "@/components/ui/form-field";
+import { InputField, SelectField } from "@/components/ui/form-field";
 import DatePicker from "@/components/general/date-picker";
 import { formatDate, formatTime } from "@/utils/calendar";
 
@@ -19,51 +15,55 @@ import PageHeader from "@/components/general/page-header";
 import { examsAPI } from "@/jotai/exams/exams";
 import { subjectsAPI } from "@/jotai/subject/subject";
 import { classesAPI } from "@/jotai/class/class";
+import { teachersAPI } from "@/jotai/teachers/teachers";
 import { Subject } from "@/jotai/subject/subject-types";
 import { Class } from "@/jotai/class/class-type";
+import { Teacher } from "@/jotai/teachers/teachers-types";
 
 export default function AddExamPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
 
   const [, getAllSubjects] = useAtom(subjectsAPI.getAll);
   const [, getAllClasses] = useAtom(classesAPI.getAll);
+  const [, getAllTeachers] = useAtom(teachersAPI.getAll);
 
   const [formData, setFormData] = useState({
     title: "",
+    teacherId: "",
     subjectId: "",
     classId: "",
     date: "",
     startTime: "",
     duration: "",
-    totalMarks: "",
-    passingMarks: "",
     examType: "",
-    instructions: "",
-    syllabusTopics: "",
-    roomNumber: "",
-    supervisor: "",
-    materials: "",
-    gradingCriteria: "",
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [subjectsData, classesData] = await Promise.all([
+        const [subjectsData, classesData, teachersData] = await Promise.all([
           getAllSubjects(),
           getAllClasses(),
+          getAllTeachers(),
         ]);
+
         setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
         setClasses(Array.isArray(classesData) ? classesData : []);
+        setTeachers(
+          Array.isArray(teachersData.teachers) ? teachersData.teachers : []
+        );
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
     };
     fetchData();
-  }, [getAllClasses, getAllSubjects]);
+  }, [getAllClasses, getAllSubjects, getAllTeachers]);
+
+  console.log(teachers);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -76,23 +76,18 @@ export default function AddExamPage() {
     try {
       const examData = {
         title: formData.title,
+        teacherId: parseInt(formData.teacherId),
         subjectId: parseInt(formData.subjectId),
         classId: formData.classId ? parseInt(formData.classId) : null,
         date: formData.date,
         startTime: formData.startTime,
         duration: parseInt(formData.duration),
-        totalMarks: parseInt(formData.totalMarks),
-        passingMarks: parseInt(formData.passingMarks),
         examType: formData.examType,
-        instructions: formData.instructions,
-        syllabusTopics: formData.syllabusTopics,
-        roomNumber: formData.roomNumber,
-        supervisor: formData.supervisor,
-        materials: formData.materials,
-        gradingCriteria: formData.gradingCriteria,
       };
 
-      await examsAPI.create(examData);
+      console.log("FORM dATA ", examData);
+
+      // await examsAPI.create(examData);
       router.push("/portal/exams");
     } catch (error) {
       console.error("Failed to create exam:", error);
@@ -171,10 +166,8 @@ export default function AddExamPage() {
                   <SelectItem value="quiz">Quiz</SelectItem>
                   <SelectItem value="midterm">Mid-term Exam</SelectItem>
                   <SelectItem value="final">Final Exam</SelectItem>
-                  <SelectItem value="unit_test">Unit Test</SelectItem>
                   <SelectItem value="assignment">Assignment</SelectItem>
                   <SelectItem value="practical">Practical Exam</SelectItem>
-                  <SelectItem value="oral">Oral Exam</SelectItem>
                 </SelectField>
               </div>
               <div>
@@ -196,11 +189,12 @@ export default function AddExamPage() {
                   label={"Start Time"}
                   id="startTime"
                   type="time"
-                  value={formData.startTime}
+                  value={formData.startTime ? formData.startTime : "10:30:00"}
                   onChange={(e) =>
                     handleInputChange("startTime", e.target.value)
                   }
                   required
+                  className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                 />
               </div>
               <div>
@@ -217,35 +211,35 @@ export default function AddExamPage() {
                   required
                 />
               </div>
-              <div>
-                <InputField
-                  label="Total Marks"
-                  id="totalMarks"
-                  type="number"
-                  value={formData.totalMarks}
-                  onChange={(e) =>
-                    handleInputChange("totalMarks", e.target.value)
-                  }
-                  min="1"
-                  max="1000"
-                  required
-                />
-              </div>
-              <div>
-                <InputField
-                  label="Passing Marks"
-                  id="passingMarks"
-                  type="number"
-                  value={formData.passingMarks}
-                  onChange={(e) =>
-                    handleInputChange("passingMarks", e.target.value)
-                  }
-                  min="1"
-                  max={formData.totalMarks || "1000"}
-                  required
-                />
-              </div>
-              <div>
+              {/* <div>
+                  <InputField
+                    label="Total Marks"
+                    id="totalMarks"
+                    type="number"
+                    value={formData.totalMarks}
+                    onChange={(e) =>
+                      handleInputChange("totalMarks", e.target.value)
+                    }
+                    min="1"
+                    max="1000"
+                    required
+                  />
+                </div>
+                <div>
+                  <InputField
+                    label="Passing Marks"
+                    id="passingMarks"
+                    type="number"
+                    value={formData.passingMarks}
+                    onChange={(e) =>
+                      handleInputChange("passingMarks", e.target.value)
+                    }
+                    min="1"
+                    max={formData.totalMarks || "1000"}
+                    required
+                  />
+                </div> */}
+              {/* <div>
                 <InputField
                   label={"Room/Venue"}
                   id="roomNumber"
@@ -255,24 +249,30 @@ export default function AddExamPage() {
                   }
                   placeholder="e.g., Room 101, Lab A, Auditorium"
                 />
-              </div>
+              </div> */}
+
               <div>
-                <InputField
+                <SelectField
                   label={"Supervisor/Invigilator"}
-                  id="supervisor"
-                  value={formData.supervisor}
-                  onChange={(e) =>
-                    handleInputChange("supervisor", e.target.value)
+                  value={formData.teacherId}
+                  onValueChange={(value) =>
+                    handleInputChange("supervisor", value)
                   }
                   placeholder="Name of supervising teacher"
-                />
+                >
+                  {teachers.map((teacher, index) => (
+                    <SelectItem key={index} value={teacher.id.toString()}>
+                      {teacher.user.name}
+                    </SelectItem>
+                  ))}
+                </SelectField>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Exam Content */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>Exam Content & Instructions</CardTitle>
           </CardHeader>
@@ -320,7 +320,7 @@ export default function AddExamPage() {
               />
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Summary */}
         <Card>
@@ -337,15 +337,20 @@ export default function AddExamPage() {
                 </p>
                 <p>
                   <span className="font-medium">Date & Time:</span>{" "}
-                  {formatDate(new Date(formData.date))} at{" "}
-                  {formatTime(formData.startTime)}
+                  {formData.date
+                    ? formatDate(new Date(formData.date))
+                    : "-- --"}{" "}
+                  at{" "}
+                  {formData.startTime
+                    ? formatTime(formData.startTime)
+                    : "-- --"}
                 </p>
                 <p>
                   <span className="font-medium">Duration:</span>{" "}
-                  {formData.duration} minutes
+                  {formData.duration ? formData.duration : "-- --"} minutes
                 </p>
               </div>
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <p>
                   <span className="font-medium">Total Marks:</span>{" "}
                   {formData.totalMarks}
@@ -365,7 +370,7 @@ export default function AddExamPage() {
                     : 0}
                   %
                 </p>
-              </div>
+              </div> */}
             </div>
           </CardContent>
         </Card>

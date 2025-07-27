@@ -11,25 +11,19 @@ import {
   TextareaField,
   SelectField,
 } from "@/components/ui/form-field";
-import { Label } from "@/components/ui/label";
 import { SelectItem } from "@/components/ui/select";
 import DatePicker from "@/components/general/date-picker";
-import {
-  GraduationCap,
-  Users,
-  House,
-  ShieldPlus,
-  BookPlus,
-  User,
-} from "lucide-react";
+import { GraduationCap, Users, House, ShieldPlus, User } from "lucide-react";
 import PageHeader from "@/components/general/page-header";
+import { StudentFormIntialData } from "@/common/form";
+import ToggleItem from "@/components/general/toggle";
+import { toast } from "sonner";
 
 import { studentsAPI } from "@/jotai/students/student";
-
 import { classesAPI } from "@/jotai/class/class";
-import { Class } from "@/jotai/class/class-type";
-
 import { parentsAPI } from "@/jotai/parent/parent";
+
+import { Class } from "@/jotai/class/class-type";
 import { Parent } from "@/jotai/parent/parent-types";
 
 export default function AddStudentPage() {
@@ -37,68 +31,57 @@ export default function AddStudentPage() {
   const [loading, setLoading] = useState(false);
   const [classes, setClasses] = useState<Class[]>([]);
   const [parents, setParents] = useState<Parent[]>([]);
-  const [activeTab, setActiveTab] = useState("personal");
+  const [parentExist, setParentExist] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>("personal");
 
-  const [classesData] = useAtom(classesAPI.getAll);
-  const [parentsData] = useAtom(parentsAPI.getAll);
+  const [, getAllClasses] = useAtom(classesAPI.getAll);
+  const [, getAllParents] = useAtom(parentsAPI.getAll);
 
-  const [formData, setFormData] = useState({
-    // Personal Information
-    firstName: "",
-    lastName: "",
-    email: "",
-    dateOfBirth: "",
-    gender: "",
-    nationality: "",
-    religion: "",
-    bloodGroup: "",
-    phone: "",
-
-    // Address Information
-    address: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    country: "",
-
-    // Academic Information
-    classId: "",
-    studentId: "",
-    admissionDate: "",
-    previousSchool: "",
-    grade: "",
-
-    // Parent/Guardian Information
-    parentId: "",
-    emergencyContactName: "",
-    emergencyContactPhone: "",
-    emergencyContactRelation: "",
-
-    // Medical Information
-    medicalConditions: "",
-    allergies: "",
-    medications: "",
-    doctorName: "",
-    doctorPhone: "",
-
-    // Additional Information
-    notes: "",
-    hobbies: "",
-    transportationMethod: "",
-    photo: null as File | null,
+  const [formData, setFormData] = useState(StudentFormIntialData);
+  const [date, setDate] = useState<{
+    dob: Date | undefined;
+    admissionDate: Date | undefined;
+  }>({
+    dob: undefined,
+    admissionDate: undefined,
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setClasses(Array.isArray(classesData) ? classesData : []);
-        setParents(Array.isArray(parentsData) ? parentsData : []);
+        const classes = await getAllClasses();
+        const parents = await getAllParents();
+
+        setClasses(Array.isArray(classes) ? classes : []);
+        setParents(Array.isArray(parents) ? parents : []);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
     };
     fetchData();
-  }, [classesData, parentsData]);
+  }, [getAllClasses, getAllParents]);
+
+  // Handle date changes for both DOB and Join Date
+  const handleDateChange =
+    (dateType: "dob" | "admissionDate") => (selectedDate: Date | undefined) => {
+      // Update the date state
+      setDate((prev) => ({
+        ...prev,
+        [dateType]: selectedDate,
+      }));
+
+      // Update form data with string format
+      const dateString = selectedDate
+        ? selectedDate.toISOString().split("T")[0]
+        : "";
+      const formFieldName =
+        dateType === "dob" ? "dateOfBirth" : "admissionDate";
+
+      setFormData((prev) => ({
+        ...prev,
+        [formFieldName]: dateString,
+      }));
+    };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -111,51 +94,91 @@ export default function AddStudentPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    await handleCreateStudent();
+  };
+
+  const validateForm = () => {
+    const requiredFields = [
+      formData.firstName,
+      formData.lastName,
+      formData.email,
+      formData.dateOfBirth,
+      formData.gender,
+      formData.address,
+      formData.city,
+      formData.state,
+      formData.country,
+      formData.classId,
+      formData.admissionDate,
+      formData.parentname,
+      formData.parentemail,
+      formData.parentphone,
+      formData.relationship,
+    ];
+    return requiredFields.every((field) => field && field.trim() !== "");
+  };
+
+  const handleCreateStudent = async () => {
     setLoading(true);
 
     try {
+      if (!validateForm()) {
+        toast.error("Please fill out all required fields before submitting.");
+        setLoading(false);
+        return;
+      }
+
       const studentData = {
+        // User data
         name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         password: `${formData.firstName.toLowerCase()}${formData.dateOfBirth.replace(
           /-/g,
           ""
         )}`, // Temporary password
-        role: "STUDENT",
-        dateOfBirth: formData.dateOfBirth,
-        phone: formData.phone,
-        address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
-        classId: parseInt(formData.classId),
-        parentId: formData.parentId ? parseInt(formData.parentId) : null,
-        studentId: formData.studentId,
-        admissionDate: formData.admissionDate,
+        DOB: formData.dateOfBirth,
         gender: formData.gender,
+        address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`,
+        phone: formData.phone,
         nationality: formData.nationality,
+        country: formData.country,
         religion: formData.religion,
         bloodGroup: formData.bloodGroup,
-        previousSchool: formData.previousSchool,
+        photo: formData.photo,
+
+        // Student specific data
+        classId: parseInt(formData.classId) || null,
+        parentId:
+          formData.parentId && formData.parentId !== "N/A"
+            ? parseInt(formData.parentId)
+            : null,
+        admissionDate: formData.admissionDate,
+        previousSchool: formData.previousSchool || null,
+
+        // Medical information
         medicalInfo: {
-          conditions: formData.medicalConditions,
-          allergies: formData.allergies,
-          medications: formData.medications,
-          doctorName: formData.doctorName,
-          doctorPhone: formData.doctorPhone,
+          conditions: formData.medicalConditions || null,
+          allergies: formData.allergies || null,
+          medications: formData.medications || null,
+          doctorName: formData.doctorName || null,
+          doctorPhone: formData.doctorPhone || null,
         },
-        emergencyContact: {
-          name: formData.emergencyContactName,
-          phone: formData.emergencyContactPhone,
-          relation: formData.emergencyContactRelation,
+
+        // Emergency contact
+        parentsInfo: {
+          parentName: formData.parentname,
+          parentPhone: formData.parentphone,
+          parentEmail: formData.parentemail,
+          relationship: formData.relationship,
         },
-        notes: formData.notes,
-        hobbies: formData.hobbies,
-        transportationMethod: formData.transportationMethod,
       };
 
       await studentsAPI.create(studentData);
+      toast.success("Successfully created student record");
       router.push("/portal/students");
     } catch (error) {
       console.error("Failed to create student:", error);
-      alert("Failed to create student. Please try again.");
+      toast.error("Failed to create student. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -167,7 +190,7 @@ export default function AddStudentPage() {
     { id: "academic", label: "Academic", Icon: GraduationCap },
     { id: "parent", label: "Parent/Guardian", Icon: Users },
     { id: "medical", label: "Medical", Icon: ShieldPlus },
-    { id: "additional", label: "Additional", Icon: BookPlus },
+    { id: "finish" },
   ];
 
   return (
@@ -184,22 +207,23 @@ export default function AddStudentPage() {
         <Card>
           <CardContent className="p-6">
             <div className="flex flex-wrap gap-2 mb-6">
-              {tabs.map((tab) => (
-                <Button
-                  key={tab.id}
-                  type="button"
-                  variant={"outline"}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-primary hover:bg-primary/50 text-primary-foreground"
-                      : "bg-muted hover:bg-muted/80"
-                  }`}
-                >
-                  <tab.Icon size={15} />
-                  {tab.label}
-                </Button>
-              ))}
+              {tabs
+                .filter((tab) => tab.id !== "finish")
+                .map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                      activeTab === tab.id
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted hover:bg-muted/80"
+                    }`}
+                  >
+                    {tab.Icon && <tab.Icon size={15} />}
+                    {tab.label}
+                  </button>
+                ))}
             </div>
 
             {/* Personal Information Tab */}
@@ -250,17 +274,8 @@ export default function AddStudentPage() {
                     <DatePicker
                       label={"Date of Birth"}
                       required
-                      date={
-                        formData.dateOfBirth
-                          ? new Date(formData.dateOfBirth)
-                          : undefined
-                      }
-                      setDate={(date: Date | undefined) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          dateOfBirth: date ? date.toISOString() : "",
-                        }))
-                      }
+                      date={date.dob}
+                      setDate={handleDateChange("dob")}
                     />
                   </div>
                   <div>
@@ -445,63 +460,37 @@ export default function AddStudentPage() {
                       ))}
                     </SelectField>
                   </div>
-                  <div>
-                    <InputField
-                      label={"Student ID"}
-                      id="studentId"
-                      value={formData.studentId}
-                      onChange={(e) =>
-                        handleInputChange("studentId", e.target.value)
-                      }
-                      placeholder="e.g., STU2024001"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <DatePicker
-                      label={"Admission Date"}
-                      required
-                      date={
-                        formData.admissionDate
-                          ? new Date(formData.admissionDate)
-                          : undefined
-                      }
-                      setDate={(date: Date | undefined) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          admissionDate: date ? date.toISOString() : "",
-                        }))
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="grade"></Label>
-                    <SelectField
-                      label="Current Grade"
-                      value={formData.grade}
-                      placeholder="Select grade"
-                      onValueChange={(value) =>
-                        handleInputChange("grade", value)
-                      }
-                    >
-                      {Array.from({ length: 12 }, (_, i) => (
-                        <SelectItem key={i + 1} value={(i + 1).toString()}>
-                          Grade {i + 1}
-                        </SelectItem>
-                      ))}
-                    </SelectField>
-                  </div>
-                  <div className="md:col-span-2">
-                    <InputField
-                      label={"Previous School"}
-                      id="previousSchool"
-                      placeholder={"If none, write N/A"}
-                      value={formData.previousSchool}
-                      onChange={(e) =>
-                        handleInputChange("previousSchool", e.target.value)
-                      }
-                    />
-                  </div>
+
+                  <DatePicker
+                    label={"Admission Date"}
+                    required
+                    date={date.admissionDate}
+                    setDate={handleDateChange("admissionDate")}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <SelectField
+                    label="Current Grade"
+                    value={formData.grade}
+                    placeholder="Select grade"
+                    onValueChange={(value) => handleInputChange("grade", value)}
+                  >
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <SelectItem key={i + 1} value={(i + 1).toString()}>
+                        Grade {i + 1}
+                      </SelectItem>
+                    ))}
+                  </SelectField>
+
+                  <InputField
+                    label={"Previous School"}
+                    id="previousSchool"
+                    placeholder={"If none, write N/A"}
+                    value={formData.previousSchool}
+                    onChange={(e) =>
+                      handleInputChange("previousSchool", e.target.value)
+                    }
+                  />
                 </div>
               </div>
             )}
@@ -509,90 +498,107 @@ export default function AddStudentPage() {
             {/* Parent/Guardian Information Tab */}
             {activeTab === "parent" && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold mb-4">
-                  Parent/Guardian Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <SelectField
-                      label="Select Parent/Guardian"
-                      placeholder="Select parent"
-                      value={formData.parentId}
-                      onValueChange={(value) =>
-                        handleInputChange("parentId", value)
-                      }
-                    >
-                      <SelectItem value="N/A">No parent assigned</SelectItem>
-                      {parents.map((parent) => (
-                        <SelectItem
-                          key={parent.id}
-                          value={parent.id.toString()}
-                        >
-                          {parent.user.name} - {parent.user.email}
-                        </SelectItem>
-                      ))}
-                    </SelectField>
-                  </div>
-                  <div>
-                    <InputField
-                      label={"Emergency Contact Name"}
-                      id="emergencyContactName"
-                      placeholder="Enter Emergency contact name"
-                      value={formData.emergencyContactName}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "emergencyContactName",
-                          e.target.value
-                        )
-                      }
-                      required
-                    />
-                  </div>
-                  <div>
-                    <InputField
-                      label="Emergency Contact Phone"
-                      id="emergencyContactPhone"
-                      placeholder="e.g 08055223344"
-                      value={formData.emergencyContactPhone}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "emergencyContactPhone",
-                          e.target.value
-                        )
-                      }
-                      required
-                    />
-                  </div>
-                  <div>
-                    <SelectField
-                      label={"Relationship"}
-                      placeholder="Select relationship"
-                      value={formData.emergencyContactRelation}
-                      onValueChange={(value) =>
-                        handleInputChange("emergencyContactRelation", value)
-                      }
-                    >
-                      {[
-                        "father",
-                        "mother",
-                        "brother",
-                        "sister",
-                        "guardian",
-                        "grandparent",
-                        "uncle",
-                        "aunt",
-                        "other",
-                      ].map((item, index) => (
-                        <SelectItem
-                          className="capitalize"
-                          key={index}
-                          value={item}
-                        >
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectField>
-                  </div>
+                <div className="space-y-2 pb-3">
+                  <h3 className="text-lg font-semibold mb-4">
+                    Parent/Guardian Information
+                  </h3>
+
+                  <ToggleItem
+                    label="Does Parent/Guardian Exist?"
+                    id="isparent"
+                    value={parentExist}
+                    setValue={setParentExist}
+                  />
+                </div>
+
+                <div>
+                  {parentExist ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <SelectField
+                        label="Select Parent/Guardian"
+                        placeholder="Select parent"
+                        required
+                        value={formData.parentId}
+                        onValueChange={(value) =>
+                          handleInputChange("parentId", value)
+                        }
+                      >
+                        <SelectItem value="N/A">No parent assigned</SelectItem>
+                        {parents.map((parent) => (
+                          <SelectItem
+                            key={parent.id}
+                            value={parent.id.toString()}
+                          >
+                            {parent.user.name} - {parent.user.email}
+                          </SelectItem>
+                        ))}
+                      </SelectField>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <InputField
+                        label={"Parent/Guardian Name"}
+                        id="parentname"
+                        placeholder="Enter Parent/Guardian name"
+                        value={formData.parentname}
+                        onChange={(e) =>
+                          handleInputChange("parentname", e.target.value)
+                        }
+                        required
+                      />
+                      <InputField
+                        label={"Parent/Guardian Email"}
+                        id="parentemail"
+                        placeholder="Enter Parent/Guardian Email"
+                        value={formData.parentemail}
+                        onChange={(e) =>
+                          handleInputChange("parentemail", e.target.value)
+                        }
+                        required
+                      />
+
+                      <InputField
+                        label="Parent/Guardian Phone"
+                        id="parentphone"
+                        placeholder="e.g 08055223344"
+                        value={formData.parentphone}
+                        onChange={(e) =>
+                          handleInputChange("parentphone", e.target.value)
+                        }
+                        required
+                      />
+
+                      <SelectField
+                        label={"Relationship"}
+                        placeholder="Select relationship"
+                        required
+                        value={formData.relationship}
+                        onValueChange={(value) =>
+                          handleInputChange("relationship", value)
+                        }
+                      >
+                        {[
+                          "father",
+                          "mother",
+                          "brother",
+                          "sister",
+                          "guardian",
+                          "grandparent",
+                          "uncle",
+                          "aunt",
+                          "other",
+                        ].map((item, index) => (
+                          <SelectItem
+                            className="capitalize"
+                            key={index}
+                            value={item}
+                          >
+                            {item}
+                          </SelectItem>
+                        ))}
+                      </SelectField>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -663,55 +669,11 @@ export default function AddStudentPage() {
               </div>
             )}
 
-            {/* Additional Information Tab */}
-            {activeTab === "additional" && (
+            {activeTab === "finish" && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold mb-4">
-                  Additional Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <SelectField
-                      label="Transportation Method"
-                      placeholder="Select transportation"
-                      value={formData.transportationMethod}
-                      onValueChange={(value) =>
-                        handleInputChange("transportationMethod", value)
-                      }
-                    >
-                      <SelectItem value="school_bus">School Bus</SelectItem>
-                      <SelectItem value="private_car">Private Car</SelectItem>
-                      <SelectItem value="public_transport">
-                        Public Transport
-                      </SelectItem>
-                      <SelectItem value="walking">Walking</SelectItem>
-                      <SelectItem value="bicycle">Bicycle</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectField>
-                  </div>
-                  <div>
-                    <InputField
-                      label={"Hobbies & Interests"}
-                      id="hobbies"
-                      value={formData.hobbies}
-                      onChange={(e) =>
-                        handleInputChange("hobbies", e.target.value)
-                      }
-                      placeholder="e.g., Reading, Sports, Music"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <TextareaField
-                      label={"Additional Notes"}
-                      id="notes"
-                      value={formData.notes}
-                      onChange={(e) =>
-                        handleInputChange("notes", e.target.value)
-                      }
-                      placeholder="Any additional information about the student"
-                    />
-                  </div>
-                </div>
+                <h3 className="text-lg font-semibold mb-4">Review & Submit</h3>
+                <p>Please review the information before submitting the form.</p>
+                {/* You can render a summary here */}
               </div>
             )}
           </CardContent>
@@ -723,9 +685,11 @@ export default function AddStudentPage() {
             <Link href="/portal/students">Cancel</Link>
           </Button>
           <div className="flex gap-2">
+            {/* Navigation buttons */}
             <Button
               type="button"
               variant="outline"
+              disabled={tabs.findIndex((tab) => tab.id === activeTab) === 0}
               onClick={() => {
                 const currentIndex = tabs.findIndex(
                   (tab) => tab.id === activeTab
@@ -737,7 +701,7 @@ export default function AddStudentPage() {
             >
               Previous
             </Button>
-            {activeTab !== "additional" ? (
+            {activeTab !== "finish" && (
               <Button
                 type="button"
                 onClick={() => {
@@ -751,7 +715,10 @@ export default function AddStudentPage() {
               >
                 Next
               </Button>
-            ) : (
+            )}
+
+            {/* Form submission trigger */}
+            {activeTab === "finish" && (
               <Button type="submit" disabled={loading}>
                 {loading ? "Creating Student..." : "Create Student"}
               </Button>

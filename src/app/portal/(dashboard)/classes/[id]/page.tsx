@@ -12,6 +12,7 @@ import { Grade } from "@/jotai/grades/grades-types";
 import { enhancedAttendanceAPI } from "@/jotai/attendance/attendance";
 import { Attendance } from "@/jotai/attendance/attendance-type";
 import { Button } from "@/components/ui/button";
+import PageHeader from "@/components/general/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart,
@@ -169,21 +170,17 @@ export default function ClassDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/portal/classes">← Back</Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">{classData.name}</h1>
-            <p className="text-muted-foreground">Class Details & Analytics</p>
+      <PageHeader
+        title={classData.name}
+        subtitle={"Class Details & Analytics"}
+        link="/portal/classes"
+        endBtns={
+          <div className="flex gap-2">
+            <Button variant="outline">Edit Class</Button>
+            <Button>Add Student</Button>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">Edit Class</Button>
-          <Button>Add Student</Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

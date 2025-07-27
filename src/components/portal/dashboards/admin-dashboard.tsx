@@ -10,7 +10,12 @@ import { GraduationCap, Network, School, Megaphone } from "lucide-react";
 import { studentsAPI, studentListAtom } from "@/jotai/students/student";
 import { teachersAPI, teacherListAtom } from "@/jotai/teachers/teachers";
 import { getAllClassAtom } from "@/jotai/class/class";
-import { announcementsAPI, announcementListAtom, announcementErrorAtom, announcementLoadingAtom } from "@/jotai/announcement/announcement";
+import {
+  announcementsAPI,
+  announcementListAtom,
+  announcementErrorAtom,
+  announcementLoadingAtom,
+} from "@/jotai/announcement/announcement";
 
 interface AdminDashboardProps {
   user: User;
@@ -155,7 +160,11 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       totalStudents: students?.students?.length ?? 0,
       totalTeachers: teachers?.teachers?.length ?? 0,
       totalClasses: Array.isArray(classes) ? classes.length : 0,
-      recentAnnouncements: announcementError ? 0 : (Array.isArray(announcements) ? announcements.slice(0, 5).length : 0),
+      recentAnnouncements: announcementError
+        ? 0
+        : Array.isArray(announcements)
+        ? announcements.slice(0, 5).length
+        : 0,
     });
   }, [students, teachers, classes, announcements, announcementError]);
 
@@ -245,10 +254,10 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
               </div>
             ) : (
               <div className="space-y-1">
-            <div className="text-2xl font-bold">
-              {stats.recentAnnouncements}
-            </div>
-            <p className="text-xs text-muted-foreground">Recent posts</p>
+                <div className="text-2xl font-bold">
+                  {stats.recentAnnouncements}
+                </div>
+                <p className="text-xs text-muted-foreground">Recent posts</p>
               </div>
             )}
           </CardContent>

@@ -37,7 +37,7 @@ const PageHeader: FC<IPageHeader> = ({
     <div className="flex items-center justify-between">
       <div className="grid grid-cols-3 w-full items-center">
         <button
-          className="cursor-pointer w-fit group p-2 rounded-sm bg-gray-100"
+          className="cursor-pointer w-fit group p-2 rounded-sm bg-primary-gray"
           onClick={() => handleBack(link ?? undefined)}
         >
           {isBkLoading ? (

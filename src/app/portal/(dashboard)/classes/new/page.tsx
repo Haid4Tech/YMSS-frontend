@@ -15,43 +15,26 @@ import {
   SelectField,
   TextareaField,
 } from "@/components/ui/form-field";
+import DatePicker from "@/components/general/date-picker";
+import { ClassFormInitialData } from "@/common/form";
+
 import { classesAPI } from "@/jotai/class/class";
 import { teachersAPI } from "@/jotai/teachers/teachers";
 import { Teacher } from "@/jotai/teachers/teachers-types";
 
-import DatePicker from "@/components/general/date-picker";
-
 export default function AddClassPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [, getAllTeachers] = useAtom(teachersAPI.getAll);
 
-  // Date states for DatePicker components (expects Date objects)
+  // form states and dates states
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [formData, setFormData] = useState(ClassFormInitialData);
 
   // Validation state for dates
   const [dateError, setDateError] = useState<string>("");
-
-  const [formData, setFormData] = useState({
-    name: "",
-    grade: "",
-    section: "",
-    capacity: "",
-    roomNumber: "",
-    description: "",
-    classTeacherId: "",
-    academicYear: "",
-    schedule: {
-      startDate: "",
-      endDate: "",
-      startTime: "",
-      endTime: "",
-      days: [] as string[],
-    },
-    subjects: [] as string[],
-  });
 
   useEffect(() => {
     const fetchTeachers = async () => {
@@ -165,16 +148,15 @@ export default function AddClassPage() {
       const classData = {
         name: formData.name,
         grade: parseInt(formData.grade) || null,
-        section: formData.section,
-        capacity: parseInt(formData.capacity) || null,
+        capacity: formData.capacity,
         roomNumber: formData.roomNumber,
         description: formData.description,
-        classTeacherId: formData.classTeacherId
-          ? parseInt(formData.classTeacherId)
-          : null,
+        teacherId: formData.teacherId ? parseInt(formData.teacherId) : null,
         academicYear: formData.academicYear,
-        schedule: formData.schedule,
+        schedule: { ...formData.schedule },
       };
+
+      console.log("CLASS DATA ", classData);
 
       await classesAPI.create(classData);
       router.push("/portal/classes");
@@ -236,7 +218,7 @@ export default function AddClassPage() {
                 <SelectItem value="pre-k">Pre-K</SelectItem>
               </SelectField>
 
-              <SelectField
+              {/* <SelectField
                 label="Section"
                 value={formData.section}
                 onValueChange={(value) => handleInputChange("section", value)}
@@ -250,7 +232,7 @@ export default function AddClassPage() {
                     Section {String.fromCharCode(65 + i)}
                   </SelectItem>
                 ))}
-              </SelectField>
+              </SelectField> */}
 
               <InputField
                 label="Student Capacity"
@@ -298,10 +280,8 @@ export default function AddClassPage() {
 
               <SelectField
                 label="Class Teacher"
-                value={formData.classTeacherId}
-                onValueChange={(value) =>
-                  handleInputChange("classTeacherId", value)
-                }
+                value={formData.teacherId}
+                onValueChange={(value) => handleInputChange("teacherId", value)}
                 placeholder="Select class teacher"
               >
                 <SelectItem value="none">No Class Teacher</SelectItem>
@@ -356,6 +336,40 @@ export default function AddClassPage() {
               </div>
             )}
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InputField
+                label="Class Start Time"
+                id="startTime"
+                type={"time"}
+                value={formData.schedule.startTime}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    schedule: {
+                      ...prev.schedule,
+                      startTime: e.target.value,
+                    },
+                  }))
+                }
+              />
+
+              <InputField
+                label="Class End Time"
+                id={"endTime"}
+                type={"time"}
+                value={formData.schedule.endTime}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    schedule: {
+                      ...prev.schedule,
+                      endTime: e.target.value,
+                    },
+                  }))
+                }
+              />
+            </div>
+
             <div>
               <Label>Class Days</Label>
               <div className="flex flex-wrap gap-2 mt-2">
@@ -364,7 +378,7 @@ export default function AddClassPage() {
                     key={day}
                     type="button"
                     onClick={() => handleDayToggle(day)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`px-3 py-2 rounded-sm text-sm font-medium transition-colors ${
                       formData.schedule.days.includes(day)
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted hover:bg-muted/80"

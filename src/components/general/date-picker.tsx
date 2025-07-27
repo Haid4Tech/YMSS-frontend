@@ -26,7 +26,7 @@ const DatePicker: FC<IDatePicker> = ({
   date,
   setDate,
   minDate,
-  maxDate,
+  maxDate = new Date(new Date().getFullYear() + 10, 11, 31),
   required,
 }) => {
   const [open, setOpen] = useState(false);
@@ -51,18 +51,14 @@ const DatePicker: FC<IDatePicker> = ({
           <Calendar
             mode="single"
             selected={date}
-            captionLayout="dropdown"
-            onSelect={(date) => {
-              setDate(date);
+            onSelect={(d) => {
+              setDate(d);
               setOpen(false);
             }}
-            fromDate={minDate}
-            toDate={maxDate}
-            disabled={(date) => {
-              if (minDate && date < minDate) return true;
-              if (maxDate && date > maxDate) return true;
-              return false;
-            }}
+            captionLayout="dropdown"
+            defaultMonth={date || new Date()}
+            startMonth={minDate || new Date(1900, 0)}
+            endMonth={maxDate || new Date(new Date().getFullYear() + 10, 11)}
           />
         </PopoverContent>
       </Popover>

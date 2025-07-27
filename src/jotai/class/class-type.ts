@@ -6,7 +6,12 @@ export interface Class {
   name: string;
   students: Array<Student>;
   subjects: Array<Subject>;
-  
+
+  startDate?: string;
+  endDate?: string;
+  startTime?: string;
+  endTime?: string;
+
   // Additional fields used in the application
   grade?: string; // Grade level like "10th", "11th"
   section?: string; // Section like "A", "B"

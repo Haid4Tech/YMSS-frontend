@@ -12,12 +12,8 @@ export interface Teacher {
   phone?: string;
 
   // Professional Details
-  department?: string;
-  qualification?: string;
-  experience?: number; // in years
-  specialization?: string;
-  employeeId?: string;
-  joinDate?: string;
+
+  experience?: string; // in years
   hireDate?: string; // Alternative naming used in components
   salary?: number;
 
@@ -39,11 +35,7 @@ export interface Teacher {
     degree: string;
     university: string;
     graduationYear: number | null;
-    certifications: string;
   };
-  skills?: string;
-  achievements?: string;
-  notes?: string;
 }
 
 export interface TeachersResponse {

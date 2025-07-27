@@ -46,6 +46,8 @@ export const authAPI = {
 
     try {
       const form = get(signupFormAction);
+      console.log("form data ", form);
+
       const response = await axiosInstance.post(`/auth/register`, form);
       const authData = response.data as AuthSession;
 
