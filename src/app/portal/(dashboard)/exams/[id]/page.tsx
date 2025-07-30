@@ -23,6 +23,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import {PageHeader} from "@/components/general/page-header";
 
 export default function ExamDetailPage() {
   const params = useParams();
@@ -226,21 +227,16 @@ export default function ExamDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/portal/exams">← Back</Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">{exam.title}</h1>
-            <p className="text-muted-foreground">Exam Results & Analytics</p>
+      <PageHeader
+        title={exam.title}
+        subtitle={"Exam Results & Analytics"}
+        endBtns={
+          <div className="flex gap-2">
+            <Button variant="outline">Edit Exam</Button>
+            <Button>Download Report</Button>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">Edit Exam</Button>
-          <Button>Download Report</Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-6 gap-4">

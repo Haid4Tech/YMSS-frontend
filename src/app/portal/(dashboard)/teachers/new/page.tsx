@@ -19,7 +19,7 @@ import {
   SelectField,
   TextareaField,
 } from "@/components/ui/form-field";
-import PageHeader from "@/components/general/page-header";
+import { PageHeader } from "@/components/general/page-header";
 import { teachersAPI } from "@/jotai/teachers/teachers";
 import { subjectsAPI } from "@/jotai/subject/subject";
 import { Subject } from "@/jotai/subject/subject-types";

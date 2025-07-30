@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { SelectItem } from "@/components/ui/select";
-import PageHeader from "@/components/general/page-header";
+import { PageHeader } from "@/components/general/page-header";
 
 import {
   InputField,
@@ -148,7 +148,7 @@ export default function AddClassPage() {
       const classData = {
         name: formData.name,
         grade: parseInt(formData.grade) || null,
-        capacity: formData.capacity,
+        capacity: parseInt(formData.capacity),
         roomNumber: formData.roomNumber,
         description: formData.description,
         teacherId: formData.teacherId ? parseInt(formData.teacherId) : null,

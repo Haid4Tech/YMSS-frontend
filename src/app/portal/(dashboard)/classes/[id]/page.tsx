@@ -12,7 +12,7 @@ import { Grade } from "@/jotai/grades/grades-types";
 import { enhancedAttendanceAPI } from "@/jotai/attendance/attendance";
 import { Attendance } from "@/jotai/attendance/attendance-type";
 import { Button } from "@/components/ui/button";
-import PageHeader from "@/components/general/page-header";
+import { PageHeader } from "@/components/general/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart,

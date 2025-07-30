@@ -7,6 +7,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@radix-ui/themes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import { extractErrorMessage } from "@/utils/helpers";
 
 import {
   SelectField,
@@ -17,38 +19,47 @@ import { SelectItem } from "@/components/ui/select";
 import { subjectsAPI } from "@/jotai/subject/subject";
 import { teachersAPI } from "@/jotai/teachers/teachers";
 import { Teacher } from "@/jotai/teachers/teachers-types";
-import PageHeader from "@/components/general/page-header";
+import { PageHeader } from "@/components/general/page-header";
+import { classesAPI } from "@/jotai/class/class";
+import { Class } from "@/jotai/class/class-type";
 
 export default function AddSubjectPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [classes, setClasses] = useState<Class[]>([]);
+
   const [, getAllTeachers] = useAtom(teachersAPI.getAll);
+  const [, getAllClasses] = useAtom(classesAPI.getAll);
 
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    grade: "",
+    classId: "",
     category: "",
     teacherId: "",
-    // objectives: "",
-    // prerequisites: "",
-    // textbooks: "",
-    // assessmentMethods: "",
     weeklyHours: "",
   });
 
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
-        const teachersData = await getAllTeachers();
-        setTeachers(Array.isArray(teachersData) ? teachersData : []);
+        const [teachersData, classesData] = await Promise.all([
+          getAllTeachers(),
+          getAllClasses(),
+        ]);
+
+        setTeachers(
+          Array.isArray(teachersData.teachers) ? teachersData.teachers : []
+        );
+        setClasses(Array.isArray(classesData) ? classesData : []);
       } catch (error) {
         console.error("Failed to fetch teachers:", error);
       }
     };
     fetchTeachers();
-  }, [getAllTeachers]);
+  }, [getAllTeachers, getAllClasses]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -61,28 +72,24 @@ export default function AddSubjectPage() {
     try {
       const subjectData = {
         name: formData.name,
-        // code: formData.code,
         description: formData.description,
-        // credits: parseInt(formData.credits) || 0,
-        grade: formData.grade,
+        classId: parseInt(formData.classId),
         category: formData.category,
         teacherId:
           formData.teacherId && formData.teacherId !== "none"
             ? parseInt(formData.teacherId)
             : null,
-        // syllabus: formData.syllabus,
-        // objectives: formData.objectives,
-        // prerequisites: formData.prerequisites,
-        // textbooks: formData.textbooks,
-        // assessmentMethods: formData.assessmentMethods,
         weeklyHours: parseInt(formData.weeklyHours) || 0,
       };
 
       await subjectsAPI.create(subjectData);
+      toast.success("Successfully created Subject");
       router.push("/portal/subjects");
     } catch (error) {
-      console.error("Failed to create subject:", error);
-      alert("Failed to create subject. Please try again.");
+      const errorMessage = extractErrorMessage(error);
+      toast.error(
+        `Failed to create subject. Please try again. ${errorMessage}`
+      );
     } finally {
       setLoading(false);
     }
@@ -117,17 +124,16 @@ export default function AddSubjectPage() {
 
               <div>
                 <SelectField
-                  label={"Grade Level"}
-                  placeholder="Select grade"
-                  value={formData.grade}
-                  onValueChange={(value) => handleInputChange("grade", value)}
+                  label={"Classes"}
+                  placeholder="Select Class"
+                  value={formData.classId}
+                  onValueChange={(value) => handleInputChange("classId", value)}
                 >
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <SelectItem key={i + 1} value={(i + 1).toString()}>
-                      Grade {i + 1}
+                  {classes.map((cls) => (
+                    <SelectItem key={cls.id} value={String(cls.id)}>
+                      {cls.name}
                     </SelectItem>
                   ))}
-                  <SelectItem value="all">All Grades</SelectItem>
                 </SelectField>
               </div>
               <div>
@@ -139,31 +145,18 @@ export default function AddSubjectPage() {
                     handleInputChange("category", value)
                   }
                 >
-                  <SelectItem value="core">Core Subject</SelectItem>
-                  <SelectItem value="elective">Elective</SelectItem>
-                  <SelectItem value="language">Language</SelectItem>
-                  <SelectItem value="science">Science</SelectItem>
-                  <SelectItem value="mathematics">Mathematics</SelectItem>
-                  <SelectItem value="social_studies">Social Studies</SelectItem>
-                  <SelectItem value="arts">Arts</SelectItem>
-                  <SelectItem value="physical_education">
-                    Physical Education
-                  </SelectItem>
-                  <SelectItem value="technology">Technology</SelectItem>
+                  {["science", "art", "general"].map((category, index) => (
+                    <SelectItem
+                      className="capitalize cursor-pointer"
+                      key={index}
+                      value={category}
+                    >
+                      {category}
+                    </SelectItem>
+                  ))}
                 </SelectField>
               </div>
-              {/* <div>
-                <InputField
-                  label={"Credits"}
-                  id="credits"
-                  type="number"
-                  value={formData.credits}
-                  onChange={(e) => handleInputChange("credits", e.target.value)}
-                  min="0"
-                  max="10"
-                  step="0.5"
-                />
-              </div> */}
+
               <div>
                 <SelectField
                   label={"Assigned Teacher"}

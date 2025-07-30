@@ -4,42 +4,46 @@ import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import Link from "next/link";
 import { attendanceAPI } from "@/jotai/attendance/attendance";
-import { Attendance } from "@/jotai/attendance/attendance-type";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputField } from "@/components/ui/form-field";
 import { isParentAtom, isStudentAtom } from "@/jotai/auth/auth";
+import { classesAPI } from "@/jotai/class/class";
+import { Class } from "@/jotai/class/class-type";
+import { useRouter } from "next/navigation";
 
 export default function AttendancePage() {
-  const [attendance, setAttendance] = useState<Attendance[]>([]);
+  const router = useRouter();
+
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [, getAllAttendance] = useAtom(attendanceAPI.getAll);
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [, getAllClasses] = useAtom(classesAPI.getAll);
+
   const [isParent] = useAtom(isParentAtom);
   const [isStudent] = useAtom(isStudentAtom);
 
   useEffect(() => {
-    const fetchAttendance = async () => {
+    const fetchClasses = async () => {
+      setLoading(true);
       try {
-        const data = await getAllAttendance();
-        setAttendance(Array.isArray(data) ? data : []);
+        const [classesData] = await Promise.all([getAllClasses()]);
+        setClasses(Array.isArray(classesData) ? classesData : []);
       } catch (error) {
         console.error("Failed to fetch attendance:", error);
-        setAttendance([]);
+        setClasses([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAttendance();
-  }, [getAllAttendance]);
+    fetchClasses();
+  }, []);
 
-  const filteredAttendance = Array.isArray(attendance)
-    ? attendance.filter((record) =>
-        record?.student?.user?.name
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase())
+  const filteredClasses = Array.isArray(classes)
+    ? classes.filter((classitem) =>
+        classitem?.name?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : [];
 
@@ -52,7 +56,7 @@ export default function AttendancePage() {
   }
 
   if (isParent || isStudent) {
-    if (filteredAttendance.length === 0) {
+    if (filteredClasses.length === 0) {
       return (
         <div className="flex h-96 items-center justify-center">
           <p>No attendance yet</p>
@@ -68,17 +72,17 @@ export default function AttendancePage() {
         <div>
           <h1 className="text-3xl font-bold">Attendance</h1>
           <p className="text-muted-foreground">
-            Track and manage student attendance records
+            Select class to view each students attendance record
           </p>
         </div>
 
-        {isParent || isStudent ? (
+        {/* {isParent || isStudent ? (
           <></>
         ) : (
           <Button asChild>
-            <Link href="/portal/attendance/new">Mark Attendance</Link>
+            <Link href="/portal/attendance/new">Manage Class Attendance</Link>
           </Button>
-        )}
+        )} */}
       </div>
 
       {/* Search */}
@@ -92,8 +96,42 @@ export default function AttendancePage() {
         />
       </div>
 
-      {/* Attendance Grid */}
+      {/* Categories */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredClasses.map((item, index) => (
+          <Card key={index}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>{item.name}</span>
+                <Button
+                  onClick={() => router.push(`/portal/attendance/${item.id}`)}
+                  asChild
+                  size="sm"
+                >
+                  <p>Manage attendance</p>
+                </Button>
+              </CardTitle>
+              <CardContent className="p-0 pt-5 space-y-2">
+                <div className="flex flex-row items-center justify-between text-sm">
+                  <p>Total Students</p>
+                  <p>{item?.capacity ?? "N/A"}</p>
+                </div>
+                <div className="flex flex-row items-center justify-between text-sm">
+                  <p>Class Teacher</p>
+                  <p>{item?.teacher?.user?.name ?? "N/A"}</p>
+                </div>
+                <div className="flex flex-row items-center justify-between text-sm">
+                  <p>Room</p>
+                  <p>{item?.roomNumber ?? "N/A"}</p>
+                </div>
+              </CardContent>
+            </CardHeader>
+          </Card>
+        ))}
+      </div>
+
+      {/* Attendance Grid */}
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredAttendance.map((record) => (
           <Card key={record?.id} className="hover-scale">
             <CardHeader>
@@ -108,7 +146,6 @@ export default function AttendancePage() {
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Lesson:</span>{" "}
-                  {/* {record?.lesson?.title || "Not specified"} */}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Date:</span>{" "}
@@ -136,10 +173,10 @@ export default function AttendancePage() {
             </CardContent>
           </Card>
         ))}
-      </div>
+      </div> */}
 
       {/* Empty State */}
-      {filteredAttendance?.length === 0 && !loading && (
+      {filteredClasses?.length === 0 && !loading && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">
             {searchTerm

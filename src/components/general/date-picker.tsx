@@ -52,8 +52,15 @@ const DatePicker: FC<IDatePicker> = ({
             mode="single"
             selected={date}
             onSelect={(d) => {
-              setDate(d);
-              setOpen(false);
+              if (d) {
+                setDate(d);
+                setOpen(false);
+              }
+            }}
+            disabled={(date) => {
+              if (minDate && date < minDate) return true;
+              if (maxDate && date > maxDate) return true;
+              return false;
             }}
             captionLayout="dropdown"
             defaultMonth={date || new Date()}

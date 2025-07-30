@@ -14,7 +14,7 @@ import {
 import { SelectItem } from "@/components/ui/select";
 import DatePicker from "@/components/general/date-picker";
 import { GraduationCap, Users, House, ShieldPlus, User } from "lucide-react";
-import PageHeader from "@/components/general/page-header";
+import { PageHeader } from "@/components/general/page-header";
 import { StudentFormIntialData } from "@/common/form";
 import ToggleItem from "@/components/general/toggle";
 import { toast } from "sonner";
@@ -108,7 +108,6 @@ export default function AddStudentPage() {
       formData.city,
       formData.state,
       formData.country,
-      formData.classId,
       formData.admissionDate,
       formData.parentname,
       formData.parentemail,
@@ -455,7 +454,7 @@ export default function AddStudentPage() {
                     >
                       {classes.map((cls) => (
                         <SelectItem key={cls.id} value={cls.id.toString()}>
-                          {cls.name} (Grade?)
+                          {cls.name}
                         </SelectItem>
                       ))}
                     </SelectField>
@@ -469,7 +468,7 @@ export default function AddStudentPage() {
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <SelectField
+                  {/* <SelectField
                     label="Current Grade"
                     value={formData.grade}
                     placeholder="Select grade"
@@ -480,7 +479,7 @@ export default function AddStudentPage() {
                         Grade {i + 1}
                       </SelectItem>
                     ))}
-                  </SelectField>
+                  </SelectField> */}
 
                   <InputField
                     label={"Previous School"}

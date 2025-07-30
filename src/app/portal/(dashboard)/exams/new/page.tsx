@@ -9,9 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputField, SelectField } from "@/components/ui/form-field";
 import DatePicker from "@/components/general/date-picker";
 import { formatDate, formatTime } from "@/utils/calendar";
+import { toast } from "sonner";
 
 import { SelectItem } from "@/components/ui/select";
-import PageHeader from "@/components/general/page-header";
+import { PageHeader } from "@/components/general/page-header";
 import { examsAPI } from "@/jotai/exams/exams";
 import { subjectsAPI } from "@/jotai/subject/subject";
 import { classesAPI } from "@/jotai/class/class";
@@ -63,8 +64,6 @@ export default function AddExamPage() {
     fetchData();
   }, [getAllClasses, getAllSubjects, getAllTeachers]);
 
-  console.log(teachers);
-
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -85,13 +84,12 @@ export default function AddExamPage() {
         examType: formData.examType,
       };
 
-      console.log("FORM dATA ", examData);
-
-      // await examsAPI.create(examData);
+      await examsAPI.create(examData);
+      toast.success("Successfully scheduled new exam record!");
       router.push("/portal/exams");
     } catch (error) {
       console.error("Failed to create exam:", error);
-      alert("Failed to schedule exam. Please try again.");
+      toast.error("Failed to schedule exam. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -134,7 +132,7 @@ export default function AddExamPage() {
                 >
                   {subjects.map((subject) => (
                     <SelectItem key={subject.id} value={subject.id.toString()}>
-                      {subject.name} ({subject.code})
+                      {subject.name}
                     </SelectItem>
                   ))}
                 </SelectField>
@@ -149,7 +147,8 @@ export default function AddExamPage() {
                   {/* <SelectItem value="">All Classes</SelectItem> */}
                   {classes.map((cls) => (
                     <SelectItem key={cls.id} value={cls.id.toString()}>
-                      {cls.name} (Grade {cls.grade})
+                      {cls.name}
+                      {/* (Grade {cls.grade}) */}
                     </SelectItem>
                   ))}
                 </SelectField>
@@ -256,7 +255,7 @@ export default function AddExamPage() {
                   label={"Supervisor/Invigilator"}
                   value={formData.teacherId}
                   onValueChange={(value) =>
-                    handleInputChange("supervisor", value)
+                    handleInputChange("teacherId", value)
                   }
                   placeholder="Name of supervising teacher"
                 >

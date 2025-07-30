@@ -7,8 +7,9 @@ import { enhancedTeachersAPI } from "@/jotai/teachers/teachers";
 import { Teacher } from "@/jotai/teachers/teachers-types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PersonAvatar } from "@/components/ui/person-avatar";
 import { SafeRender } from "@/components/ui/safe-render";
+
+import { DynamicHeader } from "@/components/general/page-header";
 
 export default function TeacherDetailPage() {
   const params = useParams();
@@ -24,13 +25,15 @@ export default function TeacherDetailPage() {
       try {
         setLoading(true);
         setError(null);
-        
+
         if (!teacherId || isNaN(parseInt(teacherId))) {
           throw new Error("Invalid teacher ID");
         }
 
-        const teacherData = await enhancedTeachersAPI.getById(parseInt(teacherId));
-        
+        const teacherData = await enhancedTeachersAPI.getById(
+          parseInt(teacherId)
+        );
+
         // Validate teacher data structure
         if (teacherData && typeof teacherData === "object") {
           setTeacher(teacherData);
@@ -39,7 +42,9 @@ export default function TeacherDetailPage() {
         }
       } catch (error) {
         console.error("Failed to fetch teacher data:", error);
-        setError(error instanceof Error ? error.message : "Failed to load teacher data");
+        setError(
+          error instanceof Error ? error.message : "Failed to load teacher data"
+        );
         setTeacher(null);
       } finally {
         setLoading(false);
@@ -73,29 +78,17 @@ export default function TeacherDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/portal/teachers">← Back</Link>
-          </Button>
-          <PersonAvatar
-            name={teacher?.user?.name || "Unknown Teacher"}
-            size="xl"
-          />
-          <div>
-            <h1 className="text-3xl font-bold">
-              <SafeRender fallback="Unknown Teacher">
-                {teacher?.user?.name}
-              </SafeRender>
-            </h1>
-            <p className="text-muted-foreground">Teacher Profile</p>
+      <DynamicHeader
+        name={teacher?.user?.name || "Unknown Teacher"}
+        title={teacher.user.name}
+        subtitle={"Teacher Profile"}
+        endBtns={
+          <div className="flex gap-2">
+            <Button variant="outline">Edit Profile</Button>
+            <Button>Send Message</Button>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">Edit Profile</Button>
-          <Button>Send Message</Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -120,9 +113,7 @@ export default function TeacherDetailPage() {
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-green-600">
-              <SafeRender fallback="Not provided">
-                {teacher?.employeeId}
-              </SafeRender>
+              <SafeRender fallback="Not provided">{teacher?.id}</SafeRender>
             </div>
             <p className="text-sm text-muted-foreground">Employee ID</p>
           </CardContent>
@@ -140,7 +131,7 @@ export default function TeacherDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`cursor-pointer py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -212,8 +203,8 @@ export default function TeacherDetailPage() {
                 </label>
                 <p className="text-sm">
                   <SafeRender fallback="Not provided">
-                    {teacher?.hireDate || teacher?.joinDate 
-                      ? new Date(teacher.hireDate || teacher.joinDate!).toLocaleDateString()
+                    {teacher?.hireDate
+                      ? new Date(teacher.hireDate).toLocaleDateString()
                       : null}
                   </SafeRender>
                 </p>
@@ -235,30 +226,28 @@ export default function TeacherDetailPage() {
                   Employee ID
                 </label>
                 <p className="text-sm">
-                  <SafeRender fallback="Not provided">
-                    {teacher?.employeeId}
-                  </SafeRender>
+                  <SafeRender fallback="Not provided">{teacher?.id}</SafeRender>
                 </p>
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
                   Qualification
                 </label>
-                <p className="text-sm">
+                {/* <p className="text-sm">
                   <SafeRender fallback="Not provided">
-                    {teacher?.qualification}
+                    {teacher?.}
                   </SafeRender>
-                </p>
+                </p> */}
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
                   Department
                 </label>
-                <p className="text-sm">
+                {/* <p className="text-sm">
                   <SafeRender fallback="Not provided">
                     {teacher?.department}
                   </SafeRender>
-                </p>
+                </p> */}
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
@@ -270,22 +259,22 @@ export default function TeacherDetailPage() {
                   </SafeRender>
                 </p>
               </div>
-              {teacher?.skills && (
+              {/* {teacher?.skills && (
                 <div className="md:col-span-2">
                   <label className="text-sm font-medium text-muted-foreground">
                     Skills
                   </label>
                   <p className="text-sm">{teacher.skills}</p>
                 </div>
-              )}
-              {teacher?.achievements && (
+              )} */}
+              {/* {teacher?.achievements && (
                 <div className="md:col-span-2">
                   <label className="text-sm font-medium text-muted-foreground">
                     Achievements
                   </label>
                   <p className="text-sm">{teacher.achievements}</p>
                 </div>
-              )}
+              )} */}
             </div>
           </CardContent>
         </Card>

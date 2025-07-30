@@ -10,9 +10,8 @@ import { Grade } from "@/jotai/grades/grades-types";
 import { enhancedAttendanceAPI } from "@/jotai/attendance/attendance";
 import { Attendance } from "@/jotai/attendance/attendance-type";
 import { Button } from "@/components/ui/button";
+import { DynamicHeader } from "@/components/general/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PersonAvatar } from "@/components/ui/person-avatar";
-import { SafeRender } from "@/components/ui/safe-render";
 import {
   LineChart,
   Line,
@@ -164,29 +163,12 @@ export default function StudentDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/portal/students">← Back</Link>
-          </Button>
-          <PersonAvatar
-            name={student?.user?.name || "Unknown Student"}
-            size="xl"
-          />
-          <div>
-            <h1 className="text-3xl font-bold">
-              <SafeRender fallback="Unknown Student">
-                {student?.user?.name}
-              </SafeRender>
-            </h1>
-            <p className="text-muted-foreground">Student Profile</p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">Edit Profile</Button>
-          <Button>Send Message</Button>
-        </div>
-      </div>
+      <DynamicHeader
+        name={student?.user?.name || "Unknown Student"}
+        title={student?.user?.name}
+        subtitle={"Student Profile"}
+        endBtns={<Button variant="outline">Edit Profile</Button>}
+      />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -236,7 +218,7 @@ export default function StudentDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`cursor-pointer py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"

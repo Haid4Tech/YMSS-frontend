@@ -12,12 +12,14 @@ import {
   SelectField,
   TextareaField,
 } from "@/components/ui/form-field";
-import PageHeader from "@/components/general/page-header";
+import { PageHeader } from "@/components/general/page-header";
 import { SelectItem } from "@/components/ui/select";
 import DatePicker from "@/components/general/date-picker";
 import { announcementsAPI } from "@/jotai/announcement/announcement";
 import { classesAPI } from "@/jotai/class/class";
 import { Class } from "@/jotai/class/class-type";
+import { toast } from "sonner";
+import { extractErrorMessage } from "@/utils/helpers";
 
 export default function AddAnnouncementPage() {
   const router = useRouter();
@@ -31,7 +33,7 @@ export default function AddAnnouncementPage() {
     priority: "",
     targetAudience: "",
     classId: "",
-    publishDate: new Date().toISOString().split("T")[0],
+    publishDate: new Date().toISOString(),
     expiryDate: "",
     category: "",
     attachments: [] as File[],
@@ -85,10 +87,13 @@ export default function AddAnnouncementPage() {
       };
 
       await announcementsAPI.create(announcementData);
+      toast.success("Announcement created!");
       router.push("/portal/announcements");
     } catch (error) {
-      console.error("Failed to create announcement:", error);
-      alert("Failed to create announcement. Please try again.");
+      const errorMessage = extractErrorMessage(error);
+      toast.error(
+        `Failed to create announcement. Please try again. ${errorMessage}`
+      );
     } finally {
       setLoading(false);
     }
@@ -233,7 +238,7 @@ export default function AddAnnouncementPage() {
               <DatePicker
                 required
                 label={"Publish Date"}
-                date={formData ? new Date(formData.publishDate) : undefined}
+                date={formData ? new Date(formData?.publishDate) : undefined}
                 setDate={(date: Date | undefined) =>
                   setFormData((prev) => ({
                     ...prev,
@@ -244,7 +249,11 @@ export default function AddAnnouncementPage() {
 
               <DatePicker
                 label={"Expiry Date (Optional)"}
-                date={formData ? new Date(formData.expiryDate) : undefined}
+                date={
+                  formData.expiryDate
+                    ? new Date(formData?.expiryDate)
+                    : undefined
+                }
                 setDate={(date: Date | undefined) =>
                   setFormData((prev) => ({
                     ...prev,
