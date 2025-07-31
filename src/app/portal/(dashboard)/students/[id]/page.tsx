@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { enhancedStudentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
@@ -29,6 +29,7 @@ import {
 } from "recharts";
 
 export default function StudentDetailPage() {
+  const router = useRouter();
   const params = useParams();
   const studentId = params.id as string;
 
@@ -164,10 +165,21 @@ export default function StudentDetailPage() {
     <div className="space-y-6">
       {/* Header */}
       <DynamicHeader
-        name={student?.user?.name || "Unknown Student"}
-        title={student?.user?.name}
+        name={`${student?.user.firstname ?? "Unknown"} ${
+          student?.user?.lastname ?? "Student"
+        }`}
+        title={`${student?.user.firstname ?? "Unknown"} ${
+          student?.user?.lastname ?? "Student"
+        }`}
         subtitle={"Student Profile"}
-        endBtns={<Button variant="outline">Edit Profile</Button>}
+        endBtns={
+          <Button
+            onClick={() => router.push(`${studentId}/edit`)}
+            variant="default"
+          >
+            Edit Profile
+          </Button>
+        }
       />
 
       {/* Quick Stats */}
@@ -244,7 +256,9 @@ export default function StudentDetailPage() {
                   <label className="text-sm font-medium text-muted-foreground">
                     Full Name
                   </label>
-                  <p className="text-sm">{student.user.name}</p>
+                  <p className="text-sm">{`${
+                    student?.user.firstname ?? "Unknown"
+                  } ${student?.user?.lastname ?? "Student"}`}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">
@@ -285,7 +299,9 @@ export default function StudentDetailPage() {
                     Parent
                   </label>
                   <p className="text-sm">
-                    {student?.parent?.user?.name || "Not assigned"}
+                    {student?.parent?.user?.firstname +
+                      " " +
+                      student?.parent?.user?.lastname || "Not assigned"}
                   </p>
                 </div>
               </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { enhancedTeachersAPI } from "@/jotai/teachers/teachers";
 import { Teacher } from "@/jotai/teachers/teachers-types";
@@ -14,6 +14,7 @@ import { DynamicHeader } from "@/components/general/page-header";
 export default function TeacherDetailPage() {
   const params = useParams();
   const teacherId = params.id as string;
+  const router = useRouter();
 
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,13 +80,21 @@ export default function TeacherDetailPage() {
     <div className="space-y-6">
       {/* Header */}
       <DynamicHeader
-        name={teacher?.user?.name || "Unknown Teacher"}
-        title={teacher.user.name}
+        name={`${teacher?.user?.firstname ?? "Unknown"} ${
+          teacher?.user?.lastname ?? "Teacher"
+        }`}
+        title={`${teacher?.user?.firstname ?? "Unknown"} ${
+          teacher?.user?.lastname ?? "Teacher"
+        }`}
         subtitle={"Teacher Profile"}
         endBtns={
           <div className="flex gap-2">
-            <Button variant="outline">Edit Profile</Button>
-            <Button>Send Message</Button>
+            <Button
+              onClick={() => router.push(`${teacherId}/edit`)}
+              variant="default"
+            >
+              Edit Profile
+            </Button>
           </div>
         }
       />
@@ -157,7 +166,9 @@ export default function TeacherDetailPage() {
                 </label>
                 <p className="text-sm">
                   <SafeRender fallback="Not provided">
-                    {teacher?.user?.name}
+                    {`${teacher?.user?.firstname ?? "Unknown"} ${
+                      teacher?.user?.lastname ?? "Teacher"
+                    }`}
                   </SafeRender>
                 </p>
               </div>
@@ -293,7 +304,7 @@ export default function TeacherDetailPage() {
                 </label>
                 <p className="text-sm">
                   <SafeRender fallback="Not provided">
-                    {teacher?.phone}
+                    {teacher?.user.phone}
                   </SafeRender>
                 </p>
               </div>
@@ -303,7 +314,7 @@ export default function TeacherDetailPage() {
                 </label>
                 <p className="text-sm">
                   <SafeRender fallback="Not provided">
-                    {teacher?.address}
+                    {teacher?.user?.street}
                   </SafeRender>
                 </p>
               </div>

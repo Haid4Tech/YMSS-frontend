@@ -8,7 +8,7 @@ export interface Subject {
   teacherId?: number;
   class?: Class;
   teacher?: Teacher;
-  
+
   // Additional fields used in the application
   code?: string; // Subject code like "MATH101"
   description?: string;

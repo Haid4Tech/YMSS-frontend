@@ -58,7 +58,7 @@ export const InputField: React.FC<InputFieldProps> = ({
 interface SelectFieldProps {
   label: string;
   required?: boolean;
-  value: string;
+  value?: string;
   onValueChange: (value: string) => void;
   placeholder?: string;
   children: React.ReactNode;

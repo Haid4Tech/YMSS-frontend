@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import Link from "next/link";
 import {
@@ -16,9 +17,25 @@ import { Input } from "@/components/ui/input";
 import { teachersAPI } from "@/jotai/teachers/teachers";
 import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
 
+import { toast } from "sonner";
+import { Spinner } from "@radix-ui/themes";
+import { Eye, Trash2 } from "lucide-react";
+import { extractErrorMessage } from "@/utils/helpers";
+
 export default function ClassesPage() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [classes, setClasses] = useState<Class[] | null>(null);
+  const [reload, setReload] = useState<boolean>(false);
+  const [loadingStates, setLoadingStates] = useState<{
+    add: boolean;
+    view: number | null;
+    delete: number | null;
+  }>({
+    add: false,
+    view: null,
+    delete: null,
+  });
 
   const [auth] = useAtom(authPersistedAtom);
   const [loading] = useAtom(classLoadingAtom);
@@ -46,7 +63,7 @@ export default function ClassesPage() {
         }
       })();
     }
-  }, [getAllClasses, auth]);
+  }, [getAllClasses, auth, reload]);
 
   const filteredClasses = Array.isArray(classes)
     ? classes.filter((classItem) =>
@@ -83,6 +100,31 @@ export default function ClassesPage() {
     );
   }
 
+  const handleViewClass = (parentId: number) => {
+    setLoadingStates((prev) => ({ ...prev, view: parentId }));
+    router.push(`/portal/classes/${parentId}`);
+
+    setTimeout(() => {
+      setLoadingStates((prev) => ({ ...prev, view: null }));
+    }, 3000);
+  };
+
+  const handleDeleteClass = async (classId: number) => {
+    setLoadingStates((prev) => ({ ...prev, delete: classId }));
+    try {
+      await classesAPI.delete(classId);
+      toast.success("Class deleted successfully");
+      setReload(true);
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error);
+      toast.error("Failed to delete class record. Please try again.", {
+        description: errorMessage,
+      });
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, delete: null }));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -96,12 +138,30 @@ export default function ClassesPage() {
         {isParent || isStudent || isTeacher ? (
           <></>
         ) : (
-          <Button asChild>
-            <Link href="/portal/classes/new">Add Class</Link>
+          <Button
+            onClick={() => {
+              setLoadingStates((prev) => ({
+                ...prev,
+                add: true,
+              }));
+              router.push("/portal/classes/new");
+
+              setTimeout(() => {
+                setLoadingStates((prev) => ({ ...prev, add: false }));
+              }, 3000);
+            }}
+            asChild
+          >
+            {loadingStates.add ? (
+              <div>
+                <Spinner />
+              </div>
+            ) : (
+              <p>Add Class</p>
+            )}
           </Button>
         )}
       </div>
-
       {/* Search */}
       <div className="flex items-center gap-4">
         <Input
@@ -111,7 +171,6 @@ export default function ClassesPage() {
           className="max-w-sm"
         />
       </div>
-
       {/* Classes Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredClasses.map((classItem) => (
@@ -119,9 +178,42 @@ export default function ClassesPage() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>{classItem?.name}</span>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/portal/classes/${classItem?.id}`}>View</Link>
-                </Button>
+
+                <div className="flex md:flex-row flex-col gap-2">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewClass(classItem.id)}
+                  >
+                    {loadingStates.view === classItem.id ? (
+                      <div>
+                        <Spinner />
+                      </div>
+                    ) : (
+                      <div className="flex flex-row gap-1">
+                        <p className="block md:hidden text-sm">View</p>
+                        <Eye size={12} />
+                      </div>
+                    )}
+                  </Button>
+                  <Button
+                    size={"sm"}
+                    variant={"destructive"}
+                    onClick={() => handleDeleteClass(classItem.id)}
+                  >
+                    {loadingStates.delete === classItem.id ? (
+                      <div>
+                        <Spinner />
+                      </div>
+                    ) : (
+                      <div className="flex flex-row gap-1">
+                        <p className="block md:hidden text-sm">Delete</p>
+                        <Trash2 size={12} />
+                      </div>
+                    )}
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -142,7 +234,6 @@ export default function ClassesPage() {
           </Card>
         ))}
       </div>
-
       {/* Empty State */}
       {filteredClasses?.length === 0 && !loading && (
         <div className="text-center py-12">

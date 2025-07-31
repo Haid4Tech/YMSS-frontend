@@ -8,10 +8,12 @@ import { Subject } from "@/jotai/subject/subject-types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { DynamicHeader } from "@/components/general/page-header";
+
 export default function SubjectDetailPage() {
   const params = useParams();
   const subjectId = params.id as string;
-  
+
   const [subject, setSubject] = useState<Subject | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
@@ -61,21 +63,17 @@ export default function SubjectDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/portal/subjects">← Back</Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">{subject.name}</h1>
-            <p className="text-muted-foreground">Subject Information</p>
+      <DynamicHeader
+        name={subject.name}
+        title={subject.name}
+        subtitle={"Subject Information"}
+        endBtns={
+          <div className="flex gap-2">
+            <Button variant="outline">Edit Subject</Button>
+            <Button>Schedule Exam</Button>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">Edit Subject</Button>
-          <Button>Schedule Exam</Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -115,7 +113,7 @@ export default function SubjectDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`cursor-pointer py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -136,23 +134,39 @@ export default function SubjectDetailPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Subject Name</label>
+                <label className="text-sm font-medium text-muted-foreground">
+                  Subject Name
+                </label>
                 <p className="text-sm">{subject.name}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Subject Code</label>
+                <label className="text-sm font-medium text-muted-foreground">
+                  Subject Code
+                </label>
                 <p className="text-sm">{subject.code || "Not set"}</p>
               </div>
               <div className="md:col-span-2">
-                <label className="text-sm font-medium text-muted-foreground">Description</label>
-                <p className="text-sm">{subject.description || "No description provided"}</p>
+                <label className="text-sm font-medium text-muted-foreground">
+                  Description
+                </label>
+                <p className="text-sm">
+                  {subject.description || "No description provided"}
+                </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Assigned Teacher</label>
-                <p className="text-sm">{subject.teacher?.user?.name || "Not assigned"}</p>
+                <label className="text-sm font-medium text-muted-foreground">
+                  Assigned Teacher
+                </label>
+                <p className="text-sm">
+                  {`${subject.teacher?.user?.firstname ?? "Not"} ${
+                    subject.teacher?.user?.lastname ?? "Available"
+                  }`}
+                </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Credits</label>
+                <label className="text-sm font-medium text-muted-foreground">
+                  Credits
+                </label>
                 <p className="text-sm">{subject.credits || "Not specified"}</p>
               </div>
             </div>
@@ -167,14 +181,16 @@ export default function SubjectDetailPage() {
           </CardHeader>
           <CardContent className="text-center py-12">
             <p className="text-muted-foreground mb-4">
-              Advanced subject analytics and performance tracking are currently under development.
+              Advanced subject analytics and performance tracking are currently
+              under development.
             </p>
             <p className="text-sm text-muted-foreground">
-              Features like grade distribution, performance trends, and student analytics will be available soon.
+              Features like grade distribution, performance trends, and student
+              analytics will be available soon.
             </p>
           </CardContent>
         </Card>
       )}
     </div>
   );
-} 
+}

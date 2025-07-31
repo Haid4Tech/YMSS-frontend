@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import Link from "next/link";
 import {
@@ -13,12 +14,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PersonAvatar } from "@/components/ui/person-avatar";
 import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
+import { extractErrorMessage } from "@/utils/helpers";
+import { toast } from "sonner";
+
+import { Spinner } from "@radix-ui/themes";
+import { Eye, Trash2 } from "lucide-react";
+import { SafeRender } from "@/components/ui/safe-render";
 
 export default function StudentsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [reload, setReload] = useState<boolean>(false);
   const [students] = useAtom(studentListAtom);
   const [loading] = useAtom(studentLoadingAtom);
   const [, getAllStudents] = useAtom(studentsAPI.getAll);
+  const [loadingStates, setLoadingStates] = useState<{
+    add: boolean;
+    view: number | null;
+    delete: number | null;
+  }>({
+    add: false,
+    view: null,
+    delete: null,
+  });
 
   const [isParent] = useAtom(isParentAtom);
   const [isStudent] = useAtom(isStudentAtom);
@@ -28,12 +46,12 @@ export default function StudentsPage() {
     (() => {
       getAllStudents();
     })();
-  }, [getAllStudents]);
+  }, [getAllStudents, reload]);
 
   const filteredStudents = Array.isArray(students?.students)
     ? students.students.filter(
         (student) =>
-          student?.user?.name
+          student?.user?.firstname
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
           student?.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -58,6 +76,35 @@ export default function StudentsPage() {
     }
   }
 
+  const handleViewStudent = (studentId: number) => {
+    setLoadingStates((prev) => ({
+      ...prev,
+      view: studentId,
+    }));
+
+    router.push(`/portal/students/${studentId}`);
+
+    setTimeout(() => {
+      setLoadingStates((prev) => ({
+        ...prev,
+        view: null,
+      }));
+    }, 3000);
+  };
+
+  const handleDeleteStudent = async (studentId: number) => {
+    try {
+      await studentsAPI.delete(studentId);
+      toast.success("Student deleted successfully");
+      setReload(true);
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error);
+      toast.error("Failed to delte student. Please try again later", {
+        description: errorMessage,
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -71,8 +118,27 @@ export default function StudentsPage() {
         {isParent || isStudent || isTeacher ? (
           <></>
         ) : (
-          <Button asChild>
-            <Link href="/portal/students/new">Add Student</Link>
+          <Button
+            asChild
+            onClick={() => {
+              setLoadingStates((prev) => ({
+                ...prev,
+                add: true,
+              }));
+              router.push("/portal/students/new");
+
+              setTimeout(() => {
+                setLoadingStates((prev) => ({ ...prev, add: false }));
+              }, 3000);
+            }}
+          >
+            {loadingStates.add ? (
+              <div>
+                <Spinner />
+              </div>
+            ) : (
+              <p>Add Student</p>
+            )}
           </Button>
         )}
       </div>
@@ -95,14 +161,50 @@ export default function StudentsPage() {
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <PersonAvatar
-                    name={student?.user?.name || "Unknown Student"}
-                    size="md"
+                    name={`${student?.user?.firstname ?? "Unknown"} ${
+                      student?.user?.lastname ?? "Student"
+                    }`}
+                    size="lg"
                   />
-                  <span>{student?.user?.name}</span>
+                  <SafeRender fallback="Unnamed Student">
+                    {`${student?.user?.firstname} ${student?.user?.lastname}`}
+                  </SafeRender>
                 </div>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/portal/students/${student?.id}`}>View</Link>
-                </Button>
+                <div className="flex md:flex-row flex-col gap-2">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewStudent(student.id)}
+                  >
+                    {loadingStates.view === student.id ? (
+                      <div>
+                        <Spinner />
+                      </div>
+                    ) : (
+                      <div className="flex flex-row gap-1">
+                        <p className="block md:hidden text-sm">View</p>
+                        <Eye size={12} />
+                      </div>
+                    )}
+                  </Button>
+                  <Button
+                    size={"sm"}
+                    variant={"destructive"}
+                    onClick={() => handleDeleteStudent(student.id)}
+                  >
+                    {loadingStates.delete === student.id ? (
+                      <div>
+                        <Spinner />
+                      </div>
+                    ) : (
+                      <div className="flex flex-row gap-1">
+                        <p className="block md:hidden text-sm">Delete</p>
+                        <Trash2 size={12} />
+                      </div>
+                    )}
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -121,7 +223,7 @@ export default function StudentsPage() {
                 {student?.parent && (
                   <p className="text-sm text-muted-foreground">
                     <span className="font-medium">Parent:</span>{" "}
-                    {student?.parent?.user?.name}
+                    {`${student?.parent?.user?.firstname} ${student?.parent?.user?.lastname}`}
                   </p>
                 )}
               </div>

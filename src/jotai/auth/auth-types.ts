@@ -3,16 +3,24 @@ import { Role } from "@/common/enum";
 export interface User {
   id: number;
   email: string;
-  name: string;
+  firstname: string;
+  lastname: string;
   role: Role;
   createdAt: string;
+  gender: string;
+  DOB: string;
 
   // Additional fields used in the application
   phone?: string;
-  bio?: string;
+  religion?: string;
+  bloodGroup?: string;
   profileImage?: string;
-  dateOfBirth?: string;
-  address?: string;
+  nationality?: string;
+  street?: string;
+  city?: string;
+  zipcode?: string;
+  state?: string;
+  country?: string;
   isActive?: boolean;
   lastLogin?: string;
   updatedAt?: string;

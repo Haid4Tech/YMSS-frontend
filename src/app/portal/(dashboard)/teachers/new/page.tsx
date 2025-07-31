@@ -3,10 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { SelectContent, SelectItem } from "@/components/ui/select";
 import {
   GraduationCap,
   House,
@@ -14,64 +10,14 @@ import {
   User,
   BriefcaseBusiness,
 } from "lucide-react";
-import {
-  InputField,
-  SelectField,
-  TextareaField,
-} from "@/components/ui/form-field";
 import { PageHeader } from "@/components/general/page-header";
 import { teachersAPI } from "@/jotai/teachers/teachers";
 import { subjectsAPI } from "@/jotai/subject/subject";
 import { Subject } from "@/jotai/subject/subject-types";
-import DatePicker from "@/components/general/date-picker";
+
 import { TeacherFormInitialData } from "@/common/form";
-
-interface TeacherFormData {
-  // Personal Information
-  firstName: string;
-  lastName: string;
-  email: string;
-  dateOfBirth: string;
-  gender: string;
-  nationality: string;
-  phone: string;
-  emergencyContactName: string;
-  emergencyContactPhone: string;
-
-  // Address Information
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-
-  // Professional Information
-  employeeId: string;
-  joinDate: string;
-  subjectSpecialization: string;
-  qualification: string;
-  experience: string;
-  previousInstitution: string;
-  salary: string;
-  employmentType: string;
-
-  // Educational Background
-  degree: string;
-  university: string;
-  graduationYear: string;
-  additionalCertifications: string;
-
-  // Teaching Information
-  classesAssigned: string[];
-  maxClassesPerWeek: string;
-  preferredGrades: string;
-
-  // Additional Information
-  skills: string;
-  achievements: string;
-  notes: string;
-  photo: File | null;
-}
+import { ITeacherFormData } from "@/common/types";
+import TeacherForm from "@/components/portal/dashboards/teacher/form";
 
 export default function AddTeacherPage() {
   const router = useRouter();
@@ -81,19 +27,19 @@ export default function AddTeacherPage() {
   const [, getAllSubjects] = useAtom(subjectsAPI.getAll);
 
   const [date, setDate] = useState<{
-    dob: Date | undefined;
-    joinDate: Date | undefined;
+    DOB: Date | undefined;
+    hireDate: Date | undefined;
   }>({
-    dob: undefined,
-    joinDate: undefined,
+    DOB: undefined,
+    hireDate: undefined,
   });
-  const [formData, setFormData] = useState<TeacherFormData>(
+  const [formData, setFormData] = useState<ITeacherFormData>(
     TeacherFormInitialData
   );
 
   // Handle date changes for both DOB and Join Date
   const handleDateChange =
-    (dateType: "dob" | "joinDate") => (selectedDate: Date | undefined) => {
+    (dateType: "DOB" | "hireDate") => (selectedDate: Date | undefined) => {
       // Update the date state
       setDate((prev) => ({
         ...prev,
@@ -104,11 +50,10 @@ export default function AddTeacherPage() {
       const dateString = selectedDate
         ? selectedDate.toISOString().split("T")[0]
         : "";
-      const formFieldName = dateType === "dob" ? "dateOfBirth" : "joinDate";
 
       setFormData((prev) => ({
         ...prev,
-        [formFieldName]: dateString,
+        [dateType]: dateString,
       }));
     };
 
@@ -125,7 +70,7 @@ export default function AddTeacherPage() {
     fetchSubjects();
   }, [getAllSubjects]);
 
-  const handleInputChange = (field: keyof TeacherFormData, value: string) => {
+  const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -140,38 +85,40 @@ export default function AddTeacherPage() {
 
     try {
       const teacherData = {
-        name: `${formData.firstName} ${formData.lastName}`,
+        firstname: formData.firstname,
+        lastname: formData.lastname,
         email: formData.email,
-        password: `${formData.firstName.toLowerCase()}${formData.dateOfBirth.replace(
+        password: `${formData?.firstname?.toLowerCase()}${formData?.DOB?.replace(
           /-/g,
           ""
         )}`,
         role: "TEACHER",
         phone: formData.phone,
-        address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
+        street: formData.street,
+        city: formData.city,
+        zipcode: formData.zipcode,
+        state: formData.state,
         experience: formData.experience,
         subjectId: formData.subjectSpecialization
           ? parseInt(formData.subjectSpecialization)
           : null,
-        hireDate: formData.joinDate,
-        DOB: formData.dateOfBirth,
+        hireDate: formData.hireDate,
+        DOB: formData.DOB,
         gender: formData.gender,
         nationality: formData.nationality,
-        emergencyContact: {
-          name: formData.emergencyContactName,
-          phone: formData.emergencyContactPhone,
-        },
+
+        emergencyContactName: formData.emergencyContactName,
+        emergencyContactPhone: formData.emergencyContactPhone,
+
         previousInstitution: formData.previousInstitution,
-        salary: parseFloat(formData.salary) || 0,
+        salary: formData.salary,
         employmentType: formData.employmentType,
-        education: {
-          degree: formData.degree,
-          university: formData.university,
-          graduationYear: parseInt(formData.graduationYear) || null,
-        },
+
+        degree: formData.degree,
+        university: formData.university,
+        graduationYear: formData?.graduationYear ?? 0,
       };
 
-      console.log(teacherData);
       await teachersAPI.create(teacherData);
       router.push("/portal/teachers");
     } catch (error) {
@@ -183,11 +130,11 @@ export default function AddTeacherPage() {
   };
 
   const tabs = [
-    { id: "personal", label: "Personal Info", icon: User },
-    { id: "address", label: "Address", icon: House },
-    { id: "professional", label: "Professional", icon: BriefcaseBusiness },
-    { id: "education", label: "Education", icon: GraduationCap },
-    { id: "teaching", label: "Teaching", icon: BookOpenCheck },
+    { id: "personal", label: "Personal Info", Icon: User },
+    { id: "address", label: "Address", Icon: House },
+    { id: "professional", label: "Professional", Icon: BriefcaseBusiness },
+    { id: "education", label: "Education", Icon: GraduationCap },
+    { id: "teaching", label: "Teaching", Icon: BookOpenCheck },
     { id: "finish" },
   ];
 
@@ -200,467 +147,19 @@ export default function AddTeacherPage() {
         btnTitle="Back to Teachers"
       />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Tab Navigation */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-wrap gap-2 mb-6">
-              {tabs
-                .filter((tab) => tab.id !== "finish")
-                .map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                      activeTab === tab.id
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted hover:bg-muted/80"
-                    }`}
-                  >
-                    {tab.icon && <tab.icon size={15} />}
-                    {tab.label}
-                  </button>
-                ))}
-            </div>
-
-            {/* Personal Information Tab */}
-            {activeTab === "personal" && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold mb-4">
-                  Personal Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InputField
-                    label="First Name"
-                    placeholder="Enter First Name"
-                    required
-                    id="firstName"
-                    value={formData.firstName}
-                    onChange={(e) =>
-                      handleInputChange("firstName", e.target.value)
-                    }
-                  />
-
-                  <InputField
-                    label="Last Name"
-                    placeholder="Enter Last Name"
-                    required
-                    id="lastName"
-                    value={formData.lastName}
-                    onChange={(e) =>
-                      handleInputChange("lastName", e.target.value)
-                    }
-                  />
-
-                  <InputField
-                    label="Email Address"
-                    placeholder="Enter Email Address"
-                    required
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                  />
-
-                  <InputField
-                    label="Phone Number"
-                    placeholder="e.g, 08083445454"
-                    required
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                  />
-                  <div>
-                    <DatePicker
-                      label={"Date of Birth"}
-                      date={date.dob}
-                      setDate={handleDateChange("dob")}
-                    />
-                  </div>
-                  <div>
-                    <SelectField
-                      label={"Gender"}
-                      value={formData.gender}
-                      onValueChange={(value) =>
-                        handleInputChange("gender", value)
-                      }
-                      placeholder="Select gender"
-                    >
-                      <SelectContent>
-                        {["male", "female", "other"].map((item, index) => (
-                          <SelectItem
-                            className="capitalize"
-                            key={index}
-                            value={item}
-                          >
-                            {item}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectField>
-                  </div>
-                  <div>
-                    <InputField
-                      label="Nationality"
-                      placeholder="Enter Nationality"
-                      id="nationality"
-                      value={formData.nationality}
-                      onChange={(e) =>
-                        handleInputChange("nationality", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div>
-                    <InputField
-                      label={"Profile Photo"}
-                      id="photo"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                    />
-                  </div>
-                  <div>
-                    <InputField
-                      label="Emergency Contact Name"
-                      placeholder="Enter Emergency Contact Name"
-                      id="emergencyContactName"
-                      value={formData.emergencyContactName}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "emergencyContactName",
-                          e.target.value
-                        )
-                      }
-                    />
-                  </div>
-                  <div>
-                    <InputField
-                      label=" Emergency Contact Phone"
-                      placeholder="e.g, 080473434832"
-                      id="emergencyContactPhone"
-                      value={formData.emergencyContactPhone}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "emergencyContactPhone",
-                          e.target.value
-                        )
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Address Information Tab */}
-            {activeTab === "address" && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold mb-4">
-                  Address Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
-                    <TextareaField
-                      label={"Street Address"}
-                      placeholder="Enter Street Address"
-                      id="address"
-                      value={formData.address}
-                      onChange={(e) =>
-                        handleInputChange("address", e.target.value)
-                      }
-                      required
-                    />
-                  </div>
-
-                  <InputField
-                    id="city"
-                    placeholder="Enter City"
-                    label={"City"}
-                    value={formData.city}
-                    onChange={(e) => handleInputChange("city", e.target.value)}
-                    required
-                  />
-
-                  <InputField
-                    label={"State/Province"}
-                    placeholder="Enter State/Province"
-                    id="state"
-                    value={formData.state}
-                    onChange={(e) => handleInputChange("state", e.target.value)}
-                  />
-
-                  <InputField
-                    label={"ZIP/Postal Code"}
-                    placeholder="Enter ZIP/Postal Code"
-                    id="zipCode"
-                    value={formData.zipCode}
-                    onChange={(e) =>
-                      handleInputChange("zipCode", e.target.value)
-                    }
-                  />
-
-                  <InputField
-                    label={"Country"}
-                    placeholder="Enter Country"
-                    id="country"
-                    value={formData.country}
-                    onChange={(e) =>
-                      handleInputChange("country", e.target.value)
-                    }
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Professional Information Tab */}
-            {activeTab === "professional" && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold mb-4">
-                  Professional Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <DatePicker
-                    label="Join Date"
-                    date={date.joinDate}
-                    setDate={handleDateChange("joinDate")}
-                  />
-
-                  <SelectField
-                    label="Subject Specialization"
-                    value={formData.subjectSpecialization}
-                    onValueChange={(value) =>
-                      handleInputChange("subjectSpecialization", value)
-                    }
-                    placeholder="Select subject"
-                  >
-                    {subjects.map((subject) => (
-                      <SelectItem
-                        key={subject.id}
-                        value={subject.id.toString()}
-                      >
-                        {subject.name}
-                      </SelectItem>
-                    ))}
-                  </SelectField>
-
-                  <InputField
-                    label="Years of Experience"
-                    id="experience"
-                    type="number"
-                    value={formData.experience}
-                    onChange={(e) =>
-                      handleInputChange("experience", e.target.value)
-                    }
-                    min="0"
-                    max="50"
-                    placeholder="e.g., 5"
-                  />
-
-                  <SelectField
-                    label="Employment Type"
-                    value={formData.employmentType}
-                    onValueChange={(value) =>
-                      handleInputChange("employmentType", value)
-                    }
-                    placeholder="Select employment type"
-                  >
-                    <SelectItem value="full-time">Full Time</SelectItem>
-                    <SelectItem value="part-time">Part Time</SelectItem>
-                    <SelectItem value="contract">Contract</SelectItem>
-                    <SelectItem value="substitute">Substitute</SelectItem>
-                  </SelectField>
-
-                  <InputField
-                    label="Monthly Salary"
-                    id="salary"
-                    type="number"
-                    value={formData.salary}
-                    onChange={(e) =>
-                      handleInputChange("salary", e.target.value)
-                    }
-                    min="0"
-                    step="0.01"
-                    placeholder="e.g., 5000"
-                  />
-
-                  <InputField
-                    label="Previous Institution"
-                    id="previousInstitution"
-                    value={formData.previousInstitution}
-                    onChange={(e) =>
-                      handleInputChange("previousInstitution", e.target.value)
-                    }
-                    placeholder="e.g., ABC High School"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Education Tab */}
-            {activeTab === "education" && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold mb-4">
-                  Educational Background
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <SelectField
-                    label="Highest Degree"
-                    required
-                    value={formData.degree}
-                    onValueChange={(value) =>
-                      handleInputChange("degree", value)
-                    }
-                    placeholder="Select degree"
-                  >
-                    <SelectItem value="bachelor">
-                      Bachelor&apos;s Degree
-                    </SelectItem>
-                    <SelectItem value="master">Master&apos;s Degree</SelectItem>
-                    <SelectItem value="doctorate">Doctorate</SelectItem>
-                    <SelectItem value="diploma">Diploma</SelectItem>
-                    <SelectItem value="certificate">Certificate</SelectItem>
-                  </SelectField>
-
-                  <InputField
-                    label="University/Institution"
-                    id="university"
-                    value={formData.university}
-                    onChange={(e) =>
-                      handleInputChange("university", e.target.value)
-                    }
-                    placeholder="e.g., Harvard University"
-                  />
-
-                  <InputField
-                    label="Graduation Year"
-                    id="graduationYear"
-                    type="number"
-                    value={formData.graduationYear}
-                    onChange={(e) =>
-                      handleInputChange("graduationYear", e.target.value)
-                    }
-                    min="1950"
-                    max={new Date().getFullYear()}
-                    placeholder="e.g., 2020"
-                  />
-
-                  <InputField
-                    label="Teaching Qualification"
-                    id="qualification"
-                    value={formData.qualification}
-                    onChange={(e) =>
-                      handleInputChange("qualification", e.target.value)
-                    }
-                    placeholder="e.g., B.Ed, M.Ed, TESOL"
-                  />
-
-                  <div className="md:col-span-2">
-                    <TextareaField
-                      label="Additional Certifications"
-                      id="additionalCertifications"
-                      value={formData.additionalCertifications}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "additionalCertifications",
-                          e.target.value
-                        )
-                      }
-                      placeholder="List any additional certifications, workshops, or professional development courses"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Teaching Information Tab */}
-            {activeTab === "teaching" && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold mb-4">
-                  Teaching Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InputField
-                    label="Max Classes Per Week"
-                    id="maxClassesPerWeek"
-                    type="number"
-                    value={formData.maxClassesPerWeek}
-                    onChange={(e) =>
-                      handleInputChange("maxClassesPerWeek", e.target.value)
-                    }
-                    min="1"
-                    max="40"
-                    placeholder="e.g., 20"
-                  />
-
-                  <InputField
-                    label="Preferred Grade Levels"
-                    id="preferredGrades"
-                    value={formData.preferredGrades}
-                    onChange={(e) =>
-                      handleInputChange("preferredGrades", e.target.value)
-                    }
-                    placeholder="e.g., Grade 9-12, Elementary"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Form data validation */}
-            {activeTab === "finish" && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold mb-4">Review & Submit</h3>
-                <p>Please review the information before submitting the form.</p>
-                {/* You can render a summary here */}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Form Actions */}
-        <div className="flex items-center justify-between">
-          <Button type="button" variant="outline" asChild>
-            <Link href="/portal/teachers">Cancel</Link>
-          </Button>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                const currentIndex = tabs.findIndex(
-                  (tab) => tab.id === activeTab
-                );
-                if (currentIndex > 0) {
-                  setActiveTab(tabs[currentIndex - 1].id);
-                }
-              }}
-            >
-              Previous
-            </Button>
-            {activeTab !== "finish" && (
-              <Button
-                type="button"
-                onClick={() => {
-                  const currentIndex = tabs.findIndex(
-                    (tab) => tab.id === activeTab
-                  );
-                  if (currentIndex < tabs.length - 1) {
-                    setActiveTab(tabs[currentIndex + 1].id);
-                  }
-                }}
-              >
-                Next
-              </Button>
-            )}
-
-            {/* Form submission trigger */}
-            {activeTab === "finish" && (
-              <Button type="submit" disabled={loading}>
-                {loading ? "Creating Teacher..." : "Create Teacher"}
-              </Button>
-            )}
-          </div>
-        </div>
-      </form>
+      <TeacherForm
+        type={"create"}
+        onSubmit={handleSubmit}
+        tabs={tabs}
+        subjects={subjects}
+        loading={loading}
+        date={date}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        handleInputChange={handleInputChange}
+        handleDateChange={handleDateChange}
+        handleFileChange={handleFileChange}
+      />
     </div>
   );
 }

@@ -11,3 +11,10 @@ export interface Parent {
 export interface CreateParentProp {
   userId: number;
 }
+
+export interface ParentStudentResponse {
+  id: number;
+  parent: { user: User };
+  studentId: number;
+  parentId: number;
+}

@@ -53,6 +53,11 @@ export const studentsAPI = {
     const response = await axiosInstance.get(`/students?classId=${classId}`);
     return response.data;
   },
+
+  getParents: async (studentId: number) => {
+    const response = await axiosInstance.get(`/students/${studentId}/parents`);
+    return response.data;
+  },
 };
 
 // Enhanced API methods for detail pages

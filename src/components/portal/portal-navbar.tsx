@@ -127,7 +127,8 @@ export default function PortalNavbar({ user, onMenuClick }: PortalNavbarProps) {
           {/* Breadcrumb or page title can go here */}
           <div className="hidden md:block">
             <h1 className="text-2xl font-semibold text-foreground">
-              Welcome, {user.name}
+              Welcome,{" "}
+              {`${user?.firstname ?? "User"} ${user?.lastname ?? "User"}`}
             </h1>
           </div>
         </div>
@@ -167,7 +168,9 @@ export default function PortalNavbar({ user, onMenuClick }: PortalNavbarProps) {
             <DropdownMenuTrigger asChild>
               <button className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full">
                 <PersonAvatar
-                  name={user.name}
+                  name={`${user?.firstname ?? "User"} ${
+                    user?.lastname ?? "User"
+                  }`}
                   size="lg"
                   className="cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all"
                 />
@@ -177,7 +180,7 @@ export default function PortalNavbar({ user, onMenuClick }: PortalNavbarProps) {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    {user.name}
+                    {`${user?.firstname} ${user?.lastname}`}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {user.email}
