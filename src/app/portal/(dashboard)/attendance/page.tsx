@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import Link from "next/link";
-import { attendanceAPI } from "@/jotai/attendance/attendance";
+// import { attendanceAPI } from "@/jotai/attendance/attendance";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputField } from "@/components/ui/form-field";
@@ -118,7 +118,9 @@ export default function AttendancePage() {
                 </div>
                 <div className="flex flex-row items-center justify-between text-sm">
                   <p>Class Teacher</p>
-                  <p>{item?.teacher?.user?.name ?? "N/A"}</p>
+                  <p>{`${item?.teacher?.user?.firstname ?? "Not"} ${
+                    item?.teacher?.user?.lastname ?? "Available"
+                  }`}</p>
                 </div>
                 <div className="flex flex-row items-center justify-between text-sm">
                   <p>Room</p>

@@ -2,14 +2,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useAtom } from "jotai";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SelectContent, SelectItem } from "@/components/ui/select";
-import { attendanceAPI } from "@/jotai/attendance/attendance";
+// import { attendanceAPI } from "@/jotai/attendance/attendance";
 import { getAllClassAtom } from "@/jotai/class/class";
 import { studentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
@@ -20,8 +20,8 @@ import DatePicker from "@/components/general/date-picker";
 import { Subject } from "@/jotai/subject/subject-types";
 import { SelectField } from "@/components/ui/form-field";
 
-import { studentListAtom } from "@/jotai/students/student";
-import { classesAPI } from "@/jotai/class/class";
+// import { studentListAtom } from "@/jotai/students/student";
+// import { classesAPI } from "@/jotai/class/class";
 import { subjectsAPI } from "@/jotai/subject/subject";
 
 interface AttendanceRecord {
@@ -37,91 +37,91 @@ const tableHeader = [
   { key: "Project Name", title: "Projects" },
 ];
 
-const studentsData = [
-  {
-    id: "1",
-    name: "Alice Johnson",
-    status: "present" as const,
-    arrivalTime: "8:00 AM",
-    grade: "Grade 1",
-    subject: "Mathematics",
-  },
-  {
-    id: "2",
-    name: "Bob Smith",
-    status: "late" as const,
-    arrivalTime: "8:15 AM",
-    grade: "Grade 2",
-    subject: "English",
-  },
-  {
-    id: "3",
-    name: "Carol Davis",
-    status: "absent" as const,
-    arrivalTime: undefined,
-    grade: "Grade 1",
-    subject: undefined,
-  },
-  {
-    id: "4",
-    name: "David Wilson",
-    status: "present" as const,
-    arrivalTime: "7:55 AM",
-    grade: "Grade 3",
-    subject: "Science",
-  },
-  {
-    id: "5",
-    name: "Eva Brown",
-    status: "present" as const,
-    arrivalTime: "8:02 AM",
-    grade: "Grade 2",
-    subject: "Mathematics",
-  },
-  {
-    id: "6",
-    name: "Frank Miller",
-    status: "present" as const,
-    arrivalTime: "8:05 AM",
-    grade: "Grade 1",
-    subject: "Art",
-  },
-  {
-    id: "7",
-    name: "Grace Lee",
-    status: "late" as const,
-    arrivalTime: "8:20 AM",
-    grade: "Grade 3",
-    subject: "History",
-  },
-  {
-    id: "8",
-    name: "Henry Clark",
-    status: "present" as const,
-    arrivalTime: "7:58 AM",
-    grade: "Grade 2",
-    subject: "Physical Education",
-  },
-  {
-    id: "9",
-    name: "Ivy Chen",
-    status: "late" as const,
-    arrivalTime: "8:18 AM",
-    grade: "Grade 1",
-    subject: "Science",
-  },
-  {
-    id: "10",
-    name: "Jack Thompson",
-    status: "absent" as const,
-    arrivalTime: undefined,
-    grade: "Grade 3",
-    subject: undefined,
-  },
-];
+// const studentsData = [
+//   {
+//     id: "1",
+//     name: "Alice Johnson",
+//     status: "present" as const,
+//     arrivalTime: "8:00 AM",
+//     grade: "Grade 1",
+//     subject: "Mathematics",
+//   },
+//   {
+//     id: "2",
+//     name: "Bob Smith",
+//     status: "late" as const,
+//     arrivalTime: "8:15 AM",
+//     grade: "Grade 2",
+//     subject: "English",
+//   },
+//   {
+//     id: "3",
+//     name: "Carol Davis",
+//     status: "absent" as const,
+//     arrivalTime: undefined,
+//     grade: "Grade 1",
+//     subject: undefined,
+//   },
+//   {
+//     id: "4",
+//     name: "David Wilson",
+//     status: "present" as const,
+//     arrivalTime: "7:55 AM",
+//     grade: "Grade 3",
+//     subject: "Science",
+//   },
+//   {
+//     id: "5",
+//     name: "Eva Brown",
+//     status: "present" as const,
+//     arrivalTime: "8:02 AM",
+//     grade: "Grade 2",
+//     subject: "Mathematics",
+//   },
+//   {
+//     id: "6",
+//     name: "Frank Miller",
+//     status: "present" as const,
+//     arrivalTime: "8:05 AM",
+//     grade: "Grade 1",
+//     subject: "Art",
+//   },
+//   {
+//     id: "7",
+//     name: "Grace Lee",
+//     status: "late" as const,
+//     arrivalTime: "8:20 AM",
+//     grade: "Grade 3",
+//     subject: "History",
+//   },
+//   {
+//     id: "8",
+//     name: "Henry Clark",
+//     status: "present" as const,
+//     arrivalTime: "7:58 AM",
+//     grade: "Grade 2",
+//     subject: "Physical Education",
+//   },
+//   {
+//     id: "9",
+//     name: "Ivy Chen",
+//     status: "late" as const,
+//     arrivalTime: "8:18 AM",
+//     grade: "Grade 1",
+//     subject: "Science",
+//   },
+//   {
+//     id: "10",
+//     name: "Jack Thompson",
+//     status: "absent" as const,
+//     arrivalTime: undefined,
+//     grade: "Grade 3",
+//     subject: undefined,
+//   },
+// ];
 
 export default function MarkAttendancePage() {
-  const router = useRouter();
+  // const router = useRouter();
   const params = useParams<{ classId: string }>();
   const classId = params.classId as string;
 
@@ -138,6 +138,8 @@ export default function MarkAttendancePage() {
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([]);
+
+  console.log(classes);
 
   useEffect(() => {
     if (selectedSubject) {
@@ -397,7 +399,7 @@ export default function MarkAttendancePage() {
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
                           <span className="font-medium text-sm">
-                            {student.user.name
+                            {student.user.firstname
                               .split(" ")
                               .map((n) => n[0])
                               .join("")
@@ -405,7 +407,9 @@ export default function MarkAttendancePage() {
                           </span>
                         </div>
                         <div>
-                          <h3 className="font-medium">{student.user.name}</h3>
+                          <h3 className="font-medium">
+                            {student.user.firstname}
+                          </h3>
                           <p className="text-sm text-muted-foreground">
                             {student.user.email}
                           </p>
@@ -484,7 +488,11 @@ export default function MarkAttendancePage() {
             <Button type="button" variant="outline" asChild>
               <Link href="/portal/attendance">Cancel</Link>
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button
+              onClick={() => setLoading(true)}
+              type="submit"
+              disabled={loading}
+            >
               {loading ? "Saving Attendance..." : "Save Attendance"}
             </Button>
           </div>

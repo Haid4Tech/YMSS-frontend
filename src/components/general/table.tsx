@@ -14,17 +14,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MoreHorizontal, Eye, Edit } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { MoreHorizontal } from "lucide-react";
+// import { Badge } from "@/components/ui/badge";
 
-interface Student {
-  id: string;
-  name: string;
-  status: "present" | "absent" | "late";
-  arrivalTime?: string;
-  grade: string;
-  subject?: string; // The class/subject they were late for
-}
+// interface Student {
+//   id: string;
+//   name: string;
+//   status: "present" | "absent" | "late";
+//   arrivalTime?: string;
+//   grade: string;
+//   subject?: string; // The class/subject they were late for
+// }
 
 interface ITableHeader {
   title: string;
@@ -62,30 +62,30 @@ const TableComp = ({
   borderColor,
   error,
 }: IDashboardTable) => {
-  const getStatusBadge = (status: Student["status"]) => {
-    switch (status) {
-      case "present":
-        return (
-          <Badge
-            variant="default"
-            className="bg-success text-success-foreground"
-          >
-            Present
-          </Badge>
-        );
-      case "absent":
-        return <Badge variant="destructive">Absent</Badge>;
-      case "late":
-        return (
-          <Badge
-            variant="default"
-            className="bg-warning text-warning-foreground"
-          >
-            Late
-          </Badge>
-        );
-    }
-  };
+  // const getStatusBadge = (status: Student["status"]) => {
+  //   switch (status) {
+  //     case "present":
+  //       return (
+  //         <Badge
+  //           variant="default"
+  //           className="bg-success text-success-foreground"
+  //         >
+  //           Present
+  //         </Badge>
+  //       );
+  //     case "absent":
+  //       return <Badge variant="destructive">Absent</Badge>;
+  //     case "late":
+  //       return (
+  //         <Badge
+  //           variant="default"
+  //           className="bg-warning text-warning-foreground"
+  //         >
+  //           Late
+  //         </Badge>
+  //       );
+  //   }
+  // };
 
   return (
     <Table>
