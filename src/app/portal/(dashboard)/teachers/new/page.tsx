@@ -26,6 +26,8 @@ export default function AddTeacherPage() {
   const [activeTab, setActiveTab] = useState("personal");
   const [, getAllSubjects] = useAtom(subjectsAPI.getAll);
 
+  console.log(subjects);
+
   const [date, setDate] = useState<{
     DOB: Date | undefined;
     hireDate: Date | undefined;

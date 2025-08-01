@@ -1,0 +1,47 @@
+import axiosInstance from "@/utils/axios-instance";
+import { atom } from "jotai";
+import { 
+  SubjectTeacher, 
+  SubjectTeacherResponse, 
+  CreateSubjectTeacherData, 
+  DeleteSubjectTeacherData 
+} from "@/types/subject-teacher";
+
+export const subjectTeacherListAtom = atom<SubjectTeacherResponse | null>(null);
+export const subjectTeacherLoadingAtom = atom<boolean>(false);
+export const subjectTeacherErrorAtom = atom<string | null>(null);
+
+export const subjectTeacherAPI = {
+  getAll: atom(null, async (_get, set) => {
+    set(subjectTeacherLoadingAtom, true);
+    set(subjectTeacherErrorAtom, null);
+
+    try {
+      const response = await axiosInstance.get<SubjectTeacherResponse>("/subject-teachers");
+      set(subjectTeacherListAtom, response.data);
+    } catch (error: any) {
+      set(subjectTeacherErrorAtom, error.message || "Failed to fetch subject teachers");
+    } finally {
+      set(subjectTeacherLoadingAtom, false);
+    }
+  }),
+
+  getBySubject: async (subjectId: number): Promise<SubjectTeacher[]> => {
+    const response = await axiosInstance.get(`/subject-teachers/subject/${subjectId}`);
+    return response.data;
+  },
+
+  getByTeacher: async (teacherId: number): Promise<SubjectTeacher[]> => {
+    const response = await axiosInstance.get(`/subject-teachers/teacher/${teacherId}`);
+    return response.data;
+  },
+
+  create: async (data: CreateSubjectTeacherData): Promise<SubjectTeacher> => {
+    const response = await axiosInstance.post("/subject-teachers", data);
+    return response.data;
+  },
+
+  delete: async (data: DeleteSubjectTeacherData): Promise<void> => {
+    await axiosInstance.delete("/subject-teachers", { data });
+  },
+}; 

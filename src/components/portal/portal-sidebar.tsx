@@ -22,6 +22,8 @@ import {
   Megaphone,
   CalendarDays,
   FileText,
+  BookMarked,
+  UserPlus,
 } from "lucide-react";
 
 interface PortalSidebarProps {
@@ -74,6 +76,7 @@ const navigationItems: NavItem[] = [
     lucideIcon: BookOpen,
     roles: ["ADMIN", "TEACHER"],
   },
+
   {
     name: "Exams",
     href: "/portal/exams",

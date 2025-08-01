@@ -24,7 +24,8 @@ export const authPersistedAtom = atomWithStorage<AuthSession | null>(
 
 export const loginFormAtom = atom<SignInProps>({ email: "", password: "" });
 export const signupFormAction = atom<SignUpProps>({
-  name: "",
+  lastname: "",
+  firstname: "",
   email: "",
   password: "",
   role: undefined,
