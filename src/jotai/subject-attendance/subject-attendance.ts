@@ -1,13 +1,15 @@
 import axiosInstance from "@/utils/axios-instance";
 import { atom } from "jotai";
-import { 
-  SubjectAttendance, 
-  SubjectAttendanceResponse, 
-  CreateSubjectAttendanceData, 
-  UpdateSubjectAttendanceData 
-} from "@/types/subject-attendance";
+import {
+  SubjectAttendance,
+  SubjectAttendanceResponse,
+  CreateSubjectAttendanceData,
+  UpdateSubjectAttendanceData,
+} from "@/types/subject-attendance-type";
 
-export const subjectAttendanceListAtom = atom<SubjectAttendanceResponse | null>(null);
+export const subjectAttendanceListAtom = atom<SubjectAttendanceResponse | null>(
+  null
+);
 export const subjectAttendanceLoadingAtom = atom<boolean>(false);
 export const subjectAttendanceErrorAtom = atom<string | null>(null);
 
@@ -17,36 +19,53 @@ export const subjectAttendanceAPI = {
     set(subjectAttendanceErrorAtom, null);
 
     try {
-      const response = await axiosInstance.get<SubjectAttendanceResponse>("/attendance");
+      const response = await axiosInstance.get<SubjectAttendanceResponse>(
+        "/attendance"
+      );
       set(subjectAttendanceListAtom, response.data);
     } catch (error: any) {
-      set(subjectAttendanceErrorAtom, error.message || "Failed to fetch attendance");
+      set(
+        subjectAttendanceErrorAtom,
+        error.message || "Failed to fetch attendance"
+      );
     } finally {
       set(subjectAttendanceLoadingAtom, false);
     }
   }),
 
-  getByEnrollment: async (enrollmentId: number): Promise<SubjectAttendance[]> => {
-    const response = await axiosInstance.get(`/attendance/enrollment/${enrollmentId}`);
+  getByEnrollment: async (
+    enrollmentId: number
+  ): Promise<SubjectAttendance[]> => {
+    const response = await axiosInstance.get(
+      `/attendance/enrollment/${enrollmentId}`
+    );
     return response.data;
   },
 
   getBySubject: async (subjectId: number): Promise<SubjectAttendance[]> => {
-    const response = await axiosInstance.get(`/attendance/subject/${subjectId}`);
+    const response = await axiosInstance.get(
+      `/attendance/subject/${subjectId}`
+    );
     return response.data;
   },
 
   getByStudent: async (studentId: number): Promise<SubjectAttendance[]> => {
-    const response = await axiosInstance.get(`/attendance/student/${studentId}`);
+    const response = await axiosInstance.get(
+      `/attendance/student/${studentId}`
+    );
     return response.data;
   },
 
-  create: async (data: CreateSubjectAttendanceData): Promise<SubjectAttendance> => {
+  create: async (
+    data: CreateSubjectAttendanceData
+  ): Promise<SubjectAttendance> => {
     const response = await axiosInstance.post("/attendance/subject", data);
     return response.data;
   },
 
-  update: async (data: UpdateSubjectAttendanceData): Promise<SubjectAttendance> => {
+  update: async (
+    data: UpdateSubjectAttendanceData
+  ): Promise<SubjectAttendance> => {
     const response = await axiosInstance.patch(`/attendance/${data.id}`, data);
     return response.data;
   },
@@ -54,4 +73,4 @@ export const subjectAttendanceAPI = {
   delete: async (id: number): Promise<void> => {
     await axiosInstance.delete(`/attendance/${id}`);
   },
-}; 
+};

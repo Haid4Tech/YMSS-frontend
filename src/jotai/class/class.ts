@@ -90,11 +90,3 @@ export const classesAPI = {
     return response.data;
   },
 };
-
-export const enhancedClassesAPI = {
-  ...classesAPI,
-  getById: async (id: number): Promise<Class> => {
-    const response = await axiosInstance.get(`/classes/${id}`);
-    return response.data;
-  },
-};

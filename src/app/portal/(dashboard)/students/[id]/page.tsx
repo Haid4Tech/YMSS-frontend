@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { enhancedStudentsAPI } from "@/jotai/students/student";
+import { studentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
 import { enhancedGradesAPI } from "@/jotai/grades/grades";
 import { Grade } from "@/jotai/grades/grades-types";
@@ -45,7 +45,7 @@ export default function StudentDetailPage() {
         setLoading(true);
 
         const [studentData, gradesData, attendanceData] = await Promise.all([
-          enhancedStudentsAPI.getById(parseInt(studentId)),
+          studentsAPI.getById(parseInt(studentId)),
           enhancedGradesAPI.getByStudent(parseInt(studentId)),
           enhancedAttendanceAPI.getByStudent(parseInt(studentId)),
         ]);
@@ -298,11 +298,15 @@ export default function StudentDetailPage() {
                   <label className="text-sm font-medium text-muted-foreground">
                     Parent
                   </label>
-                  <p className="text-sm">
-                    {student?.parent?.user?.firstname +
-                      " " +
-                      student?.parent?.user?.lastname || "Not assigned"}
-                  </p>
+                  {student?.parents?.map((parent, index) => (
+                    <div key={index}>
+                      <p className="text-sm">
+                        {parent?.parent?.user?.firstname +
+                          " " +
+                          parent?.parent.user?.lastname || "Not assigned"}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </CardContent>

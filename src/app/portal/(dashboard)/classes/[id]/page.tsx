@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { enhancedClassesAPI } from "@/jotai/class/class";
+import { classesAPI } from "@/jotai/class/class";
 import { Class } from "@/jotai/class/class-type";
-import { enhancedStudentsAPI } from "@/jotai/students/student";
+import { studentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
 import { enhancedGradesAPI } from "@/jotai/grades/grades";
 import { Grade } from "@/jotai/grades/grades-types";
@@ -30,9 +30,12 @@ import {
   Line,
 } from "recharts";
 
+import { StudentRosterCard } from "@/components/portal/dashboards/class/student-roster-card";
+
 export default function ClassDetailPage() {
   const params = useParams();
   const classId = params.id as string;
+  const router = useRouter();
 
   const [classData, setClassData] = useState<Class | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
@@ -44,15 +47,12 @@ export default function ClassDetailPage() {
   useEffect(() => {
     const fetchClassData = async () => {
       try {
-        const [classInfo, studentsData, gradesData, attendanceData] =
-          await Promise.all([
-            enhancedClassesAPI.getById(parseInt(classId)),
-            enhancedStudentsAPI.getByClass
-              ? enhancedStudentsAPI.getByClass(parseInt(classId))
-              : [],
-            enhancedGradesAPI.getByClass(parseInt(classId)),
-            enhancedAttendanceAPI.getByClass(parseInt(classId)),
-          ]);
+        const studentsData = studentsAPI.getStudentsByClass(parseInt(classId));
+        const [classInfo, gradesData, attendanceData] = await Promise.all([
+          classesAPI.getById(parseInt(classId)),
+          enhancedGradesAPI.getByClass(parseInt(classId)),
+          enhancedAttendanceAPI.getByClass(parseInt(classId)),
+        ]);
 
         setClassData(classInfo);
         setStudents(Array.isArray(studentsData) ? studentsData : []);
@@ -72,7 +72,7 @@ export default function ClassDetailPage() {
 
   // Calculate class statistics
   const classStats = {
-    totalStudents: students.length,
+    totalStudents: classData?.students?.length,
     averageGrade:
       grades.length > 0
         ? (
@@ -177,7 +177,9 @@ export default function ClassDetailPage() {
         endBtns={
           <div className="flex gap-2">
             <Button variant="outline">Edit Class</Button>
-            <Button>Add Student</Button>
+            <Button onClick={() => router.push(`${classId}/students`)}>
+              Students
+            </Button>
           </div>
         }
       />
@@ -230,7 +232,7 @@ export default function ClassDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`cursor-pointer py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -330,38 +332,8 @@ export default function ClassDetailPage() {
             <CardTitle>Students Roster</CardTitle>
           </CardHeader>
           <CardContent>
-            {students.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {students.map((student) => (
-                  <div
-                    key={student.id}
-                    className="p-4 border rounded-lg hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium">{student.user.name}</h3>
-                      <span className="text-sm text-muted-foreground">
-                        ID: {student.id}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      {student.user.email}
-                    </p>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Parent: {student.parent?.user.name || "Not assigned"}
-                    </p>
-                    <div className="flex gap-2">
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/portal/students/${student.id}`}>
-                          View Profile
-                        </Link>
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        Contact
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {classData?.students?.length > 0 ? (
+              <StudentRosterCard classData={classData} />
             ) : (
               <div className="text-center text-muted-foreground py-8">
                 No students enrolled in this class yet
@@ -432,7 +404,7 @@ export default function ClassDetailPage() {
                             {index + 1}
                           </div>
                           <div>
-                            <p className="font-medium">{student.user.name}</p>
+                            <p className="font-medium">{`${student.user.firstname} ${student.user.lastname}`}</p>
                             <p className="text-sm text-muted-foreground">
                               {student.user.email}
                             </p>
@@ -520,7 +492,7 @@ export default function ClassDetailPage() {
                         className="flex items-center justify-between p-3 border rounded-lg"
                       >
                         <div>
-                          <p className="font-medium">{student.user.name}</p>
+                          <p className="font-medium">{`${student.user.firstname} ${student.user.lastname}`}</p>
                           <p className="text-sm text-muted-foreground">
                             {presentCount}/{studentAttendance.length} classes
                             attended

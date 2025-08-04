@@ -165,7 +165,7 @@ export default function MarkAttendancePage() {
       };
       fetchStudents();
     }
-  }, []);
+  }, [selectedSubject]);
 
   useEffect(() => {
     (async () => {

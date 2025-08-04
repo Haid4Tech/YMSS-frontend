@@ -220,12 +220,6 @@ export default function StudentsPage() {
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Student ID:</span> {student?.id}
                 </p>
-                {student?.parent && (
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-medium">Parent:</span>{" "}
-                    {`${student?.parent?.user?.firstname} ${student?.parent?.user?.lastname}`}
-                  </p>
-                )}
               </div>
             </CardContent>
           </Card>

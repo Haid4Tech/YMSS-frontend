@@ -91,13 +91,16 @@ const TableComp = ({
     <Table>
       <TableHeader>
         <TableRow className={cn(borderColor)}>
+          <TableHead className="font-semibold text-xs w-[10rem]">
+            {"S/N"}
+          </TableHead>
           {headers.map((header) => (
             <TableHead
               className={cn(
                 header.max ? "w-[20rem]" : "w-[10rem]",
                 headerBGcolor ? headerBGcolor : " bg-primary-blue/10",
                 headerColor,
-                "font-semibold text-xs border border-gray-300"
+                "font-semibold text-xs"
               )}
               key={String(header.key)}
             >
@@ -127,6 +130,7 @@ const TableComp = ({
         ) : (
           data?.map((row, rowIndex) => (
             <TableRow className={cn(borderColor)} key={rowIndex}>
+              <TableCell>{rowIndex + 1}</TableCell>
               {headers.map((header, colIndex) => {
                 const cellValue = row[header.key];
                 return (
@@ -134,7 +138,7 @@ const TableComp = ({
                     key={colIndex}
                     className={cn(
                       header.max ? "w-[20rem]" : "w-[10rem]",
-                      "text-wrap text-xs border border-gray-300"
+                      "text-wrap text-xs"
                     )}
                   >
                     {Array.isArray(cellValue) ? (

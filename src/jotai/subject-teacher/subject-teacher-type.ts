@@ -1,4 +1,4 @@
-import { Teacher } from "@/jotai/teachers/teacher-types";
+import { Teacher } from "../teachers/teachers-types";
 import { Subject } from "@/jotai/subject/subject-types";
 
 export interface SubjectTeacher {
@@ -24,4 +24,4 @@ export interface CreateSubjectTeacherData {
 export interface DeleteSubjectTeacherData {
   subjectId: number;
   teacherId: number;
-} 
+}

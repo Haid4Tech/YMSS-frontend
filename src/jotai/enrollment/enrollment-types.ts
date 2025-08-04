@@ -1,3 +1,4 @@
+import { SubjectAttendance } from "../subject-attendance/subject-attendance-type";
 import { Student } from "@/jotai/students/student-types";
 import { Subject } from "@/jotai/subject/subject-types";
 
@@ -25,4 +26,9 @@ export interface CreateEnrollmentData {
 
 export interface DeleteEnrollmentData {
   id: number;
-} 
+}
+
+export interface BulkEnrollmentResponse {
+  message: string;
+  count: number;
+}

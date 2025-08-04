@@ -159,7 +159,7 @@ export default function AddSubjectPage() {
 
               <div>
                 <SelectField
-                  label={"Assigned Teacher"}
+                  label={"Assign Teacher"}
                   placeholder="Select teacher"
                   value={formData.teacherId}
                   onValueChange={(value) =>
@@ -167,11 +167,16 @@ export default function AddSubjectPage() {
                   }
                 >
                   <SelectItem value="none">No teacher assigned</SelectItem>
-                  {teachers.map((teacher) => (
-                    <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                      {teacher.user.name}
-                    </SelectItem>
-                  ))}
+                  {teachers.map((teacher) => {
+                    return (
+                      <SelectItem
+                        key={teacher.id}
+                        value={teacher.id.toString()}
+                      >
+                        {`${teacher.user.firstname} ${teacher.user.lastname}`}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectField>
               </div>
               <div className="md:col-span-2">

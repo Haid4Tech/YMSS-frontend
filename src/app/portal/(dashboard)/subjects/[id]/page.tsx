@@ -3,18 +3,23 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { enhancedSubjectsAPI } from "@/jotai/subject/subject";
-import { Subject } from "@/jotai/subject/subject-types";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { enrollmentsAPI } from "@/jotai/enrollment/enrollment";
-import { subjectTeacherAPI } from "@/jotai/subject-teacher/subject-teacher";
-import { subjectAttendanceAPI } from "@/jotai/subject-attendance/subject-attendance";
-import { Enrollment } from "@/types/enrollment";
-import { SubjectTeacher } from "@/types/subject-teacher";
-import { SubjectAttendance } from "@/types/subject-attendance";
-import { Plus, Users, BookOpen, Calendar, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Subject } from "@/jotai/subject/subject-types";
+import { formatDate } from "@/common/helper";
+import { Plus, Users, BookOpen, Calendar, Trash2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { enrollmentsAPI } from "@/jotai/enrollment/enrollment";
+import { Enrollment } from "@/jotai/enrollment/enrollment-types";
+
+import { subjectsAPI } from "@/jotai/subject/subject";
+
+import { subjectTeacherAPI } from "@/jotai/subject-teacher/subject-teacher";
+import { SubjectTeacher } from "@/jotai/subject-teacher/subject-teacher-type";
+
+import { subjectAttendanceAPI } from "@/jotai/subject-attendance/subject-attendance";
+import { SubjectAttendance } from "@/jotai/subject-attendance/subject-attendance-type";
 
 import { DynamicHeader } from "@/components/general/page-header";
 
@@ -29,15 +34,19 @@ export default function SubjectDetailPage() {
   const [subjectTeachers, setSubjectTeachers] = useState<SubjectTeacher[]>([]);
   const [attendance, setAttendance] = useState<SubjectAttendance[]>([]);
 
+  console.log("SUBJECT ", subject);
+
   useEffect(() => {
     const fetchSubjectData = async () => {
       try {
-        const [subjectData, enrollmentsData, teachersData, attendanceData] = await Promise.all([
-          enhancedSubjectsAPI.getById(parseInt(subjectId)),
-          enrollmentsAPI.getBySubject(parseInt(subjectId)),
-          subjectTeacherAPI.getBySubject(parseInt(subjectId)),
-          subjectAttendanceAPI.getBySubject(parseInt(subjectId)),
-        ]);
+        const [subjectData, enrollmentsData, teachersData, attendanceData] =
+          await Promise.all([
+            subjectsAPI.getById(parseInt(subjectId)),
+            enrollmentsAPI.getBySubject(parseInt(subjectId)),
+            subjectTeacherAPI.getBySubject(parseInt(subjectId)),
+            subjectAttendanceAPI.getBySubject(parseInt(subjectId)),
+            // studentsAPI.getBySubject(subjectId),
+          ]);
 
         setSubject(subjectData);
         setEnrollments(enrollmentsData);
@@ -96,19 +105,25 @@ export default function SubjectDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold text-primary">{enrollments.length}</div>
+            <div className="text-2xl font-bold text-primary">
+              {enrollments.length}
+            </div>
             <p className="text-sm text-muted-foreground">Enrolled Students</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold text-blue-600">{subjectTeachers.length}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {subjectTeachers.length}
+            </div>
             <p className="text-sm text-muted-foreground">Assigned Teachers</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold text-green-600">{attendance.length}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {attendance.length}
+            </div>
             <p className="text-sm text-muted-foreground">Attendance Records</p>
           </CardContent>
         </Card>
@@ -199,28 +214,31 @@ export default function SubjectDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Enrolled Students</span>
-              <Button size="sm" className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Add Student
-              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {enrollments.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No students enrolled in this subject</p>
+                <p className="text-muted-foreground">
+                  No students enrolled in this subject
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {enrollments.map((enrollment) => (
-                  <div key={enrollment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={enrollment.id}
+                    className="flex flex-row flex-wrap items-center justify-between p-4 border rounded-lg"
+                  >
                     <div>
                       <p className="font-medium">
-                        {enrollment.student.user.firstname} {enrollment.student.user.lastname}
+                        {enrollment.student.user.firstname}{" "}
+                        {enrollment.student.user.lastname}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Class: {enrollment.student.class.name} | Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                        Class: {enrollment.student.class.name} | Enrolled:{" "}
+                        {formatDate(new Date(enrollment.enrolledAt))}
                       </p>
                     </div>
                     <Button variant="outline" size="sm">
@@ -249,15 +267,21 @@ export default function SubjectDetailPage() {
             {subjectTeachers.length === 0 ? (
               <div className="text-center py-8">
                 <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No teachers assigned to this subject</p>
+                <p className="text-muted-foreground">
+                  No teachers assigned to this subject
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {subjectTeachers.map((subjectTeacher) => (
-                  <div key={subjectTeacher.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={subjectTeacher.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div>
                       <p className="font-medium">
-                        {subjectTeacher.teacher.user.firstname} {subjectTeacher.teacher.user.lastname}
+                        {subjectTeacher.teacher.user.firstname}{" "}
+                        {subjectTeacher.teacher.user.lastname}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {subjectTeacher.teacher.degree || "No degree specified"}
@@ -289,26 +313,38 @@ export default function SubjectDetailPage() {
             {attendance.length === 0 ? (
               <div className="text-center py-8">
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No attendance records for this subject</p>
+                <p className="text-muted-foreground">
+                  No attendance records for this subject
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {attendance.map((record) => (
-                  <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={record.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div>
                       <p className="font-medium">
-                        {record.enrollment.student.user.firstname} {record.enrollment.student.user.lastname}
+                        {record.enrollment.student.user.firstname}{" "}
+                        {record.enrollment.student.user.lastname}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Date: {new Date(record.date).toLocaleDateString()} | Status: {record.status}
+                        Date: {new Date(record.date).toLocaleDateString()} |
+                        Status: {record.status}
                       </p>
                     </div>
-                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      record.status === "PRESENT" ? "bg-green-100 text-green-800" :
-                      record.status === "ABSENT" ? "bg-red-100 text-red-800" :
-                      record.status === "LATE" ? "bg-yellow-100 text-yellow-800" :
-                      "bg-blue-100 text-blue-800"
-                    }`}>
+                    <div
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        record.status === "PRESENT"
+                          ? "bg-green-100 text-green-800"
+                          : record.status === "ABSENT"
+                          ? "bg-red-100 text-red-800"
+                          : record.status === "LATE"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
                       {record.status}
                     </div>
                   </div>

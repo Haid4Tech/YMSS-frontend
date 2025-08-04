@@ -45,6 +45,8 @@ export default function SubjectsPage() {
   const [isStudent] = useAtom(isStudentAtom);
   const [isTeacher] = useAtom(isTeacherAtom);
 
+  console.log(subjects);
+
   useEffect(() => {
     getAllSubjects();
   }, [getAllSubjects, reload]);
@@ -160,9 +162,9 @@ export default function SubjectsPage() {
               setLoadingStates((prev) => ({ ...prev, add: true }));
               router.push("/portal/subjects/new");
 
-              setTimeout(() => {
-                setLoadingStates((prev) => ({ ...prev, add: false }));
-              }, 3000);
+              // setTimeout(() => {
+              //   setLoadingStates((prev) => ({ ...prev, add: false }));
+              // }, 3000);
             }}
           >
             {loadingStates.add ? (
@@ -236,7 +238,7 @@ export default function SubjectsPage() {
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Teacher:</span>{" "}
                   {`${subject?.teacher?.user?.firstname ?? "Not"} ${
-                    subject?.teacher?.user?.lastname
+                    subject?.teacher?.user?.lastname ?? "Assigned"
                   }`}
                 </p>
 

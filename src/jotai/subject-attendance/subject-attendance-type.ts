@@ -1,4 +1,4 @@
-import { Enrollment } from "./enrollment";
+import { Enrollment } from "../enrollment/enrollment-types";
 
 export enum AttendanceStatus {
   PRESENT = "PRESENT",
@@ -31,4 +31,4 @@ export interface CreateSubjectAttendanceData {
 export interface UpdateSubjectAttendanceData {
   id: number;
   status: AttendanceStatus;
-} 
+}

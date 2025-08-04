@@ -1,11 +1,11 @@
 import axiosInstance from "@/utils/axios-instance";
 import { atom } from "jotai";
-import { 
-  SubjectTeacher, 
-  SubjectTeacherResponse, 
-  CreateSubjectTeacherData, 
-  DeleteSubjectTeacherData 
-} from "@/types/subject-teacher";
+import {
+  SubjectTeacher,
+  SubjectTeacherResponse,
+  CreateSubjectTeacherData,
+  DeleteSubjectTeacherData,
+} from "@/jotai/subject-teacher/subject-teacher-type";
 
 export const subjectTeacherListAtom = atom<SubjectTeacherResponse | null>(null);
 export const subjectTeacherLoadingAtom = atom<boolean>(false);
@@ -17,22 +17,31 @@ export const subjectTeacherAPI = {
     set(subjectTeacherErrorAtom, null);
 
     try {
-      const response = await axiosInstance.get<SubjectTeacherResponse>("/subject-teachers");
+      const response = await axiosInstance.get<SubjectTeacherResponse>(
+        "/subject-teachers"
+      );
       set(subjectTeacherListAtom, response.data);
     } catch (error: any) {
-      set(subjectTeacherErrorAtom, error.message || "Failed to fetch subject teachers");
+      set(
+        subjectTeacherErrorAtom,
+        error.message || "Failed to fetch subject teachers"
+      );
     } finally {
       set(subjectTeacherLoadingAtom, false);
     }
   }),
 
   getBySubject: async (subjectId: number): Promise<SubjectTeacher[]> => {
-    const response = await axiosInstance.get(`/subject-teachers/subject/${subjectId}`);
+    const response = await axiosInstance.get(
+      `/subject-teachers/subject/${subjectId}`
+    );
     return response.data;
   },
 
   getByTeacher: async (teacherId: number): Promise<SubjectTeacher[]> => {
-    const response = await axiosInstance.get(`/subject-teachers/teacher/${teacherId}`);
+    const response = await axiosInstance.get(
+      `/subject-teachers/teacher/${teacherId}`
+    );
     return response.data;
   },
 
@@ -44,4 +53,4 @@ export const subjectTeacherAPI = {
   delete: async (data: DeleteSubjectTeacherData): Promise<void> => {
     await axiosInstance.delete("/subject-teachers", { data });
   },
-}; 
+};
