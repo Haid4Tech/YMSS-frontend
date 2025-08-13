@@ -3,14 +3,13 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { useAtom } from "jotai";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SelectContent, SelectItem } from "@/components/ui/select";
 // import { attendanceAPI } from "@/jotai/attendance/attendance";
-import { getAllClassAtom } from "@/jotai/class/class";
+
 import { studentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
 import TableComp from "@/components/general/table";
@@ -23,6 +22,7 @@ import { SelectField } from "@/components/ui/form-field";
 // import { studentListAtom } from "@/jotai/students/student";
 // import { classesAPI } from "@/jotai/class/class";
 import { subjectsAPI } from "@/jotai/subject/subject";
+import { RowAction } from "@/components/general/table";
 
 interface AttendanceRecord {
   studentId: number;
@@ -31,94 +31,11 @@ interface AttendanceRecord {
 }
 
 const tableHeader = [
-  { key: "name", title: "Name" },
+  { key: "student_id", title: "Student ID" },
+  { key: "name", title: "Student Name" },
   { key: "status", title: "Status" },
-  { key: "email", title: "Stakeholder Email" },
-  { key: "Project Name", title: "Projects" },
+  { key: "date", title: "Date" },
 ];
-
-// const studentsData = [
-//   {
-//     id: "1",
-//     name: "Alice Johnson",
-//     status: "present" as const,
-//     arrivalTime: "8:00 AM",
-//     grade: "Grade 1",
-//     subject: "Mathematics",
-//   },
-//   {
-//     id: "2",
-//     name: "Bob Smith",
-//     status: "late" as const,
-//     arrivalTime: "8:15 AM",
-//     grade: "Grade 2",
-//     subject: "English",
-//   },
-//   {
-//     id: "3",
-//     name: "Carol Davis",
-//     status: "absent" as const,
-//     arrivalTime: undefined,
-//     grade: "Grade 1",
-//     subject: undefined,
-//   },
-//   {
-//     id: "4",
-//     name: "David Wilson",
-//     status: "present" as const,
-//     arrivalTime: "7:55 AM",
-//     grade: "Grade 3",
-//     subject: "Science",
-//   },
-//   {
-//     id: "5",
-//     name: "Eva Brown",
-//     status: "present" as const,
-//     arrivalTime: "8:02 AM",
-//     grade: "Grade 2",
-//     subject: "Mathematics",
-//   },
-//   {
-//     id: "6",
-//     name: "Frank Miller",
-//     status: "present" as const,
-//     arrivalTime: "8:05 AM",
-//     grade: "Grade 1",
-//     subject: "Art",
-//   },
-//   {
-//     id: "7",
-//     name: "Grace Lee",
-//     status: "late" as const,
-//     arrivalTime: "8:20 AM",
-//     grade: "Grade 3",
-//     subject: "History",
-//   },
-//   {
-//     id: "8",
-//     name: "Henry Clark",
-//     status: "present" as const,
-//     arrivalTime: "7:58 AM",
-//     grade: "Grade 2",
-//     subject: "Physical Education",
-//   },
-//   {
-//     id: "9",
-//     name: "Ivy Chen",
-//     status: "late" as const,
-//     arrivalTime: "8:18 AM",
-//     grade: "Grade 1",
-//     subject: "Science",
-//   },
-//   {
-//     id: "10",
-//     name: "Jack Thompson",
-//     status: "absent" as const,
-//     arrivalTime: undefined,
-//     grade: "Grade 3",
-//     subject: undefined,
-//   },
-// ];
 
 export default function MarkAttendancePage() {
   // const router = useRouter();
@@ -126,7 +43,6 @@ export default function MarkAttendancePage() {
   const classId = params.classId as string;
 
   const [loading, setLoading] = useState(false);
-  const [classes] = useAtom(getAllClassAtom);
   const [students, setStudents] = useState<Student[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
 
@@ -139,14 +55,28 @@ export default function MarkAttendancePage() {
     AttendanceRecord[]
   >([]);
 
-  console.log(classes);
+  const getRowActions = (row: unknown): RowAction[] => {
+    return [
+      {
+        title: "Mark Attendance",
+        action: () => console.log(row),
+      },
+      {
+        title: "Remove Attendance",
+        action: () => console.log(),
+        color: "text-danger",
+      },
+    ];
+  };
+
+  console.log(selectedSubject);
 
   useEffect(() => {
     if (selectedSubject) {
       const fetchStudents = async () => {
         try {
           const [studentsData] = await Promise.all([
-            studentsAPI.getByClass(parseInt(selectedSubject)),
+            studentsAPI.getStudentsByClass(parseInt(selectedSubject)),
           ]);
           setStudents(Array.isArray(studentsData) ? studentsData : []);
 
@@ -477,7 +407,7 @@ export default function MarkAttendancePage() {
           <TableComp
             headers={tableHeader}
             data={[]}
-            // rowActions={getRowActions}
+            rowActions={getRowActions}
             // error={isError}
           />
         </div>
@@ -496,17 +426,6 @@ export default function MarkAttendancePage() {
               {loading ? "Saving Attendance..." : "Save Attendance"}
             </Button>
           </div>
-        )}
-
-        {/* No Students Message */}
-        {selectedSubject && students.length === 0 && (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-muted-foreground">
-                No students found in the selected class.
-              </p>
-            </CardContent>
-          </Card>
         )}
       </form>
     </div>

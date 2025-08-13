@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Subject } from "@/jotai/subject/subject-types";
 import { formatDate } from "@/common/helper";
@@ -22,6 +22,9 @@ import { subjectAttendanceAPI } from "@/jotai/subject-attendance/subject-attenda
 import { SubjectAttendance } from "@/jotai/subject-attendance/subject-attendance-type";
 
 import { DynamicHeader } from "@/components/general/page-header";
+import { AssignteacherForm } from "@/components/portal/dashboards/teacher/assign-teacher-form";
+import { extractErrorMessage } from "@/utils/helpers";
+import { toast } from "sonner";
 
 export default function SubjectDetailPage() {
   const params = useParams();
@@ -32,9 +35,19 @@ export default function SubjectDetailPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [subjectTeachers, setSubjectTeachers] = useState<SubjectTeacher[]>([]);
-  const [attendance, setAttendance] = useState<SubjectAttendance[]>([]);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(
+    null
+  );
+  const [states, setStates] = useState<{
+    assignTeacher: boolean;
+    deleteTeacher: boolean;
+  }>({
+    assignTeacher: false,
+    deleteTeacher: false,
+  });
 
-  console.log("SUBJECT ", subject);
+  const [attendance, setAttendance] = useState<SubjectAttendance[]>([]);
+  const [addTeacher, setAddTeacher] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchSubjectData = async () => {
@@ -65,7 +78,53 @@ export default function SubjectDetailPage() {
     } else {
       setLoading(false);
     }
-  }, [subjectId]);
+  }, [subjectId, states]);
+
+  const handleAssignTeacherToSubject = async () => {
+    setStates((prev) => ({
+      ...prev,
+      assignTeacher: true,
+    }));
+    try {
+      if (selectedTeacherId) {
+        await subjectTeacherAPI.create({
+          subjectId: parseInt(subjectId),
+          teacherId: selectedTeacherId,
+        });
+
+        toast.success(`Assigned teacher to subject`);
+      }
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error);
+      toast.error(errorMessage);
+    } finally {
+      setStates((prev) => ({
+        ...prev,
+        assignTeacher: false,
+      }));
+    }
+  };
+
+  const deleteTeacher = async (subjectId: number, teacherId: number) => {
+    setStates((prev) => ({
+      ...prev,
+      deleteTeacher: true,
+    }));
+    try {
+      await subjectTeacherAPI.delete({ subjectId, teacherId });
+      toast.success("Teacher removed from subject successfully!");
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error);
+      toast.error("Failed to delete teacher.", {
+        description: errorMessage,
+      });
+    } finally {
+      setStates((prev) => ({
+        ...prev,
+        deleteTeacher: false,
+      }));
+    }
+  };
 
   if (loading) {
     return (
@@ -257,42 +316,84 @@ export default function SubjectDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Assigned Teachers</span>
-              <Button size="sm" className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Assign Teacher
+
+              <Button
+                variant={addTeacher ? "outline" : "default"}
+                onClick={() => setAddTeacher((prev) => !prev)}
+                size="sm"
+              >
+                {addTeacher ? (
+                  <p>Cancel</p>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Plus size={15} />
+                    Assign Teacher
+                  </div>
+                )}
               </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {subjectTeachers.length === 0 ? (
-              <div className="text-center py-8">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
-                  No teachers assigned to this subject
+            {addTeacher ? (
+              <div className={"space-y-8"}>
+                <p className="">
+                  Assign teacher to{" "}
+                  <span className={"font-semibold"}>{subject.name}</span>
                 </p>
+
+                <div className="flex flex-row items-end gap-2">
+                  <AssignteacherForm setTeacherId={setSelectedTeacherId} />
+                  <Button
+                    size={"lg"}
+                    onClick={() => handleAssignTeacherToSubject()}
+                    className="flex flex-row gap-1 items-center"
+                  >
+                    <Plus size={15} />
+                    <p>Add</p>
+                  </Button>
+                </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                {subjectTeachers.map((subjectTeacher) => (
-                  <div
-                    key={subjectTeacher.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {subjectTeacher.teacher.user.firstname}{" "}
-                        {subjectTeacher.teacher.user.lastname}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {subjectTeacher.teacher.degree || "No degree specified"}
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+              <>
+                {subjectTeachers.length === 0 ? (
+                  <div className="text-center py-8">
+                    <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">
+                      No teachers assigned to this subject
+                    </p>
                   </div>
-                ))}
-              </div>
+                ) : (
+                  <div className="space-y-4">
+                    {subjectTeachers.map((subjectTeacher) => (
+                      <div
+                        key={subjectTeacher.id}
+                        className="flex items-center justify-between p-4 border rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium">
+                            {subjectTeacher.teacher.user.firstname}{" "}
+                            {subjectTeacher.teacher.user.lastname}
+                          </p>
+                          <p className="capitalize text-sm text-muted-foreground">
+                            Holder Degree:{" "}
+                            {subjectTeacher.teacher.degree ||
+                              "No degree specified"}
+                          </p>
+                        </div>
+                        <Button
+                          onClick={() =>
+                            deleteTeacher(subject.id, subjectTeacher.teacherId)
+                          }
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Trash2 size={15} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>

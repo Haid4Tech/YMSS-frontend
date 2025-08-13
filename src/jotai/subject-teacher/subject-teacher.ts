@@ -6,6 +6,7 @@ import {
   CreateSubjectTeacherData,
   DeleteSubjectTeacherData,
 } from "@/jotai/subject-teacher/subject-teacher-type";
+import { extractErrorMessage } from "@/utils/helpers";
 
 export const subjectTeacherListAtom = atom<SubjectTeacherResponse | null>(null);
 export const subjectTeacherLoadingAtom = atom<boolean>(false);
@@ -21,10 +22,11 @@ export const subjectTeacherAPI = {
         "/subject-teachers"
       );
       set(subjectTeacherListAtom, response.data);
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error);
       set(
         subjectTeacherErrorAtom,
-        error.message || "Failed to fetch subject teachers"
+        errorMessage || "Failed to fetch subject teachers"
       );
     } finally {
       set(subjectTeacherLoadingAtom, false);
