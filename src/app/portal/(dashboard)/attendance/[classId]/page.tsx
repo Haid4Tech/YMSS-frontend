@@ -69,8 +69,6 @@ export default function MarkAttendancePage() {
     ];
   };
 
-  console.log(selectedSubject);
-
   useEffect(() => {
     if (selectedSubject) {
       const fetchStudents = async () => {
