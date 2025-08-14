@@ -13,7 +13,8 @@ import { Role } from "@/common/enum";
 import { ArrowLeft } from "lucide-react";
 
 export default function SignUp() {
-  const [name, setName] = useState("");
+  const [firstname, setFirstName] = useState("");
+  const [lastname, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -44,7 +45,7 @@ export default function SignUp() {
     }
 
     try {
-      setSignUpFormData({ name, email, password, role });
+      setSignUpFormData({ firstname, lastname, email, password, role });
       await triggerSignUp();
 
       // Redirect to dashboard
@@ -81,16 +82,27 @@ export default function SignUp() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <InputField
-            label={" Full Name"}
-            id="name"
+            label={"First Name"}
+            id="firstname"
             type="text"
-            placeholder="Enter your full name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter your First name"
+            value={firstname}
+            onChange={(e) => setFirstName(e.target.value)}
             required
             disabled={loading}
           />
         </div>
+
+        <InputField
+          label={"Last Name"}
+          id="lastname"
+          type="text"
+          placeholder="Enter your Last name"
+          value={lastname}
+          onChange={(e) => setLastName(e.target.value)}
+          required
+          disabled={loading}
+        />
 
         <div className="space-y-2">
           <InputField

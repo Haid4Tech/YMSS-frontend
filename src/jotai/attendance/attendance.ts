@@ -41,6 +41,11 @@ export const attendanceAPI = {
     const response = await axiosInstance.post("/attendance", data);
     return response.data;
   },
+
+  getByClass: async (classId: number): Promise<Attendance[]> => {
+    const response = await axiosInstance.get(`/attendance?classId=${classId}`);
+    return response.data;
+  },
 };
 
 export const enhancedAttendanceAPI = {
@@ -49,10 +54,6 @@ export const enhancedAttendanceAPI = {
     const response = await axiosInstance.get(
       `/attendance?studentId=${studentId}`
     );
-    return response.data;
-  },
-  getByClass: async (classId: number): Promise<Attendance[]> => {
-    const response = await axiosInstance.get(`/attendance?classId=${classId}`);
     return response.data;
   },
 };

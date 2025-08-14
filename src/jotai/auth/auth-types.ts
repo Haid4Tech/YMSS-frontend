@@ -29,7 +29,8 @@ export interface User {
 export interface SignUpProps {
   email: string;
   password: string;
-  name: string;
+  lastname: string;
+  firstname: string;
   role: Role | undefined | string;
 }
 

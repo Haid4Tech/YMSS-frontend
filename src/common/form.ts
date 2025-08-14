@@ -62,7 +62,8 @@ export const StudentFormIntialData = {
   previousSchool: "",
   grade: "",
   parentId: "",
-  parentname: "",
+  parentfirstname: "",
+  parentlastname: "",
   parentemail: "",
   parentphone: "",
   relationship: "",
@@ -77,7 +78,6 @@ export const StudentFormIntialData = {
 export const ClassFormInitialData = {
   name: "",
   grade: "",
-  // section: "",
   capacity: "",
   roomNumber: "",
   description: "",

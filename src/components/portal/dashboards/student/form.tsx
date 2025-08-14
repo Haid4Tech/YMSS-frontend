@@ -265,11 +265,11 @@ const StudentForm: FC<IStudentForm> = ({
                 <div>
                   <InputField
                     label="ZIP/Postal Code"
-                    id="zipCode"
+                    id="zipcode"
                     placeholder="Enter region ZIP code"
                     value={formData?.zipcode ?? undefined}
                     onChange={(e) =>
-                      handleInputChange("zipCode", e.target.value)
+                      handleInputChange("zipcode", e.target.value)
                     }
                   />
                 </div>

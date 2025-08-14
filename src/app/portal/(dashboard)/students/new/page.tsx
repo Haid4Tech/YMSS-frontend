@@ -100,7 +100,6 @@ export default function AddStudentPage() {
       formData.zipcode,
       formData.country,
       formData.admissionDate,
-      formData.parentname,
       formData.parentemail,
       formData.parentphone,
       formData.relationship,
@@ -120,13 +119,12 @@ export default function AddStudentPage() {
 
       const studentData = {
         // User data
-        firstname: formData.firstname,
-        lastname: formData.lastname,
-        email: formData.email,
-        password: `${formData.firstname.toLowerCase()}${formData.dateOfBirth.replace(
-          /-/g,
-          ""
-        )}`, // Temporary password
+        firstname: formData.firstname.trim(),
+        lastname: formData.lastname.trim(),
+        email: formData.email.trim(),
+        password: `${formData.firstname
+          .trim()
+          .toLowerCase()}${formData.dateOfBirth.replace(/-/g, "")}`, // Temporary password dateformat - yyyymmmmdd
         DOB: formData.dateOfBirth,
         gender: formData.gender,
         street: formData.street,
@@ -160,7 +158,8 @@ export default function AddStudentPage() {
 
         // Emergency contact
         parentsInfo: {
-          parentName: formData.parentname,
+          parentfirstname: formData.parentfirstname,
+          parentlastname: formData.parentlastname,
           parentPhone: formData.parentphone,
           parentEmail: formData.parentemail,
           relationship: formData.relationship,
