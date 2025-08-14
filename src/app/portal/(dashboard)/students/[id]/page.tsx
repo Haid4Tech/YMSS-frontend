@@ -7,8 +7,8 @@ import { studentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
 import { enhancedGradesAPI } from "@/jotai/grades/grades";
 import { Grade } from "@/jotai/grades/grades-types";
-import { enhancedAttendanceAPI } from "@/jotai/attendance/attendance";
-import { Attendance } from "@/jotai/attendance/attendance-type";
+import { enhancedSubjectAttendanceAPI } from "@/jotai/subject-attendance/subject-attendance";
+import { SubjectAttendance } from "@/jotai/subject-attendance/subject-attendance-type";
 import { Button } from "@/components/ui/button";
 import { DynamicHeader } from "@/components/general/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +35,7 @@ export default function StudentDetailPage() {
 
   const [student, setStudent] = useState<Student | null>(null);
   const [grades, setGrades] = useState<Grade[]>([]);
-  const [attendance, setAttendance] = useState<Attendance[]>([]);
+  const [attendance, setAttendance] = useState<SubjectAttendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -47,7 +47,7 @@ export default function StudentDetailPage() {
         const [studentData, gradesData, attendanceData] = await Promise.all([
           studentsAPI.getById(parseInt(studentId)),
           enhancedGradesAPI.getByStudent(parseInt(studentId)),
-          enhancedAttendanceAPI.getByStudent(parseInt(studentId)),
+          enhancedSubjectAttendanceAPI.getByStudent(parseInt(studentId)),
         ]);
 
         // Validate student data structure
