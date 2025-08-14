@@ -32,3 +32,15 @@ export interface UpdateSubjectAttendanceData {
   id: number;
   status: AttendanceStatus;
 }
+
+export interface AttendanceRecord {
+  studentId: number;
+  status: AttendanceStatus;
+  notes?: string;
+}
+
+export interface BulkAttendanceData {
+  subjectId: number;
+  date: string;
+  attendanceRecords: AttendanceRecord[];
+}

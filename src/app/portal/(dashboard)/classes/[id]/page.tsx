@@ -9,8 +9,8 @@ import { studentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
 import { enhancedGradesAPI } from "@/jotai/grades/grades";
 import { Grade } from "@/jotai/grades/grades-types";
-import { enhancedAttendanceAPI } from "@/jotai/attendance/attendance";
-import { Attendance } from "@/jotai/attendance/attendance-type";
+import { enhancedSubjectAttendanceAPI } from "@/jotai/subject-attendance/subject-attendance";
+import { SubjectAttendance } from "@/jotai/subject-attendance/subject-attendance-type";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/general/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,7 +40,7 @@ export default function ClassDetailPage() {
   const [classData, setClassData] = useState<Class | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [grades, setGrades] = useState<Grade[]>([]);
-  const [attendance, setAttendance] = useState<Attendance[]>([]);
+  const [attendance, setAttendance] = useState<SubjectAttendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -51,7 +51,7 @@ export default function ClassDetailPage() {
         const [classInfo, gradesData, attendanceData] = await Promise.all([
           classesAPI.getById(parseInt(classId)),
           enhancedGradesAPI.getByClass(parseInt(classId)),
-          enhancedAttendanceAPI.getByClass(parseInt(classId)),
+          enhancedSubjectAttendanceAPI.getByClass(parseInt(classId)),
         ]);
 
         setClassData(classInfo);

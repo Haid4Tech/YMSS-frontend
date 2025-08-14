@@ -11,11 +11,8 @@ import { classesAPI } from "@/jotai/class/class";
 import { Class } from "@/jotai/class/class-type";
 import { subjectsAPI } from "@/jotai/subject/subject";
 import { Subject } from "@/jotai/subject/subject-types";
-import { useRouter } from "next/navigation";
 
 export default function AttendancePage() {
-  const router = useRouter();
-
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("class");
@@ -48,7 +45,7 @@ export default function AttendancePage() {
     };
 
     fetchData();
-  }, []);
+  }, [getAllClasses, getAllSubjects]);
 
   const filteredClasses = Array.isArray(classes)
     ? classes.filter((classitem) =>
@@ -91,11 +88,16 @@ export default function AttendancePage() {
           </p>
         </div>
 
-        {!isParent && !isStudent && (
-          <Button asChild>
-            <Link href="/portal/attendance/new">Manage Class Attendance</Link>
+        <div className="flex gap-2">
+          {!isParent && !isStudent && (
+            <Button asChild>
+              <Link href="/portal/attendance/new">Manage Class Attendance</Link>
+            </Button>
+          )}
+          <Button variant="outline" asChild>
+            <Link href="/portal/attendance/analytics">View Analytics</Link>
           </Button>
-        )}
+        </div>
       </div>
 
       {/* Tab Navigation */}
@@ -188,12 +190,12 @@ export default function AttendancePage() {
                     <p>{subject?.class?.name ?? "N/A"}</p>
                   </div>
                   <div className="flex flex-row items-center justify-between text-sm">
-                    <p>Category</p>
-                    <p>{subject?.category ?? "N/A"}</p>
+                    <p>Code</p>
+                    <p>{subject?.code ?? "N/A"}</p>
                   </div>
                   <div className="flex flex-row items-center justify-between text-sm">
-                    <p>Weekly Hours</p>
-                    <p>{subject?.weeklyHours ?? "N/A"}</p>
+                    <p>Credits</p>
+                    <p>{subject?.credits ?? "N/A"}</p>
                   </div>
                 </CardContent>
               </CardHeader>
