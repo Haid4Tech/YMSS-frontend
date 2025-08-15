@@ -46,7 +46,9 @@ const EventCard: FC<IEventCard> = ({ event, canModify, onDelete }) => {
           </p>
           <p className="text-sm text-muted-foreground">
             <span className="font-medium">Created by:</span>{" "}
-            {event?.createdBy?.name || "Unknown"}
+            {`${event?.createdBy?.firstname ?? "Not"} ${
+              event?.createdBy?.lastname
+            }`}
           </p>
           <p className="text-sm text-muted-foreground">
             <span className="font-medium">Event ID:</span> {event?.id}

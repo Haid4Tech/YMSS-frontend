@@ -90,7 +90,7 @@ export default function StudentDetailPage() {
     attendanceRate:
       Array.isArray(attendance) && attendance.length > 0
         ? (
-            (attendance.filter((a) => a?.present === true).length /
+            (attendance.filter((a) => a?.status === "PRESENT").length /
               attendance.length) *
             100
           ).toFixed(1)
@@ -129,12 +129,12 @@ export default function StudentDetailPage() {
     ? [
         {
           name: "Present",
-          value: attendance.filter((a) => a?.present === true).length,
+          value: attendance.filter((a) => a?.status === "PRESENT").length,
           color: "#10B981",
         },
         {
           name: "Absent",
-          value: attendance.filter((a) => a?.present === false).length,
+          value: attendance.filter((a) => a?.status === "ABSENT").length,
           color: "#EF4444",
         },
       ]
@@ -433,12 +433,12 @@ export default function StudentDetailPage() {
                     </div>
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        record.present
+                        record.status === "PRESENT"
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {record.present ? "Present" : "Absent"}
+                      {record.status === "PRESENT" ? "Present" : "Absent"}
                     </span>
                   </div>
                 ))}

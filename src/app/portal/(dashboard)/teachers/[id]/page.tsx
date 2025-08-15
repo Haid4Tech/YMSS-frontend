@@ -318,30 +318,6 @@ export default function TeacherDetailPage() {
                   </SafeRender>
                 </p>
               </div>
-              {teacher?.emergencyContact && (
-                <>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Emergency Contact Name
-                    </label>
-                    <p className="text-sm">
-                      <SafeRender fallback="Not provided">
-                        {teacher.emergencyContact.name}
-                      </SafeRender>
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Emergency Contact Phone
-                    </label>
-                    <p className="text-sm">
-                      <SafeRender fallback="Not provided">
-                        {teacher.emergencyContact.phone}
-                      </SafeRender>
-                    </p>
-                  </div>
-                </>
-              )}
             </div>
           </CardContent>
         </Card>
