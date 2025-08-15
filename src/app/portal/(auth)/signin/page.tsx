@@ -58,8 +58,12 @@ export default function SignIn() {
     return (
       <div className={"flex flex-col gap-4 items-center justify-center"}>
         <p className="text-base text-center">
-          Welcome back <span className="font-bold "> {user?.name}</span>. You
-          should be redirected in a few seconds, if not click the button below.
+          Welcome back{" "}
+          <span className="font-bold ">
+            {user?.firstname} {user?.lastname}
+          </span>
+          . You should be redirected in a few seconds, if not click the button
+          below.
         </p>
         <Button
           onClick={() => {

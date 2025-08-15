@@ -68,7 +68,7 @@ export default function AttendanceAnalyticsPage() {
     setLoading(true);
     try {
       const classId = parseInt(selectedClass);
-      const subjectId = parseInt(selectedSubject);
+      // const subjectId = parseInt(selectedSubject);
 
       // Fetch attendance data for the date range
       const startDateStr = startDate.toISOString().split("T")[0];
@@ -76,9 +76,8 @@ export default function AttendanceAnalyticsPage() {
 
       // For now, we'll fetch current date attendance and calculate stats
       // In a real implementation, you'd want to fetch data for the date range
-      const attendance = await subjectAttendanceAPI.getByClassAndSubject(
+      const attendance = await subjectAttendanceAPI.getByClassAndDate(
         classId,
-        subjectId,
         startDateStr
       );
 

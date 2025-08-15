@@ -18,12 +18,12 @@ import {
   UserCog,
   Settings,
   HelpCircle,
-  // MessageSquare,
   Megaphone,
   CalendarDays,
   FileText,
-  BookMarked,
-  UserPlus,
+  // MessageSquare,
+  // BookMarked,
+  // UserPlus,
 } from "lucide-react";
 
 interface PortalSidebarProps {

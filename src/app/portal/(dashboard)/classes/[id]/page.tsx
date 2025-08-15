@@ -9,8 +9,8 @@ import { studentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
 import { enhancedGradesAPI } from "@/jotai/grades/grades";
 import { Grade } from "@/jotai/grades/grades-types";
-import { enhancedSubjectAttendanceAPI } from "@/jotai/subject-attendance/subject-attendance";
-import { SubjectAttendance } from "@/jotai/subject-attendance/subject-attendance-type";
+// import { enhancedSubjectAttendanceAPI } from "@/jotai/subject-attendance/subject-attendance";
+// import { SubjectAttendance } from "@/jotai/subject-attendance/subject-attendance-type";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/general/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,8 +26,8 @@ import {
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
+  // LineChart,
+  // Line,
 } from "recharts";
 
 import { StudentRosterCard } from "@/components/portal/dashboards/class/student-roster-card";
@@ -40,7 +40,7 @@ export default function ClassDetailPage() {
   const [classData, setClassData] = useState<Class | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [grades, setGrades] = useState<Grade[]>([]);
-  const [attendance, setAttendance] = useState<SubjectAttendance[]>([]);
+  // const [attendance, setAttendance] = useState<SubjectAttendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -48,16 +48,16 @@ export default function ClassDetailPage() {
     const fetchClassData = async () => {
       try {
         const studentsData = studentsAPI.getStudentsByClass(parseInt(classId));
-        const [classInfo, gradesData, attendanceData] = await Promise.all([
+        const [classInfo, gradesData] = await Promise.all([
           classesAPI.getById(parseInt(classId)),
           enhancedGradesAPI.getByClass(parseInt(classId)),
-          enhancedSubjectAttendanceAPI.getByClass(parseInt(classId)),
+          // enhancedSubjectAttendanceAPI.getByClass(parseInt(classId)),
         ]);
 
         setClassData(classInfo);
         setStudents(Array.isArray(studentsData) ? studentsData : []);
         setGrades(Array.isArray(gradesData) ? gradesData : []);
-        setAttendance(Array.isArray(attendanceData) ? attendanceData : []);
+        // setAttendance(Array.isArray(attendanceData) ? attendanceData : []);
       } catch (error) {
         console.error("Failed to fetch class data:", error);
       } finally {
@@ -80,13 +80,13 @@ export default function ClassDetailPage() {
             grades.length
           ).toFixed(1)
         : "N/A",
-    attendanceRate:
-      attendance.length > 0
-        ? (
-            (attendance.filter((a) => a.present).length / attendance.length) *
-            100
-          ).toFixed(1)
-        : "N/A",
+    // attendanceRate:
+    //   attendance.length > 0
+    //     ? (
+    //         (attendance.filter((a) => a.status).length / attendance.length) *
+    //         100
+    //       ).toFixed(1)
+    //     : "N/A",
     capacity: classData?.capacity || 0,
   };
 
@@ -131,22 +131,22 @@ export default function ClassDetailPage() {
   }));
 
   // Monthly attendance trend
-  const monthlyAttendance = attendance.reduce((acc, record) => {
-    const month = record.date
-      ? new Date(record.date).toLocaleDateString("en", { month: "short" })
-      : "Unknown";
-    if (!acc[month]) {
-      acc[month] = { month, present: 0, total: 0 };
-    }
-    acc[month].total += 1;
-    if (record.present) acc[month].present += 1;
-    return acc;
-  }, {} as Record<string, { month: string; present: number; total: number }>);
+  // const monthlyAttendance = attendance.reduce((acc, record) => {
+  //   const month = record.date
+  //     ? new Date(record.date).toLocaleDateString("en", { month: "short" })
+  //     : "Unknown";
+  //   if (!acc[month]) {
+  //     acc[month] = { month, present: 0, total: 0 };
+  //   }
+  //   acc[month].total += 1;
+  //   if (record.status) acc[month].present += 1;
+  //   return acc;
+  // }, {} as Record<string, { month: string; present: number; total: number }>);
 
-  const attendanceChart = Object.values(monthlyAttendance).map((item) => ({
-    month: item.month,
-    rate: ((item.present / item.total) * 100).toFixed(1),
-  }));
+  // const attendanceChart = Object.values(monthlyAttendance).map((item) => ({
+  //   month: item.month,
+  //   rate: ((item.present / item.total) * 100).toFixed(1),
+  // }));
 
   if (loading) {
     return (
@@ -185,7 +185,7 @@ export default function ClassDetailPage() {
       />
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-primary">
@@ -202,14 +202,14 @@ export default function ClassDetailPage() {
             <p className="text-sm text-muted-foreground">Average Grade</p>
           </CardContent>
         </Card>
-        <Card>
+        {/* <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-green-600">
               {classStats.attendanceRate}%
             </div>
             <p className="text-sm text-muted-foreground">Attendance Rate</p>
           </CardContent>
-        </Card>
+        </Card> */}
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-purple-600">
@@ -227,7 +227,7 @@ export default function ClassDetailPage() {
             { id: "overview", label: "Overview" },
             { id: "students", label: "Students Roster" },
             { id: "performance", label: "Academic Performance" },
-            { id: "attendance", label: "Attendance Analytics" },
+            // { id: "attendance", label: "Attendance Analytics" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -424,103 +424,6 @@ export default function ClassDetailPage() {
               ) : (
                 <div className="text-center text-muted-foreground py-8">
                   No performance data available
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {activeTab === "attendance" && (
-        <div className="space-y-6">
-          {/* Monthly Attendance Trend */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Monthly Attendance Trend</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {attendanceChart.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={attendanceChart}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="rate"
-                      stroke="#8884d8"
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-muted-foreground py-8">
-                  No attendance data available
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Attendance Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Attendance Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {attendance.length > 0 ? (
-                <div className="space-y-4">
-                  {students.map((student) => {
-                    const studentAttendance = attendance.filter(
-                      (a) => a.studentId === student.id
-                    );
-                    const presentCount = studentAttendance.filter(
-                      (a) => a.present
-                    ).length;
-                    const attendanceRate =
-                      studentAttendance.length > 0
-                        ? (
-                            (presentCount / studentAttendance.length) *
-                            100
-                          ).toFixed(1)
-                        : "0";
-
-                    return (
-                      <div
-                        key={student.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium">{`${student.user.firstname} ${student.user.lastname}`}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {presentCount}/{studentAttendance.length} classes
-                            attended
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p
-                            className={`font-bold text-lg ${
-                              parseFloat(attendanceRate) >= 90
-                                ? "text-green-600"
-                                : parseFloat(attendanceRate) >= 75
-                                ? "text-yellow-600"
-                                : "text-red-600"
-                            }`}
-                          >
-                            {attendanceRate}%
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Attendance
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground py-8">
-                  No attendance records available
                 </div>
               )}
             </CardContent>
