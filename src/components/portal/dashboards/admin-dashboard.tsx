@@ -183,8 +183,9 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
         <div>
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back, {user.name}. Here&apos;s what&apos;s happening at YMSS
-            today.
+            Welcome back,{" "}
+            {`${user.firstname ?? "Not"} ${user.lastname ?? "Available"}`}.
+            Here&apos;s what&apos;s happening at YMSS today.
           </p>
         </div>
       </div>

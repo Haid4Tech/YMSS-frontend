@@ -261,7 +261,9 @@ export default function AddExamPage() {
                 >
                   {teachers.map((teacher, index) => (
                     <SelectItem key={index} value={teacher.id.toString()}>
-                      {teacher.user.name}
+                      {`${teacher.user.firstname ?? "Not"} ${
+                        teacher.user.lastname ?? "Available"
+                      }`}
                     </SelectItem>
                   ))}
                 </SelectField>

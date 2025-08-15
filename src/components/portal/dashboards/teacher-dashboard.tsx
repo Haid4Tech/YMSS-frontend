@@ -15,7 +15,9 @@ export default function TeacherDashboard({ user }: TeacherDashboardProps) {
       <div>
         <h1 className="text-3xl font-bold">Teacher Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back, {user.name}. Manage your classes and students.
+          Welcome back,{" "}
+          {`${user.firstname ?? "Not"} ${user.lastname ?? "Available"}`}. Manage
+          your classes and students.
         </p>
       </div>
 

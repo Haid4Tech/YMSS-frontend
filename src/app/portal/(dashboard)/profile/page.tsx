@@ -38,7 +38,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name || "",
+        name: `${user.firstname ?? "Not"} ${user.lastname ?? "Available"}`,
         email: user.email || "",
         // TODO: Uncomment when added to schema
         // phone: user.phone || "",
@@ -87,7 +87,7 @@ export default function ProfilePage() {
     // Reset form to original values
     if (user) {
       setFormData({
-        name: user.name || "",
+        name: `${user.firstname ?? "Not"} ${user.lastname ?? "Available"}`,
         email: user.email || "",
         // TODO: Reset other fields when added to schema
       });

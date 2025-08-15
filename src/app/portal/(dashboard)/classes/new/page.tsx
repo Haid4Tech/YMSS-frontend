@@ -287,7 +287,9 @@ export default function AddClassPage() {
                 <SelectItem value="none">No Class Teacher</SelectItem>
                 {teachers.map((teacher) => (
                   <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                    {teacher.user.name}
+                    {`${teacher.user.firstname ?? "Not"} ${
+                      teacher.user.lastname ?? "Available"
+                    }`}
                   </SelectItem>
                 ))}
               </SelectField>

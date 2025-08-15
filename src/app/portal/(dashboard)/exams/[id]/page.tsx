@@ -23,7 +23,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import {PageHeader} from "@/components/general/page-header";
+import { PageHeader } from "@/components/general/page-header";
 
 export default function ExamDetailPage() {
   const params = useParams();
@@ -516,7 +516,9 @@ export default function ExamDetailPage() {
                       </div>
                       <div>
                         <h3 className="font-medium">
-                          {result.student?.user.name}
+                          {`${result.student?.user.firstname ?? "Not"} ${
+                            result?.student?.user?.lastname ?? "Available"
+                          }`}
                         </h3>
                         <p className="text-sm text-muted-foreground">
                           {result.student?.user.email}
