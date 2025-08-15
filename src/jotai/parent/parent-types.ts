@@ -1,9 +1,11 @@
 import { User } from "../auth/auth-types";
+import { Student } from "../students/student-types";
 
 export interface Parent {
   id: number;
   userId: number;
   user: User;
+  students: Array<Student>;
 }
 
 export interface CreateParentProp {
