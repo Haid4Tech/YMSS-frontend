@@ -1,18 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { enhancedStudentsAPI } from "@/jotai/students/student";
+import { studentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
 import { enhancedGradesAPI } from "@/jotai/grades/grades";
 import { Grade } from "@/jotai/grades/grades-types";
-import { enhancedAttendanceAPI } from "@/jotai/attendance/attendance";
-import { Attendance } from "@/jotai/attendance/attendance-type";
+import { enhancedSubjectAttendanceAPI } from "@/jotai/subject-attendance/subject-attendance";
+import { SubjectAttendance } from "@/jotai/subject-attendance/subject-attendance-type";
 import { Button } from "@/components/ui/button";
+import { DynamicHeader } from "@/components/general/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PersonAvatar } from "@/components/ui/person-avatar";
-import { SafeRender } from "@/components/ui/safe-render";
 import {
   LineChart,
   Line,
@@ -30,12 +29,13 @@ import {
 } from "recharts";
 
 export default function StudentDetailPage() {
+  const router = useRouter();
   const params = useParams();
   const studentId = params.id as string;
 
   const [student, setStudent] = useState<Student | null>(null);
   const [grades, setGrades] = useState<Grade[]>([]);
-  const [attendance, setAttendance] = useState<Attendance[]>([]);
+  const [attendance, setAttendance] = useState<SubjectAttendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -45,9 +45,9 @@ export default function StudentDetailPage() {
         setLoading(true);
 
         const [studentData, gradesData, attendanceData] = await Promise.all([
-          enhancedStudentsAPI.getById(parseInt(studentId)),
+          studentsAPI.getById(parseInt(studentId)),
           enhancedGradesAPI.getByStudent(parseInt(studentId)),
-          enhancedAttendanceAPI.getByStudent(parseInt(studentId)),
+          enhancedSubjectAttendanceAPI.getByStudent(parseInt(studentId)),
         ]);
 
         // Validate student data structure
@@ -90,7 +90,7 @@ export default function StudentDetailPage() {
     attendanceRate:
       Array.isArray(attendance) && attendance.length > 0
         ? (
-            (attendance.filter((a) => a?.present === true).length /
+            (attendance.filter((a) => a?.status === "PRESENT").length /
               attendance.length) *
             100
           ).toFixed(1)
@@ -129,12 +129,12 @@ export default function StudentDetailPage() {
     ? [
         {
           name: "Present",
-          value: attendance.filter((a) => a?.present === true).length,
+          value: attendance.filter((a) => a?.status === "PRESENT").length,
           color: "#10B981",
         },
         {
           name: "Absent",
-          value: attendance.filter((a) => a?.present === false).length,
+          value: attendance.filter((a) => a?.status === "ABSENT").length,
           color: "#EF4444",
         },
       ]
@@ -164,29 +164,23 @@ export default function StudentDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/portal/students">← Back</Link>
+      <DynamicHeader
+        name={`${student?.user.firstname ?? "Unknown"} ${
+          student?.user?.lastname ?? "Student"
+        }`}
+        title={`${student?.user.firstname ?? "Unknown"} ${
+          student?.user?.lastname ?? "Student"
+        }`}
+        subtitle={"Student Profile"}
+        endBtns={
+          <Button
+            onClick={() => router.push(`${studentId}/edit`)}
+            variant="default"
+          >
+            Edit Profile
           </Button>
-          <PersonAvatar
-            name={student?.user?.name || "Unknown Student"}
-            size="xl"
-          />
-          <div>
-            <h1 className="text-3xl font-bold">
-              <SafeRender fallback="Unknown Student">
-                {student?.user?.name}
-              </SafeRender>
-            </h1>
-            <p className="text-muted-foreground">Student Profile</p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">Edit Profile</Button>
-          <Button>Send Message</Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -236,7 +230,7 @@ export default function StudentDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`cursor-pointer py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -262,7 +256,9 @@ export default function StudentDetailPage() {
                   <label className="text-sm font-medium text-muted-foreground">
                     Full Name
                   </label>
-                  <p className="text-sm">{student.user.name}</p>
+                  <p className="text-sm">{`${
+                    student?.user.firstname ?? "Unknown"
+                  } ${student?.user?.lastname ?? "Student"}`}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">
@@ -302,9 +298,15 @@ export default function StudentDetailPage() {
                   <label className="text-sm font-medium text-muted-foreground">
                     Parent
                   </label>
-                  <p className="text-sm">
-                    {student?.parent?.user?.name || "Not assigned"}
-                  </p>
+                  {student?.parents?.map((parent, index) => (
+                    <div key={index}>
+                      <p className="text-sm">
+                        {parent?.parent?.user?.firstname +
+                          " " +
+                          parent?.parent.user?.lastname || "Not assigned"}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </CardContent>
@@ -431,12 +433,12 @@ export default function StudentDetailPage() {
                     </div>
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        record.present
+                        record.status === "PRESENT"
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {record.present ? "Present" : "Absent"}
+                      {record.status === "PRESENT" ? "Present" : "Absent"}
                     </span>
                   </div>
                 ))}

@@ -15,8 +15,9 @@ export default function ParentDashboard({ user }: ParentDashboardProps) {
       <div>
         <h1 className="text-3xl font-bold">Parent Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back, {user.name}. Monitor your child&apos;s academic
-          progress.
+          Welcome back,{" "}
+          {`${user.firstname ?? "Not"} ${user.lastname ?? "Available"}`}.
+          Monitor your child&apos;s academic progress.
         </p>
       </div>
 

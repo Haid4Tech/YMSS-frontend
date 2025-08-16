@@ -7,56 +7,59 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@radix-ui/themes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { extractErrorMessage } from "@/utils/helpers";
+
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+  SelectField,
+  InputField,
+  TextareaField,
+} from "@/components/ui/form-field";
+import { SelectItem } from "@/components/ui/select";
 import { subjectsAPI } from "@/jotai/subject/subject";
 import { teachersAPI } from "@/jotai/teachers/teachers";
 import { Teacher } from "@/jotai/teachers/teachers-types";
-import PageHeader from "@/components/general/page-header";
+import { PageHeader } from "@/components/general/page-header";
+import { classesAPI } from "@/jotai/class/class";
+import { Class } from "@/jotai/class/class-type";
 
 export default function AddSubjectPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [classes, setClasses] = useState<Class[]>([]);
+
   const [, getAllTeachers] = useAtom(teachersAPI.getAll);
+  const [, getAllClasses] = useAtom(classesAPI.getAll);
 
   const [formData, setFormData] = useState({
     name: "",
-    code: "",
     description: "",
-    credits: "",
-    grade: "",
+    classId: "",
     category: "",
     teacherId: "",
-    syllabus: "",
-    objectives: "",
-    prerequisites: "",
-    textbooks: "",
-    assessmentMethods: "",
     weeklyHours: "",
-    practicalHours: "",
-    theoryHours: "",
   });
 
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
-        const teachersData = await getAllTeachers();
-        setTeachers(Array.isArray(teachersData) ? teachersData : []);
+        const [teachersData, classesData] = await Promise.all([
+          getAllTeachers(),
+          getAllClasses(),
+        ]);
+
+        setTeachers(
+          Array.isArray(teachersData.teachers) ? teachersData.teachers : []
+        );
+        setClasses(Array.isArray(classesData) ? classesData : []);
       } catch (error) {
         console.error("Failed to fetch teachers:", error);
       }
     };
     fetchTeachers();
-  }, [getAllTeachers]);
+  }, [getAllTeachers, getAllClasses]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -69,30 +72,24 @@ export default function AddSubjectPage() {
     try {
       const subjectData = {
         name: formData.name,
-        code: formData.code,
         description: formData.description,
-        credits: parseInt(formData.credits) || 0,
-        grade: formData.grade,
+        classId: parseInt(formData.classId),
         category: formData.category,
         teacherId:
           formData.teacherId && formData.teacherId !== "none"
             ? parseInt(formData.teacherId)
             : null,
-        syllabus: formData.syllabus,
-        objectives: formData.objectives,
-        prerequisites: formData.prerequisites,
-        textbooks: formData.textbooks,
-        assessmentMethods: formData.assessmentMethods,
         weeklyHours: parseInt(formData.weeklyHours) || 0,
-        practicalHours: parseInt(formData.practicalHours) || 0,
-        theoryHours: parseInt(formData.theoryHours) || 0,
       };
 
       await subjectsAPI.create(subjectData);
+      toast.success("Successfully created Subject");
       router.push("/portal/subjects");
     } catch (error) {
-      console.error("Failed to create subject:", error);
-      alert("Failed to create subject. Please try again.");
+      const errorMessage = extractErrorMessage(error);
+      toast.error(
+        `Failed to create subject. Please try again. ${errorMessage}`
+      );
     } finally {
       setLoading(false);
     }
@@ -115,8 +112,8 @@ export default function AddSubjectPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Subject Name *</Label>
-                <Input
+                <InputField
+                  label={"Subject Name"}
                   id="name"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
@@ -124,103 +121,68 @@ export default function AddSubjectPage() {
                   required
                 />
               </div>
+
               <div>
-                <Label htmlFor="code">Subject Code *</Label>
-                <Input
-                  id="code"
-                  value={formData.code}
-                  onChange={(e) => handleInputChange("code", e.target.value)}
-                  placeholder="e.g., MATH101, PHY201"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="grade">Grade Level</Label>
-                <Select
-                  value={formData.grade}
-                  onValueChange={(value) => handleInputChange("grade", value)}
+                <SelectField
+                  label={"Classes"}
+                  placeholder="Select Class"
+                  value={formData.classId}
+                  onValueChange={(value) => handleInputChange("classId", value)}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select grade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <SelectItem key={i + 1} value={(i + 1).toString()}>
-                        Grade {i + 1}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value="all">All Grades</SelectItem>
-                  </SelectContent>
-                </Select>
+                  {classes.map((cls) => (
+                    <SelectItem key={cls.id} value={String(cls.id)}>
+                      {cls.name}
+                    </SelectItem>
+                  ))}
+                </SelectField>
               </div>
               <div>
-                <Label htmlFor="category">Category</Label>
-                <Select
+                <SelectField
+                  label={"Category"}
+                  placeholder="Select category"
                   value={formData.category}
                   onValueChange={(value) =>
                     handleInputChange("category", value)
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="core">Core Subject</SelectItem>
-                    <SelectItem value="elective">Elective</SelectItem>
-                    <SelectItem value="language">Language</SelectItem>
-                    <SelectItem value="science">Science</SelectItem>
-                    <SelectItem value="mathematics">Mathematics</SelectItem>
-                    <SelectItem value="social_studies">
-                      Social Studies
+                  {["science", "art", "general"].map((category, index) => (
+                    <SelectItem
+                      className="capitalize cursor-pointer"
+                      key={index}
+                      value={category}
+                    >
+                      {category}
                     </SelectItem>
-                    <SelectItem value="arts">Arts</SelectItem>
-                    <SelectItem value="physical_education">
-                      Physical Education
-                    </SelectItem>
-                    <SelectItem value="technology">Technology</SelectItem>
-                  </SelectContent>
-                </Select>
+                  ))}
+                </SelectField>
               </div>
+
               <div>
-                <Label htmlFor="credits">Credits</Label>
-                <Input
-                  id="credits"
-                  type="number"
-                  value={formData.credits}
-                  onChange={(e) => handleInputChange("credits", e.target.value)}
-                  min="0"
-                  max="10"
-                  step="0.5"
-                />
-              </div>
-              <div>
-                <Label htmlFor="teacherId">Assigned Teacher</Label>
-                <Select
+                <SelectField
+                  label={"Assign Teacher"}
+                  placeholder="Select teacher"
                   value={formData.teacherId}
                   onValueChange={(value) =>
                     handleInputChange("teacherId", value)
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select teacher" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No teacher assigned</SelectItem>
-                    {teachers.map((teacher) => (
+                  <SelectItem value="none">No teacher assigned</SelectItem>
+                  {teachers.map((teacher) => {
+                    return (
                       <SelectItem
                         key={teacher.id}
                         value={teacher.id.toString()}
                       >
-                        {teacher.user.name}
+                        {`${teacher.user.firstname} ${teacher.user.lastname}`}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    );
+                  })}
+                </SelectField>
               </div>
               <div className="md:col-span-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
+                <TextareaField
                   id="description"
+                  label="Description"
                   value={formData.description}
                   onChange={(e) =>
                     handleInputChange("description", e.target.value)
@@ -240,8 +202,8 @@ export default function AddSubjectPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="weeklyHours">Weekly Hours</Label>
-                <Input
+                <InputField
+                  label={"Weekly Hours"}
                   id="weeklyHours"
                   type="number"
                   value={formData.weeklyHours}
@@ -252,9 +214,9 @@ export default function AddSubjectPage() {
                   max="20"
                 />
               </div>
-              <div>
-                <Label htmlFor="theoryHours">Theory Hours (per week)</Label>
-                <Input
+              {/* <div>
+                <InputField
+                  label="Theory Hours (per week)"
                   id="theoryHours"
                   type="number"
                   value={formData.theoryHours}
@@ -264,12 +226,10 @@ export default function AddSubjectPage() {
                   min="0"
                   max="20"
                 />
-              </div>
-              <div>
-                <Label htmlFor="practicalHours">
-                  Practical Hours (per week)
-                </Label>
-                <Input
+              </div> */}
+              {/* <div>
+                <InputField
+                  label={"Practical Hours (per week)"}
                   id="practicalHours"
                   type="number"
                   value={formData.practicalHours}
@@ -279,20 +239,20 @@ export default function AddSubjectPage() {
                   min="0"
                   max="20"
                 />
-              </div>
+              </div> */}
             </div>
           </CardContent>
         </Card>
 
         {/* Curriculum Details */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>Curriculum Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="objectives">Learning Objectives</Label>
-              <Textarea
+              <TextareaField
+                label={"Learning Objectives"}
                 id="objectives"
                 value={formData.objectives}
                 onChange={(e) =>
@@ -302,8 +262,8 @@ export default function AddSubjectPage() {
               />
             </div>
             <div>
-              <Label htmlFor="syllabus">Syllabus Topics</Label>
-              <Textarea
+              <TextareaField
+                label={"Syllabus Topics"}
                 id="syllabus"
                 value={formData.syllabus}
                 onChange={(e) => handleInputChange("syllabus", e.target.value)}
@@ -311,8 +271,8 @@ export default function AddSubjectPage() {
               />
             </div>
             <div>
-              <Label htmlFor="prerequisites">Prerequisites</Label>
-              <Textarea
+              <TextareaField
+                label={"Prerequisites"}
                 id="prerequisites"
                 value={formData.prerequisites}
                 onChange={(e) =>
@@ -322,8 +282,8 @@ export default function AddSubjectPage() {
               />
             </div>
             <div>
-              <Label htmlFor="textbooks">Textbooks & Resources</Label>
-              <Textarea
+              <TextareaField
+                label={"Textbooks & Resources"}
                 id="textbooks"
                 value={formData.textbooks}
                 onChange={(e) => handleInputChange("textbooks", e.target.value)}
@@ -331,8 +291,8 @@ export default function AddSubjectPage() {
               />
             </div>
             <div>
-              <Label htmlFor="assessmentMethods">Assessment Methods</Label>
-              <Textarea
+              <TextareaField
+                label="Assessment Methods"
                 id="assessmentMethods"
                 value={formData.assessmentMethods}
                 onChange={(e) =>
@@ -342,7 +302,7 @@ export default function AddSubjectPage() {
               />
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Form Actions */}
         <div className="flex items-center justify-between">

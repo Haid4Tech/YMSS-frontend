@@ -62,6 +62,11 @@ export const subjectsAPI = {
     );
     return response.data;
   },
+
+  getSubjectByClassID: async (classId: number) => {
+    const response = await axiosInstance.get(`/subjects/class/${classId}`);
+    return response.data;
+  },
 };
 
 export const enhancedSubjectsAPI = {

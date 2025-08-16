@@ -12,6 +12,7 @@ import {
 import { useAtom } from "jotai";
 import { authAPI } from "@/jotai/auth/auth";
 import { toast } from "sonner";
+import { extractErrorMessage } from "@/utils/helpers";
 
 const UserProfile = () => {
   const [logoutLoading, setLogoutLoading] = useState(false);
@@ -21,18 +22,14 @@ const UserProfile = () => {
   const handleLogout = async () => {
     try {
       setLogoutLoading(true);
-      console.log("🚪 UserProfile: Starting logout...");
-
       await triggerLogout("User logout from UserProfile");
-
-      console.log("🚪 UserProfile: Logout completed, redirecting...");
-
       toast.success("Logged out successfully!");
 
       // Immediate redirect after logout
       router.push("/portal/signin");
     } catch (error) {
-      console.error("Logout error:", error);
+      const errorMessage = extractErrorMessage(error);
+      console.error("Logout error:", errorMessage);
       toast.error("Logout failed, but redirecting anyway");
       // Force redirect even if logout fails
       router.push("/portal/signin");

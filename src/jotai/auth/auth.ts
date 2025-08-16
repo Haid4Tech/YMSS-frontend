@@ -24,7 +24,8 @@ export const authPersistedAtom = atomWithStorage<AuthSession | null>(
 
 export const loginFormAtom = atom<SignInProps>({ email: "", password: "" });
 export const signupFormAction = atom<SignUpProps>({
-  name: "",
+  lastname: "",
+  firstname: "",
   email: "",
   password: "",
   role: undefined,
@@ -46,6 +47,8 @@ export const authAPI = {
 
     try {
       const form = get(signupFormAction);
+      console.log("form data ", form);
+
       const response = await axiosInstance.post(`/auth/register`, form);
       const authData = response.data as AuthSession;
 
@@ -112,7 +115,7 @@ export const authAPI = {
       if (currentSession) {
         const updatedSession: AuthSession = {
           ...currentSession,
-          user: { ...currentSession.user, ...updatedUser }
+          user: { ...currentSession.user, ...updatedUser },
         };
         set(authPersistedAtom, updatedSession);
       }

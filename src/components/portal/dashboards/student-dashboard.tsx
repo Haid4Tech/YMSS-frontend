@@ -15,7 +15,9 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
       <div>
         <h1 className="text-3xl font-bold">Student Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back, {user.name}. Track your academic progress.
+          Welcome back,{" "}
+          {`${user.firstname ?? "Not"} ${user.lastname ?? "Available"}`}. Track
+          your academic progress.
         </p>
       </div>
 

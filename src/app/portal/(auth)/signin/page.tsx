@@ -5,10 +5,11 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { InputField } from "@/components/ui/form-field";
 import { Spinner } from "@radix-ui/themes";
 import { SignInStatesProp } from "@/common/types";
 import { SignInStates } from "@/common/states";
+import { ArrowLeft } from "lucide-react";
 
 import {
   userAtom,
@@ -57,8 +58,12 @@ export default function SignIn() {
     return (
       <div className={"flex flex-col gap-4 items-center justify-center"}>
         <p className="text-base text-center">
-          Welcome back <span className="font-bold "> {user?.name}</span>. You
-          should be redirected in a few seconds, if not click the button below.
+          Welcome back{" "}
+          <span className="font-bold ">
+            {user?.firstname} {user?.lastname}
+          </span>
+          . You should be redirected in a few seconds, if not click the button
+          below.
         </p>
         <Button
           onClick={() => {
@@ -97,26 +102,20 @@ export default function SignIn() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email Address
-          </label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={loading.portalLoginState}
-          />
-        </div>
+        <InputField
+          label="Email Address"
+          id="email"
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          disabled={loading.portalLoginState}
+        />
 
         <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium">
-            Password
-          </label>
-          <Input
+          <InputField
+            label={"Password"}
             id="password"
             type="password"
             placeholder="Enter your password"
@@ -170,14 +169,14 @@ export default function SignIn() {
           </Link>
         </p>
 
-        <div className="text-center">
-          <Link
-            href="/"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            ← Back to Homepage
-          </Link>
-        </div>
+        <Button
+          onClick={() => router.push("/")}
+          variant={"link"}
+          className="flex flex-row items-center text-center mx-auto"
+        >
+          <ArrowLeft size={18} />
+          <p>Back to Homepage</p>
+        </Button>
       </div>
     </div>
   );

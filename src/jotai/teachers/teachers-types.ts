@@ -8,42 +8,23 @@ export interface Teacher {
   user: User;
   userId: number;
 
-  // Contact Information
-  phone?: string;
-
-  // Professional Details
-  department?: string;
-  qualification?: string;
-  experience?: number; // in years
-  specialization?: string;
-  employeeId?: string;
-  joinDate?: string;
+  experience?: string; // in years
   hireDate?: string; // Alternative naming used in components
   salary?: number;
 
   // Class Assignment
   isClassTeacher?: boolean;
-  classId?: number; // If they are a class teacher
+  classId?: number; // If they are a class teache
 
-  // Additional fields for comprehensive teacher management
-  dateOfBirth?: string;
-  gender?: string;
-  nationality?: string;
-  address?: string;
-  emergencyContact?: {
-    name: string;
-    phone: string;
-  };
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+
   employmentType?: string;
-  education?: {
-    degree: string;
-    university: string;
-    graduationYear: number | null;
-    certifications: string;
-  };
-  skills?: string;
-  achievements?: string;
-  notes?: string;
+  previousInstitution?: string;
+
+  degree: string;
+  university: string;
+  graduationYear: number | null;
 }
 
 export interface TeachersResponse {

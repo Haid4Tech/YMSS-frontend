@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import Link from "next/link";
 import {
@@ -14,8 +15,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputField } from "@/components/ui/form-field";
 import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
 
+import { Trash2 } from "lucide-react";
+import { extractErrorMessage } from "@/utils/helpers";
+import { Spinner } from "@radix-ui/themes";
+import { toast } from "sonner";
+
 export default function AnnouncementsPage() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
+  const [reload, setReload] = useState<boolean>(false);
+  const [loadingStates, setLoadingStates] = useState<{
+    add: boolean;
+    view: number | null;
+    delete: number | null;
+  }>({
+    add: false,
+    view: null,
+    delete: null,
+  });
+
   const [announcements] = useAtom(announcementListAtom);
   const [loading] = useAtom(announcementLoadingAtom);
   const [error] = useAtom(announcementErrorAtom);
@@ -26,7 +44,7 @@ export default function AnnouncementsPage() {
 
   useEffect(() => {
     getAllAnnouncements();
-  }, [getAllAnnouncements]);
+  }, [getAllAnnouncements, reload]);
 
   const filteredAnnouncements = Array.isArray(announcements)
     ? announcements.filter(
@@ -69,6 +87,44 @@ export default function AnnouncementsPage() {
     );
   }
 
+  // const handleViewAnnouncement = (annoucementId: number) => {
+  //     setLoadingStates((prev) => ({
+  //       ...prev,
+  //       view: annoucementId,
+  //     }));
+
+  //     router.push(`/portal/annoucement/${annoucementId}`);
+
+  //     setTimeout(() => {
+  //       setLoadingStates((prev) => ({
+  //         ...prev,
+  //         view: null,
+  //       }));
+  //     }, 3000);
+  //   };
+
+  const handleDeleteAnnouncement = async (annoucementId: number) => {
+    setLoadingStates((prev) => ({
+      ...prev,
+      delete: annoucementId,
+    }));
+    try {
+      await announcementsAPI.delete(annoucementId);
+      toast.success(`Annoucement ${annoucementId} deleted successfully`);
+      setReload(true);
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error);
+      toast.error(`Failed to delete announcement. Please try again later`, {
+        description: errorMessage,
+      });
+    } finally {
+      setLoadingStates((prev) => ({
+        ...prev,
+        delete: null,
+      }));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -83,8 +139,24 @@ export default function AnnouncementsPage() {
         {isParent || isStudent || isTeacher ? (
           <></>
         ) : (
-          <Button asChild>
-            <Link href="/portal/announcements/new">Create Announcement</Link>
+          <Button
+            asChild
+            onClick={() => {
+              setLoadingStates((prev) => ({ ...prev, add: true }));
+              router.push("announcements/new");
+
+              setTimeout(() => {
+                setLoadingStates((prev) => ({ ...prev, add: false }));
+              }, 3000);
+            }}
+          >
+            {loadingStates.add ? (
+              <div>
+                <Spinner />
+              </div>
+            ) : (
+              <p>Create Announcement</p>
+            )}
           </Button>
         )}
       </div>
@@ -107,11 +179,42 @@ export default function AnnouncementsPage() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span className="truncate">{announcement?.title}</span>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/portal/announcements/${announcement?.id}`}>
-                    View
-                  </Link>
-                </Button>
+
+                <div className="flex flex-col md:flex-row gap-2">
+                  {/* <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewAnnouncement(announcement.id)}
+                  >
+                    {loadingStates.view === announcement.id ? (
+                      <div>
+                        <Spinner />
+                      </div>
+                    ) : (
+                      <div className="flex flex-row gap-1">
+                        <p className="block md:hidden text-sm">View</p>
+                        <Eye size={12} />
+                      </div>
+                    )}
+                  </Button> */}
+                  <Button
+                    size={"sm"}
+                    variant={"destructive"}
+                    onClick={() => handleDeleteAnnouncement(announcement.id)}
+                  >
+                    {loadingStates.delete === announcement.id ? (
+                      <div>
+                        <Spinner />
+                      </div>
+                    ) : (
+                      <div className="flex flex-row gap-1">
+                        <p className="block md:hidden text-sm">Delete</p>
+                        <Trash2 size={12} />
+                      </div>
+                    )}
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -127,7 +230,9 @@ export default function AnnouncementsPage() {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Author:</span>{" "}
-                  {announcement?.author?.name || "Unknown"}
+                  {`${announcement?.author?.firstname ?? "Not"} ${
+                    announcement?.author?.lastname
+                  }`}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">ID:</span> {announcement?.id}

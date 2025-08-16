@@ -18,10 +18,12 @@ import {
   UserCog,
   Settings,
   HelpCircle,
-  // MessageSquare,
   Megaphone,
   CalendarDays,
   FileText,
+  // MessageSquare,
+  // BookMarked,
+  // UserPlus,
 } from "lucide-react";
 
 interface PortalSidebarProps {
@@ -74,6 +76,7 @@ const navigationItems: NavItem[] = [
     lucideIcon: BookOpen,
     roles: ["ADMIN", "TEACHER"],
   },
+
   {
     name: "Exams",
     href: "/portal/exams",
@@ -153,12 +156,14 @@ export default function PortalSidebar({ user, onClose }: PortalSidebarProps) {
       {/* Logo */}
       <div className="flex items-center gap-3 p-6 border-b border-border h-18 bg-background">
         <Link href="/" className="flex items-center gap-2">
-          <Image
-            src="/YMSS_logo-nobg.png"
-            alt="YMSS Logo"
-            width={32}
-            height={32}
-          />
+          <div className="bg-gradient-to-r from-purple-200 to-orange-100 p-1 rounded-lg">
+            <Image
+              src="/YMSS_logo-nobg.png"
+              alt="YMSS Logo"
+              width={32}
+              height={32}
+            />
+          </div>
           <span className="font-bold text-lg">YMSS Portal</span>
         </Link>
       </div>

@@ -31,7 +31,7 @@ export default function RecordsPage() {
   const filteredRecords = Array.isArray(records)
     ? records.filter(
         (record) =>
-          record?.student?.user?.name
+          record?.student?.user?.firstname
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
           record?.summary?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -104,7 +104,9 @@ export default function RecordsPage() {
           <Card key={record?.id} className="hover-scale">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>{record?.student?.user?.name}</span>
+                <span>{`${record?.student?.user?.firstname ?? "Not"} ${
+                  record?.student?.user?.lastname ?? "Available"
+                }`}</span>
                 <Button asChild variant="outline" size="sm">
                   <Link href={`/portal/records/${record?.id}`}>View</Link>
                 </Button>

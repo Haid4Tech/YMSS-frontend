@@ -28,7 +28,7 @@ export default function ResultsPage() {
   const filteredGrades = Array.isArray(grades)
     ? grades.filter(
         (grade) =>
-          grade?.student?.user?.name
+          grade?.student?.user?.firstname
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
           grade?.exam?.title
@@ -95,7 +95,9 @@ export default function ResultsPage() {
           <Card key={grade?.id} className="hover-scale">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>{grade?.student?.user?.name}</span>
+                <span>{`${grade?.student?.user?.firstname ?? "Not"} ${
+                  grade?.student?.user?.lastname ?? "Available"
+                }`}</span>
                 <Button asChild variant="outline" size="sm">
                   <Link href={`/portal/results/${grade?.id}`}>View</Link>
                 </Button>

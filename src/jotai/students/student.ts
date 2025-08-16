@@ -49,21 +49,15 @@ export const studentsAPI = {
     return response.data;
   },
 
-  getByClass: async (classId: number): Promise<Student[]> => {
-    const response = await axiosInstance.get(`/students?classId=${classId}`);
+  getStudentsByClass: async (classId: number): Promise<Student[]> => {
+    const response = await axiosInstance.get(`/students/${classId}/class`);
     return response.data;
   },
-};
 
-// Enhanced API methods for detail pages
-export const enhancedStudentsAPI = {
-  ...studentsAPI,
-  getById: async (id: number): Promise<Student> => {
-    const response = await axiosInstance.get(`/students/${id}`);
+  getParents: async (studentId: number) => {
+    const response = await axiosInstance.get(`/students/${studentId}/parents`);
     return response.data;
   },
-  getByClass: async (classId: number): Promise<Student[]> => {
-    const response = await axiosInstance.get(`/students?classId=${classId}`);
-    return response.data;
-  },
+
+  // getBySubjects: async (subjectId: number) => {},
 };

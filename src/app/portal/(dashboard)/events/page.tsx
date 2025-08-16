@@ -67,7 +67,7 @@ export default function EventsPage() {
   ) => {
     return {
       ...calendarEvent,
-      date: calendarEvent.date.toISOString(),
+      date: selectedDate.toISOString(),
       createdById: user?.id,
     };
   };
@@ -78,9 +78,8 @@ export default function EventsPage() {
   ) => {
     try {
       const eventData = calendarEventToEventData(calendarEventData);
-      const response = await eventsAPI.create(eventData);
+      await eventsAPI.create(eventData);
 
-      console.log("EVENT RESPONSE ", response);
       toast.success(`Event "${calendarEventData.title}" created successfully!`);
 
       // Refresh the events list

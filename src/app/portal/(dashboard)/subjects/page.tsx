@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import Link from "next/link";
 import {
@@ -15,9 +16,26 @@ import { Spinner } from "@radix-ui/themes";
 import { Input } from "@/components/ui/input";
 import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
 
+import { Eye, Trash2 } from "lucide-react";
+import { extractErrorMessage } from "@/utils/helpers";
+import { toast } from "sonner";
+
 export default function SubjectsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [retryLoading, setRetryLoading] = useState(false);
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [retryLoading, setRetryLoading] = useState<boolean>(false);
+
+  const [reload, setReload] = useState<boolean>(false);
+  const [loadingStates, setLoadingStates] = useState<{
+    add: boolean;
+    view: number | null;
+    delete: number | null;
+  }>({
+    add: false,
+    view: null,
+    delete: null,
+  });
+
   const [subjects] = useAtom(subjectListAtom);
   const [loading] = useAtom(subjectLoadingAtom);
   const [error] = useAtom(subjectErrorAtom);
@@ -29,7 +47,7 @@ export default function SubjectsPage() {
 
   useEffect(() => {
     getAllSubjects();
-  }, [getAllSubjects]);
+  }, [getAllSubjects, reload]);
 
   const filteredSubjects = Array.isArray(subjects)
     ? subjects.filter((subject) =>
@@ -84,6 +102,44 @@ export default function SubjectsPage() {
     );
   }
 
+  const handleViewSubject = (subjectId: number) => {
+    setLoadingStates((prev) => ({
+      ...prev,
+      view: subjectId,
+    }));
+
+    router.push(`/portal/subjects/${subjectId}`);
+
+    setTimeout(() => {
+      setLoadingStates((prev) => ({
+        ...prev,
+        view: null,
+      }));
+    }, 3000);
+  };
+
+  const handleDeleteSubject = async (subjectId: number) => {
+    setLoadingStates((prev) => ({
+      ...prev,
+      delete: subjectId,
+    }));
+    try {
+      await subjectsAPI.delete(subjectId);
+      toast.success(`Subject ${subjectId} deleted successfully`);
+      setReload(true);
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error);
+      toast.error(`Failed to delete subject record. Please try again later`, {
+        description: errorMessage,
+      });
+    } finally {
+      setLoadingStates((prev) => ({
+        ...prev,
+        delete: null,
+      }));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -98,8 +154,24 @@ export default function SubjectsPage() {
         {isParent || isStudent || isTeacher ? (
           <></>
         ) : (
-          <Button asChild>
-            <Link href="/portal/subjects/new">Add Student</Link>
+          <Button
+            asChild
+            onClick={() => {
+              setLoadingStates((prev) => ({ ...prev, add: true }));
+              router.push("/portal/subjects/new");
+
+              // setTimeout(() => {
+              //   setLoadingStates((prev) => ({ ...prev, add: false }));
+              // }, 3000);
+            }}
+          >
+            {loadingStates.add ? (
+              <div>
+                <Spinner />
+              </div>
+            ) : (
+              <p>Add Subject</p>
+            )}
           </Button>
         )}
       </div>
@@ -121,17 +193,53 @@ export default function SubjectsPage() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>{subject?.name}</span>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/portal/subjects/${subject?.id}`}>View</Link>
-                </Button>
+
+                <div className="flex flex-col md:flex-row gap-2">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewSubject(subject.id)}
+                  >
+                    {loadingStates.view === subject.id ? (
+                      <div>
+                        <Spinner />
+                      </div>
+                    ) : (
+                      <div className="flex flex-row gap-1">
+                        <p className="block md:hidden text-sm">View</p>
+                        <Eye size={12} />
+                      </div>
+                    )}
+                  </Button>
+                  <Button
+                    size={"sm"}
+                    variant={"destructive"}
+                    onClick={() => handleDeleteSubject(subject.id)}
+                  >
+                    {loadingStates.delete === subject.id ? (
+                      <div>
+                        <Spinner />
+                      </div>
+                    ) : (
+                      <div className="flex flex-row gap-1">
+                        <p className="block md:hidden text-sm">Delete</p>
+                        <Trash2 size={12} />
+                      </div>
+                    )}
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Teacher:</span>{" "}
-                  {subject?.teacher?.user?.name || "Not assigned"}
+                  {`${subject?.teacher?.user?.firstname ?? "Not"} ${
+                    subject?.teacher?.user?.lastname ?? "Assigned"
+                  }`}
                 </p>
+
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Class:</span>{" "}
                   {subject?.class?.name || "No class assigned"}
