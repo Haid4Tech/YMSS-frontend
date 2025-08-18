@@ -12,6 +12,7 @@ export interface UserManagement {
 
   // Additional fields for user management
   phone?: string;
+  photo?: string;
   bio?: string;
   profileImage?: string;
   dateOfBirth?: string;
@@ -56,4 +57,4 @@ export interface UserFilters {
   isActive?: boolean;
   page?: number;
   limit?: number;
-} 
+}

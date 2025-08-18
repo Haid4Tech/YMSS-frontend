@@ -45,6 +45,8 @@ export default function SubjectsPage() {
   const [isStudent] = useAtom(isStudentAtom);
   const [isTeacher] = useAtom(isTeacherAtom);
 
+  console.log("SUBJECTS ", subjects);
+
   useEffect(() => {
     getAllSubjects();
   }, [getAllSubjects, reload]);

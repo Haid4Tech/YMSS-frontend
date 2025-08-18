@@ -11,6 +11,7 @@ export interface User {
   DOB: string;
 
   // Additional fields used in the application
+  photo?: string;
   phone?: string;
   religion?: string;
   bloodGroup?: string;

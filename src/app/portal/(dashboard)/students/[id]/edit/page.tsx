@@ -45,8 +45,6 @@ export default function Page() {
     admissionDate: undefined,
   });
 
-  console.log("FORM DATA ", formData);
-
   useEffect(() => {
     const fetchData = async () => {
       try {

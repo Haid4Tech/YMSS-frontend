@@ -78,7 +78,7 @@ export interface ITeacherFormData {
   zipcode?: string;
   subjectId?: number;
   university: string;
-  photo?: File | null;
+  photo?: File | null | string;
 
   // Not added yet
   maxClassesPerWeek?: number;
@@ -87,4 +87,15 @@ export interface ITeacherFormData {
 
   // Not added - should be added
   subjectSpecialization?: string;
+}
+
+export interface IExamFormData {
+  title: string;
+  teacherId: string;
+  subjectId: string;
+  classId: string;
+  date: string;
+  startTime: string;
+  duration: string | number;
+  examType: string;
 }

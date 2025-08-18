@@ -136,7 +136,8 @@ export default function AddStudentPage() {
         country: formData.country,
         religion: formData.religion,
         bloodGroup: formData.bloodGroup,
-        photo: formData.photo,
+        photo:
+          "https://www.shutterstock.com/image-photo/young-womans-portrait-made-different-600nw-1658677039.jpg",
 
         // Student specific data
         classId: parseInt(formData.classId) || null,
