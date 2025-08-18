@@ -165,6 +165,7 @@ export default function StudentDetailPage() {
     <div className="space-y-6">
       {/* Header */}
       <DynamicHeader
+        profileImg={student?.user?.photo ?? ""}
         name={`${student?.user.firstname ?? "Unknown"} ${
           student?.user?.lastname ?? "Student"
         }`}

@@ -161,6 +161,7 @@ export default function StudentsPage() {
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <PersonAvatar
+                    imageUrl={student?.user?.photo}
                     name={`${student?.user?.firstname ?? "Unknown"} ${
                       student?.user?.lastname ?? "Student"
                     }`}
