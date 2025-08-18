@@ -78,7 +78,7 @@ export interface ITeacherFormData {
   zipcode?: string;
   subjectId?: number;
   university: string;
-  photo?: File | null;
+  photo?: File | null | string;
 
   // Not added yet
   maxClassesPerWeek?: number;

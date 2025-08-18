@@ -113,20 +113,7 @@ export default function ResultsPage() {
                   <span className="font-medium">Subject:</span>{" "}
                   {grade?.exam?.subject?.name || "Not specified"}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Score:</span>{" "}
-                  <span
-                    className={`font-bold ${
-                      (grade?.marks || 0) >= 80
-                        ? "text-green-600"
-                        : (grade?.marks || 0) >= 60
-                        ? "text-yellow-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {grade?.marks || 0}/{grade?.exam?.totalMarks || 100}
-                  </span>
-                </p>
+
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Grade:</span>{" "}
                   <span
