@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Exam } from "@/jotai/exams/exams-type";
 import { examsAPI } from "@/jotai/exams/exams";
@@ -28,12 +28,15 @@ import { PageHeader } from "@/components/general/page-header";
 export default function ExamDetailPage() {
   const params = useParams();
   const examId = params.id as string;
+  const router = useRouter();
 
   const [exam, setExam] = useState<Exam | null>(null);
   const [grades, setGrades] = useState<Grade[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+
+  console.log(grades);
 
   useEffect(() => {
     const fetchExamData = async () => {
@@ -83,9 +86,7 @@ export default function ExamDetailPage() {
     passRate:
       grades.length > 0
         ? (
-            (grades.filter(
-              (g) => (g.marks || 0) >= (exam?.totalMarks || 100) * 0.6
-            ).length /
+            (grades.filter((g) => (g.marks || 0) >= 100 * 0.6).length /
               grades.length) *
             100
           ).toFixed(1)
@@ -130,7 +131,7 @@ export default function ExamDetailPage() {
   );
 
   // Score distribution in ranges
-  const totalMarks = exam?.totalMarks || 100;
+  const totalMarks = 100;
   const scoreRanges = [
     {
       range: `${Math.floor(totalMarks * 0.9)}-${totalMarks}`,
@@ -184,9 +185,6 @@ export default function ExamDetailPage() {
       return {
         grade,
         student,
-        percentage: exam?.totalMarks
-          ? (((grade.marks || 0) / exam.totalMarks) * 100).toFixed(1)
-          : "0",
       };
     })
     .filter((item) => item.student)
@@ -232,14 +230,19 @@ export default function ExamDetailPage() {
         subtitle={"Exam Results & Analytics"}
         endBtns={
           <div className="flex gap-2">
-            <Button variant="outline">Edit Exam</Button>
+            <Button
+              onClick={() => router.push(`${examId}/edit`)}
+              variant="outline"
+            >
+              Edit Exam
+            </Button>
             <Button>Download Report</Button>
           </div>
         }
       />
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-primary">
@@ -280,14 +283,14 @@ export default function ExamDetailPage() {
             <p className="text-sm text-muted-foreground">Pass Rate</p>
           </CardContent>
         </Card>
-        <Card>
+        {/* <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-orange-600">
               {examStats.median}
             </div>
             <p className="text-sm text-muted-foreground">Median</p>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Tab Navigation */}
@@ -297,12 +300,12 @@ export default function ExamDetailPage() {
             { id: "overview", label: "Overview" },
             { id: "analytics", label: "Performance Analytics" },
             { id: "results", label: "Individual Results" },
-            { id: "insights", label: "Statistical Insights" },
+            // { id: "insights", label: "Statistical Insights" },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`cursor-pointer py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -360,7 +363,7 @@ export default function ExamDetailPage() {
                   <label className="text-sm font-medium text-muted-foreground">
                     Total Marks
                   </label>
-                  <p className="text-sm">{exam.totalMarks || "Not set"}</p>
+                  <p className="text-sm">{100}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">
@@ -530,10 +533,7 @@ export default function ExamDetailPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold">
-                        {result.grade.marks}/{exam.totalMarks}
-                      </p>
-                      <p className="text-lg font-medium text-primary">
-                        {result.percentage}%
+                        {result.grade.marks}/{100}
                       </p>
                       <p
                         className={`text-sm font-bold ${

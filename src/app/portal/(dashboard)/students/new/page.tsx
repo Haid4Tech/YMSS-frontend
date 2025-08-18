@@ -136,7 +136,7 @@ export default function AddStudentPage() {
         country: formData.country,
         religion: formData.religion,
         bloodGroup: formData.bloodGroup,
-        photo: formData.photo,
+        photo: null,
 
         // Student specific data
         classId: parseInt(formData.classId) || null,

@@ -92,3 +92,14 @@ export const ClassFormInitialData = {
   },
   subjects: [] as string[],
 };
+
+export const ExamFormInitialData = {
+  title: "",
+  teacherId: "",
+  subjectId: "",
+  classId: "",
+  date: "",
+  startTime: "",
+  duration: "",
+  examType: "",
+};

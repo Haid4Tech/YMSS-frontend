@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useAtom } from "jotai";
 import { toast } from "sonner";
 
@@ -13,12 +13,18 @@ import { teachersAPI } from "@/jotai/teachers/teachers";
 import { Subject } from "@/jotai/subject/subject-types";
 import { Class } from "@/jotai/class/class-type";
 import { Teacher } from "@/jotai/teachers/teachers-types";
+import { IExamFormData } from "@/common/types";
+import { ExamFormInitialData } from "@/common/form";
+import { extractErrorMessage } from "@/utils/helpers";
 
 import ExamForm from "@/components/portal/dashboards/exams/form";
 
-export default function AddExamPage() {
+export default function Page() {
+  const params = useParams();
+  const examId = params.id as string;
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+
+  const [loading, setLoading] = useState<boolean>(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -26,46 +32,46 @@ export default function AddExamPage() {
   const [, getAllSubjects] = useAtom(subjectsAPI.getAll);
   const [, getAllClasses] = useAtom(classesAPI.getAll);
   const [, getAllTeachers] = useAtom(teachersAPI.getAll);
-
-  const [formData, setFormData] = useState({
-    title: "",
-    teacherId: "",
-    subjectId: "",
-    classId: "",
-    date: "",
-    startTime: "",
-    duration: "",
-    examType: "",
-  });
+  const [formData, setFormData] = useState<IExamFormData>(ExamFormInitialData);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [subjectsData, classesData, teachersData] = await Promise.all([
-          getAllSubjects(),
-          getAllClasses(),
-          getAllTeachers(),
-        ]);
+        const [examData, subjectsData, classesData, teachersData] =
+          await Promise.all([
+            examsAPI.getById(parseInt(examId)),
+            getAllSubjects(),
+            getAllClasses(),
+            getAllTeachers(),
+          ]);
 
         setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
         setClasses(Array.isArray(classesData) ? classesData : []);
         setTeachers(
           Array.isArray(teachersData.teachers) ? teachersData.teachers : []
         );
+
+        setFormData({
+          title: examData?.title,
+          teacherId: examData?.teacherId.toString(),
+          subjectId: examData?.subjectId.toString(),
+          classId: examData?.classId.toString(),
+          date: examData?.date,
+          startTime: examData?.startTime ?? "",
+          duration: examData?.duration ?? "",
+          examType: examData?.examType ?? "",
+        });
       } catch (error) {
-        console.error("Failed to fetch data:", error);
+        const errorMessage = extractErrorMessage(error);
+        toast.error(errorMessage);
       }
     };
+
     fetchData();
-  }, [getAllClasses, getAllSubjects, getAllTeachers]);
+  }, [examId, getAllClasses, getAllSubjects, getAllTeachers]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | Date | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleNumberChange = (field: string, value: string) => {
-    const numValue = value === "" ? "" : parseInt(value);
-    setFormData((prev) => ({ ...prev, [field]: numValue }));
   };
 
   const handleDateChange = (date: Date | undefined) => {
@@ -73,6 +79,11 @@ export default function AddExamPage() {
       ...prev,
       date: date ? date.toISOString() : "",
     }));
+  };
+
+  const handleNumberChange = (field: string, value: string) => {
+    const numValue = value === "" ? "" : parseInt(value);
+    setFormData((prev) => ({ ...prev, [field]: numValue }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,16 +98,20 @@ export default function AddExamPage() {
         classId: formData.classId ? parseInt(formData.classId) : null,
         date: formData.date,
         startTime: formData.startTime,
-        duration: parseInt(formData.duration),
+        duration:
+          typeof formData.duration === "string"
+            ? parseInt(formData.duration)
+            : formData.duration,
         examType: formData.examType,
       };
 
-      await examsAPI.create(examData);
-      toast.success("Successfully scheduled new exam record!");
+      await examsAPI.update(parseInt(examId!), examData);
+      toast.success("Successfully updated exam record!");
+
       router.push("/portal/exams");
     } catch (error) {
-      console.error("Failed to create exam:", error);
-      toast.error("Failed to schedule exam. Please try again.");
+      console.error(`Failed to update exam:`, error);
+      toast.error(`Failed to update exam. Please try again.`);
     } finally {
       setLoading(false);
     }
@@ -104,10 +119,9 @@ export default function AddExamPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <PageHeader
-        title={"Schedule New Exam"}
-        subtitle={"Create and schedule an examination"}
+        title={"Edit Exam"}
+        subtitle={"Modify existing examination details"}
       />
 
       <ExamForm
@@ -120,7 +134,7 @@ export default function AddExamPage() {
         subjects={subjects}
         teachers={teachers}
         formData={formData}
-        mode={"create"}
+        mode={"edit"}
         cancelHref="/portal/exams"
       />
     </div>
