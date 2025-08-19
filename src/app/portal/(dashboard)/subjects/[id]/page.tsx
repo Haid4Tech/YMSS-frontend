@@ -251,11 +251,15 @@ export default function SubjectDetailPage() {
                 <label className="text-sm font-medium text-muted-foreground">
                   Assigned Teacher
                 </label>
-                <p className="text-sm">
-                  {`${subject.teacher?.user?.firstname ?? "Not"} ${
-                    subject.teacher?.user?.lastname ?? "Available"
-                  }`}
-                </p>
+                <div className="text-sm">
+                  {subject?.teachers && subject.teachers.length > 0
+                    ? subject.teachers.map((teacher, index) => (
+                        <span
+                          key={index}
+                        >{`${teacher?.teacher?.user?.firstname} ${teacher?.teacher?.user?.lastname}`}</span>
+                      ))
+                    : "Not Assigned"}
+                </div>
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">

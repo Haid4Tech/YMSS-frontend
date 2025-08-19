@@ -1,5 +1,17 @@
 "use client";
 
+/**
+ * Profile Page Component
+ * 
+ * To customize the profile icon, change the ProfileIcon constant below:
+ * const ProfileIcon = User;        // Default user icon
+ * const ProfileIcon = UserCircle;  // Circular user icon
+ * const ProfileIcon = UserCheck;   // User with checkmark
+ * const ProfileIcon = UserCog;     // User with settings
+ * 
+ * Import additional icons from lucide-react as needed
+ */
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
@@ -19,20 +31,16 @@ import {
   Mail,
   Calendar,
   Shield,
-  LucideIcon,
 } from "lucide-react";
 import { Spinner } from "@radix-ui/themes";
 import { toast } from "sonner";
 import { isAdminAtom } from "@/jotai/auth/auth";
 import { extractErrorMessage } from "@/utils/helpers";
 
-interface ProfilePageProps {
-  profileIcon?: LucideIcon;
-}
-
-export default function ProfilePage({
-  profileIcon: ProfileIcon = User,
-}: ProfilePageProps) {
+export default function ProfilePage() {
+  // Customize the profile icon by changing this line
+  // Available options: User, UserCircle, UserCheck, UserCog, UserPlus, etc.
+  const ProfileIcon = User;
   const router = useRouter();
   const [user] = useAtom(userAtom);
   const [isEditing, setIsEditing] = useState(false);
