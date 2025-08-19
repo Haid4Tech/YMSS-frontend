@@ -9,8 +9,7 @@ import { studentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
 import { enhancedGradesAPI } from "@/jotai/grades/grades";
 import { Grade } from "@/jotai/grades/grades-types";
-// import { enhancedSubjectAttendanceAPI } from "@/jotai/subject-attendance/subject-attendance";
-// import { SubjectAttendance } from "@/jotai/subject-attendance/subject-attendance-type";
+
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/general/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,8 +25,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  // LineChart,
-  // Line,
 } from "recharts";
 
 import { StudentRosterCard } from "@/components/portal/dashboards/class/student-roster-card";
@@ -80,13 +77,6 @@ export default function ClassDetailPage() {
             grades.length
           ).toFixed(1)
         : "N/A",
-    // attendanceRate:
-    //   attendance.length > 0
-    //     ? (
-    //         (attendance.filter((a) => a.status).length / attendance.length) *
-    //         100
-    //       ).toFixed(1)
-    //     : "N/A",
     capacity: classData?.capacity || 0,
   };
 
@@ -129,24 +119,6 @@ export default function ClassDetailPage() {
     subject: item.subject,
     average: (item.totalMarks / item.count).toFixed(1),
   }));
-
-  // Monthly attendance trend
-  // const monthlyAttendance = attendance.reduce((acc, record) => {
-  //   const month = record.date
-  //     ? new Date(record.date).toLocaleDateString("en", { month: "short" })
-  //     : "Unknown";
-  //   if (!acc[month]) {
-  //     acc[month] = { month, present: 0, total: 0 };
-  //   }
-  //   acc[month].total += 1;
-  //   if (record.status) acc[month].present += 1;
-  //   return acc;
-  // }, {} as Record<string, { month: string; present: number; total: number }>);
-
-  // const attendanceChart = Object.values(monthlyAttendance).map((item) => ({
-  //   month: item.month,
-  //   rate: ((item.present / item.total) * 100).toFixed(1),
-  // }));
 
   if (loading) {
     return (
@@ -202,14 +174,7 @@ export default function ClassDetailPage() {
             <p className="text-sm text-muted-foreground">Average Grade</p>
           </CardContent>
         </Card>
-        {/* <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-green-600">
-              {classStats.attendanceRate}%
-            </div>
-            <p className="text-sm text-muted-foreground">Attendance Rate</p>
-          </CardContent>
-        </Card> */}
+
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-purple-600">

@@ -20,6 +20,7 @@ export const StudentRosterCard: FC<IStudentRosterCard> = ({ classData }) => {
             <div className="flex flex-row gap-2">
               <PersonAvatar
                 name={`${student?.user?.firstname} ${student?.user?.lastname}`}
+                imageUrl={student?.user?.photo ?? ""}
                 size="lg"
               />
 
