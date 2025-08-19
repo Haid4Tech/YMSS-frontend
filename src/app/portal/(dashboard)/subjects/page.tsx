@@ -45,8 +45,6 @@ export default function SubjectsPage() {
   const [isStudent] = useAtom(isStudentAtom);
   const [isTeacher] = useAtom(isTeacherAtom);
 
-  console.log("SUBJECTS ", subjects);
-
   useEffect(() => {
     getAllSubjects();
   }, [getAllSubjects, reload]);
@@ -236,19 +234,22 @@ export default function SubjectsPage() {
             <CardContent>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Teacher:</span>{" "}
-                  {`${subject?.teacher?.user?.firstname ?? "Not"} ${
-                    subject?.teacher?.user?.lastname ?? "Assigned"
-                  }`}
-                </p>
-
-                <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Class:</span>{" "}
                   {subject?.class?.name || "No class assigned"}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Subject ID:</span> {subject?.id}
                 </p>
+                <div className="text-sm text-muted-foreground flex flex-col gap-1">
+                  <span className="font-medium">Teacher(s):</span>{" "}
+                  {subject?.teachers && subject.teachers.length > 0
+                    ? subject.teachers.map((teacher, index) => (
+                        <span
+                          key={index}
+                        >{`${teacher?.teacher?.user?.firstname} ${teacher?.teacher?.user?.lastname}`}</span>
+                      ))
+                    : "Not Assigned"}
+                </div>
               </div>
             </CardContent>
           </Card>

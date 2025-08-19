@@ -6,17 +6,33 @@ import { useAtom } from "jotai";
 import { userAtom, authAPI } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+
+import { InputField } from "@/components/ui/form-field";
 import { Label } from "@/components/ui/label";
 import { PersonAvatar } from "@/components/ui/person-avatar";
 import { SafeText, ErrorBoundary, safeGet } from "@/components/ui/safe-render";
-import { Edit, Save, X, User, Mail, Calendar, Shield } from "lucide-react";
+import {
+  Edit,
+  Save,
+  X,
+  User,
+  Mail,
+  Calendar,
+  Shield,
+  LucideIcon,
+} from "lucide-react";
 import { Spinner } from "@radix-ui/themes";
 import { toast } from "sonner";
 import { isAdminAtom } from "@/jotai/auth/auth";
 import { extractErrorMessage } from "@/utils/helpers";
 
-export default function ProfilePage() {
+interface ProfilePageProps {
+  profileIcon?: LucideIcon;
+}
+
+export default function ProfilePage({
+  profileIcon: ProfileIcon = User,
+}: ProfilePageProps) {
   const router = useRouter();
   const [user] = useAtom(userAtom);
   const [isEditing, setIsEditing] = useState(false);
@@ -27,18 +43,16 @@ export default function ProfilePage() {
   const [, updateProfile] = useAtom(authAPI.updateProfile);
 
   const [formData, setFormData] = useState({
-    name: "",
+    firstname: "",
+    lastname: "",
     email: "",
-    // TODO: Add when these fields are added to User schema
-    // phone: "",
-    // bio: "",
-    // dateOfBirth: "",
   });
 
   useEffect(() => {
     if (user) {
       setFormData({
-        name: `${user.firstname ?? "Not"} ${user.lastname ?? "Available"}`,
+        firstname: user.firstname,
+        lastname: user.lastname,
         email: user.email || "",
         // TODO: Uncomment when added to schema
         // phone: user.phone || "",
@@ -58,14 +72,13 @@ export default function ProfilePage() {
 
       // Prepare the update data - only send fields that can be updated
       const updateData = {
-        name: formData.name,
+        firstname: formData.firstname,
+        lastname: formData.lastname,
         email: formData.email,
         // Add other fields when they're available in the schema
         // phone: formData.phone,
         // bio: formData.bio,
       };
-
-      console.log("Saving profile data:", updateData);
 
       // Use Jotai updateProfile atom
       await updateProfile(updateData);
@@ -87,7 +100,8 @@ export default function ProfilePage() {
     // Reset form to original values
     if (user) {
       setFormData({
-        name: `${user.firstname ?? "Not"} ${user.lastname ?? "Available"}`,
+        firstname: user.firstname,
+        lastname: user.lastname,
         email: user.email || "",
         // TODO: Reset other fields when added to schema
       });
@@ -169,9 +183,10 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <PersonAvatar
-                name={safeGet(user, "name", "User")}
+                name={`${user?.firstname} ${user?.lastname}`}
                 size="xl"
                 className="mx-auto w-24 h-24"
+                imageUrl={user?.photo}
               />
 
               {/* TODO: Uncomment when image upload is implemented */}
@@ -184,7 +199,11 @@ export default function ProfilePage() {
 
               <div className="text-sm text-muted-foreground">
                 <SafeText fallback="No name provided">
-                  {safeGet(user, "name", "")}
+                  {safeGet(
+                    user,
+                    "name",
+                    `${user?.firstname} ${user?.lastname}`
+                  )}
                 </SafeText>
               </div>
 
@@ -203,23 +222,62 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Full Name */}
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="flex items-center gap-2">
-                    <User size={15} />
-                    Full Name
-                  </Label>
+                  {!isEditing && (
+                    <Label
+                      htmlFor="firstname"
+                      className="flex items-center gap-2"
+                    >
+                      <User size={15} />
+                      First Name
+                    </Label>
+                  )}
+
                   {isEditing ? (
-                    <Input
-                      id="name"
-                      value={formData.name}
+                    <InputField
+                      Icon={ProfileIcon}
+                      label="FirstName"
+                      id="firstname"
+                      value={formData.firstname}
                       onChange={(e) =>
-                        handleInputChange("name", e.target.value)
+                        handleInputChange("firstname", e.target.value)
                       }
-                      placeholder="Enter your full name"
+                      placeholder="Enter your first name"
                     />
                   ) : (
-                    <p className="text-sm mt-1 p-2 bg-muted rounded-md">
+                    <p className="text-sm mt-1 p-3 bg-muted rounded-md">
                       <SafeText fallback="Not provided">
-                        {formData.name}
+                        {formData.firstname}
+                      </SafeText>
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  {!isEditing && (
+                    <Label
+                      htmlFor="lastname"
+                      className="flex items-center gap-2"
+                    >
+                      <User size={15} />
+                      Last Name
+                    </Label>
+                  )}
+
+                  {isEditing ? (
+                    <InputField
+                      Icon={ProfileIcon}
+                      label="LastName"
+                      id="lastname"
+                      value={formData.lastname}
+                      onChange={(e) =>
+                        handleInputChange("lastname", e.target.value)
+                      }
+                      placeholder="Enter your Last name"
+                    />
+                  ) : (
+                    <p className="text-sm mt-1 p-3 bg-muted rounded-md">
+                      <SafeText fallback="Not provided">
+                        {formData.lastname}
                       </SafeText>
                     </p>
                   )}
@@ -227,12 +285,17 @@ export default function ProfilePage() {
 
                 {/* Email */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center gap-2">
-                    <Mail size={15} />
-                    Email Address
-                  </Label>
+                  {!isEditing && (
+                    <Label htmlFor="email" className="flex items-center gap-2">
+                      <Mail size={15} />
+                      Email Address
+                    </Label>
+                  )}
+
                   {isEditing ? (
-                    <Input
+                    <InputField
+                      label={"Email"}
+                      Icon={Mail}
                       id="email"
                       type="email"
                       value={formData.email}
@@ -242,28 +305,12 @@ export default function ProfilePage() {
                       placeholder="Enter your email"
                     />
                   ) : (
-                    <p className="text-sm mt-1 p-2 bg-muted rounded-md">
+                    <p className="text-sm mt-1 p-3 bg-muted rounded-md">
                       <SafeText fallback="Not provided">
                         {formData.email}
                       </SafeText>
                     </p>
                   )}
-                </div>
-
-                {/* Role */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Shield size={15} />
-                    Role
-                  </Label>
-                  <p className="text-sm mt-1 p-2 bg-muted rounded-md">
-                    <SafeText fallback="Not provided">
-                      {safeGet(user, "role", "")}
-                    </SafeText>
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Contact admin to change your role
-                  </p>
                 </div>
 
                 {/* Member Since */}
@@ -272,8 +319,24 @@ export default function ProfilePage() {
                     <Calendar size={15} />
                     Member Since
                   </Label>
-                  <p className="text-sm mt-1 p-2 bg-muted rounded-md">
+                  <p className="text-sm mt-1 p-3 bg-muted rounded-md">
                     {formatDate(safeGet(user, "createdAt", ""))}
+                  </p>
+                </div>
+
+                {/* Role */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Shield size={15} />
+                    Role
+                  </Label>
+                  <p className="text-sm mt-1 p-3 bg-muted rounded-md">
+                    <SafeText fallback="Not provided">
+                      {safeGet(user, "role", "")}
+                    </SafeText>
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Contact admin to change your role
                   </p>
                 </div>
 
