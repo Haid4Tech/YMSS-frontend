@@ -31,6 +31,8 @@ export default function MenuBar({ view }: IMenuBar) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathName = usePathname();
 
+  console.log("path name ", pathName);
+
   const [, triggerLogout] = useAtom(authAPI.logout);
 
   const pathResult = isPathMatch(pathName, [
@@ -41,12 +43,7 @@ export default function MenuBar({ view }: IMenuBar) {
   const handleLogout = async () => {
     try {
       setLogoutLoading(true);
-      console.log("🚪 MenuBar: Starting logout...");
-
       await triggerLogout("User logout from MenuBar");
-
-      console.log("🚪 MenuBar: Logout completed, redirecting...");
-
       // Immediate redirect after logout
       router.push("/portal/signin");
     } catch (error) {
@@ -125,7 +122,10 @@ export default function MenuBar({ view }: IMenuBar) {
           >
             {navItem.map((items, index) => (
               <Link
-                className="text-sm hover:text-primary transition-colors duration-200"
+                className={cn(
+                  pathName === items.url && "text-main-red",
+                  "text-sm hover:text-primary transition-colors duration-200"
+                )}
                 href={items.url}
                 key={index}
               >
