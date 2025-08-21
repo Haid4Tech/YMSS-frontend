@@ -5,11 +5,13 @@ import AdmissionsSection from "@/components/pages/home/admissions";
 import CoreValues from "@/components/pages/home/core-values";
 import ExpectBanner from "@/components/pages/home/expect-banner";
 import News from "@/components/pages/home/news-section";
+
+import Image from "next/image";
 // import ChoosingYMSSSection from "@/components/pages/home/choosing-ymss";
 
 export default function Home() {
   return (
-    <main className="min-h-screen space-y-10">
+    <main className="relative min-h-screen space-y-10">
       <MenuBar view={"main"} />
       <HeroSection />
       <AdmissionsSection />
@@ -22,6 +24,16 @@ export default function Home() {
 
       <News />
       <Footer />
+
+      {/* vector */}
+      <div className={"absolute top-[40%] left-5 opacity-50 z-10"}>
+        <Image
+          width={80}
+          height={80}
+          src={"/patterns/bulb-vector.svg"}
+          alt={""}
+        />
+      </div>
     </main>
   );
 }

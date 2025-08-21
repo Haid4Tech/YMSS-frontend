@@ -105,14 +105,14 @@ export default function Admissions() {
               key={step.step}
               className="bg-card rounded-xl p-8 shadow-lg hover-scale relative"
             >
-              <div className="absolute -top-4 -left-4 p-1 border-3 border-main-blue-tint3 rounded-full">
+              <div className="absolute -top-4 -left-4 p-1 border-3 border-main-red-tint3 rounded-full">
                 <div className=" w-10 h-10 rounded-full bg-main-blue-tint3 flex items-center justify-center text-white font-bold">
                   {step.step}
                 </div>
               </div>
 
               <div className="w-16 h-16 relative mb-6">
-                <step.icon size={40} className="text-main-blue-tint3" />
+                <step.icon size={40} className="text-main-red-tint3" />
               </div>
               <h3 className="text-xl font-bold mb-3 text-main-blue-tint3">
                 {step.title}

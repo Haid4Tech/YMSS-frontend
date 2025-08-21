@@ -29,9 +29,7 @@ const ExpectBanner = () => {
 
         <div className={"p-3 mcol-span-1 md:col-span-2 grid grid-cols-2 gap-2"}>
           <div
-            className={
-              "p-3 flex flex-col gap-2 items-center justify-center border border-red-500"
-            }
+            className={"p-3 flex flex-col gap-2 items-center justify-center"}
           >
             <GraduationCap size={35} className={"text-main-red-tint2"} />
             <p className={"text-center text-main-blue-tint1 font-semibold"}>
@@ -39,9 +37,7 @@ const ExpectBanner = () => {
             </p>
           </div>
           <div
-            className={
-              "p-3 flex flex-col gap-2 items-center justify-center border border-red-500"
-            }
+            className={"p-3 flex flex-col gap-2 items-center justify-center"}
           >
             <Sprout size={35} className={"text-main-red-tint2"} />
             <p className={"text-center text-main-blue-tint1 font-semibold"}>
@@ -49,9 +45,7 @@ const ExpectBanner = () => {
             </p>
           </div>
           <div
-            className={
-              "p-3 flex flex-col gap-2 items-center justify-center border border-red-500"
-            }
+            className={"p-3 flex flex-col gap-2 items-center justify-center"}
           >
             <CalendarCheck size={35} className={"text-main-red-tint2"} />
             <p className={"text-center text-main-blue-tint1 font-semibold"}>
@@ -59,9 +53,7 @@ const ExpectBanner = () => {
             </p>
           </div>
           <div
-            className={
-              "p-3 flex flex-col gap-2 items-center justify-center border border-red-500"
-            }
+            className={"p-3 flex flex-col gap-2 items-center justify-center"}
           >
             <Star size={35} className={"text-main-red-tint2"} />
             <p className={"text-center text-main-blue-tint1 font-semibold"}>
