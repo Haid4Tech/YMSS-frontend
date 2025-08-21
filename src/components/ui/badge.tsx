@@ -2,16 +2,19 @@ import { cn } from "@/lib/utils";
 import React from "react";
 
 interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'secondary' | 'destructive' | 'outline';
+  variant?: "default" | "secondary" | "destructive" | "outline";
 }
 
 const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
-  ({ className, variant = 'default', ...props }, ref) => {
+  ({ className, variant = "default", ...props }, ref) => {
     const variantClasses = {
-      default: "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80",
-      secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-      destructive: "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
-      outline: "text-foreground border-border",
+      default:
+        "border-transparent bg-main-blue-tint3 text-primary-foreground shadow hover:bg-primary/80",
+      secondary:
+        "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+      destructive:
+        "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
+      outline: "text-main-tint3 border-border",
     };
 
     return (
@@ -30,4 +33,4 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
 
 Badge.displayName = "Badge";
 
-export { Badge }; 
+export { Badge };

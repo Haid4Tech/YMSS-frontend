@@ -1,5 +1,12 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import {
+  MessageCircleMore,
+  Send,
+  NotebookText,
+  Plus,
+  Check,
+} from "lucide-react";
 import Link from "next/link";
 
 export default function Admissions() {
@@ -9,28 +16,28 @@ export default function Admissions() {
       title: "Submit Application",
       description:
         "Complete the online application form with all required documents",
-      icon: "/file.svg",
+      icon: Send,
       color: "primary",
     },
     {
       step: 2,
       title: "Entrance Assessment",
       description: "Take our comprehensive entrance exam and skills assessment",
-      icon: "/exam.png",
+      icon: NotebookText,
       color: "secondary",
     },
     {
       step: 3,
       title: "Interview",
       description: "Personal interview with our admissions team",
-      icon: "/message.png",
+      icon: MessageCircleMore,
       color: "accent",
     },
     {
       step: 4,
       title: "Decision & Enrollment",
       description: "Receive admission decision and complete enrollment process",
-      icon: "/create.png",
+      icon: Plus,
       color: "primary",
     },
   ];
@@ -80,10 +87,7 @@ export default function Admissions() {
             <p className="text-xl md:text-2xl max-w-2xl mx-auto slide-up opacity-90">
               Begin your journey towards academic excellence and personal growth
             </p>
-            <Button
-              size="lg"
-              className="mt-8 bg-accent hover:bg-accent/90 text-white px-8"
-            >
+            <Button size="lg" className="mt-8 text-white px-8">
               Apply Now
             </Button>
           </div>
@@ -101,19 +105,19 @@ export default function Admissions() {
               key={step.step}
               className="bg-card rounded-xl p-8 shadow-lg hover-scale relative"
             >
-              <div className="absolute -top-4 -left-4 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold">
-                {step.step}
+              <div className="absolute -top-4 -left-4 p-1 border-3 border-main-red-tint3 rounded-full">
+                <div className=" w-10 h-10 rounded-full bg-main-blue-tint3 flex items-center justify-center text-white font-bold">
+                  {step.step}
+                </div>
               </div>
+
               <div className="w-16 h-16 relative mb-6">
-                <Image
-                  src={step.icon}
-                  alt={step.title}
-                  fill
-                  className="object-contain"
-                />
+                <step.icon size={40} className="text-main-red-tint3" />
               </div>
-              <h3 className="text-xl font-bold mb-3">{step.title}</h3>
-              <p className="text-muted-foreground">{step.description}</p>
+              <h3 className="text-xl font-bold mb-3 text-main-blue-tint3">
+                {step.title}
+              </h3>
+              <p className="text-main-blue-tint3/80">{step.description}</p>
             </div>
           ))}
         </div>
@@ -131,29 +135,19 @@ export default function Admissions() {
                 className="object-cover hover-scale"
               />
             </div>
-            <div>
-              <h2 className="text-3xl font-bold mb-8">
+            <div className={"space-y-12"}>
+              <h2 className="text-3xl font-bold text-main-blue-tint3">
                 Admission Requirements
               </h2>
-              <div className="space-y-6">
+              <div className="space-y-10">
                 <div className="flex gap-4 items-start">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <svg
-                      className="w-4 h-4 text-primary"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                  <div className="bg-main-blue-tint3/10 p-2 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Check size={25} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-2">Academic Records</h3>
+                    <h3 className="text-xl font-bold mb-2 text-main-blue-tint3">
+                      Academic Records
+                    </h3>
                     <p className="text-muted-foreground">
                       Previous academic transcripts showing consistent
                       performance
@@ -162,47 +156,26 @@ export default function Admissions() {
                 </div>
 
                 <div className="flex gap-4 items-start">
-                  <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
-                    <svg
-                      className="w-4 h-4 text-secondary"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                  <div className="bg-main-blue-tint3/30 p-2 rounded-full flex items-center justify-center shrink-0">
+                    <Check size={25} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-2">Recommendations</h3>
+                    <h3 className="text-xl font-bold mb-2 text-main-blue-tint3">
+                      Recommendations
+                    </h3>
                     <p className="text-muted-foreground">
-                      Two letters of recommendation from current teachers
+                      At least one letters of recommendation from current or
+                      previous teachers
                     </p>
                   </div>
                 </div>
 
                 <div className="flex gap-4 items-start">
-                  <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
-                    <svg
-                      className="w-4 h-4 text-accent"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                  <div className="bg-main-blue-tint3/60 p-2 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+                    <Check size={25} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-2">
+                    <h3 className="text-xl font-bold mb-2 text-main-blue-tint3">
                       Personal Statement
                     </h3>
                     <p className="text-muted-foreground">
@@ -217,8 +190,8 @@ export default function Admissions() {
       </section>
 
       {/* FAQs */}
-      <section className="py-20 container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-16">
+      <section className="py-20 container mx-auto px-4 space-y-10">
+        <h2 className="text-4xl font-bold text-center text-main-blue-tint3">
           Frequently Asked Questions
         </h2>
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -227,7 +200,9 @@ export default function Admissions() {
               key={index}
               className="bg-card rounded-xl p-6 shadow-lg hover-scale"
             >
-              <h3 className="text-xl font-bold mb-3">{faq.question}</h3>
+              <h3 className="text-xl font-bold mb-3 text-main-blue-tint3">
+                {faq.question}
+              </h3>
               <p className="text-muted-foreground">{faq.answer}</p>
             </div>
           ))}

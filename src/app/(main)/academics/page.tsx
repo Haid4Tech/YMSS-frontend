@@ -1,34 +1,9 @@
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import AcademicsDepartments from "@/components/pages/academics/academics-section";
 
 export default function Academics() {
-  const departments = [
-    {
-      name: "Science & Technology",
-      icon: "/subject.png",
-      description:
-        "Advanced labs for Physics, Chemistry, Biology, and Computer Science",
-      subjects: ["Physics", "Chemistry", "Biology", "Computer Science"],
-      color: "primary",
-    },
-    {
-      name: "Arts & Humanities",
-      icon: "/class.png",
-      description: "Rich programs in Literature, History, and Creative Arts",
-      subjects: ["Literature", "History", "Fine Arts", "Music"],
-      color: "secondary",
-    },
-    {
-      name: "Mathematics",
-      icon: "/result.png",
-      description:
-        "Comprehensive mathematics curriculum from basic to advanced levels",
-      subjects: ["Algebra", "Geometry", "Calculus", "Statistics"],
-      color: "accent",
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -58,108 +33,79 @@ export default function Academics() {
 
       {/* Academic Departments */}
       <section className="py-20 container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-16">
-          Our Departments
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {departments.map((dept) => (
-            <div
-              key={dept.name}
-              className="bg-card rounded-xl p-8 shadow-lg hover-scale"
-            >
-              <div className="w-16 h-16 relative mb-6">
-                <Image
-                  src={dept.icon}
-                  alt={dept.name}
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">{dept.name}</h3>
-              <p className="text-muted-foreground mb-6">{dept.description}</p>
-              <div className="space-y-2">
-                {dept.subjects.map((subject) => (
-                  <div
-                    key={subject}
-                    className="bg-background rounded-lg p-3 text-sm font-medium"
-                  >
-                    {subject}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <AcademicsDepartments />
       </section>
 
       {/* Academic Features */}
-      <section className="py-20 bg-muted/30">
+      <section className="relative py-20 bg-main-blue-tint3">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold mb-6">Academic Features</h2>
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 relative shrink-0">
+            <div className={"space-y-10"}>
+              <h2 className="text-3xl lg:text-4xl font-bold text-main-red-tint3">
+                Academic Features
+              </h2>
+              <div className="space-y-8">
+                <div className="border border-blue-tint1 flex gap-4 p-4 rounded-lg">
+                  <div className="rounded-lg w-12 h-12 relative shrink-0">
                     <Image
-                      src="/teacher.png"
+                      className="object-contain"
+                      src="/patterns/class_icon_2.svg"
                       alt="Small Classes"
                       fill
-                      className="object-contain"
                     />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-2">
+                    <h3 className="text-lg font-bold text-main-red-tint3">
                       Small Class Sizes
                     </h3>
-                    <p className="text-muted-foreground">
+                    <p className="text-main-blue-tint1">
                       15:1 student-teacher ratio ensures personalized attention
                     </p>
                   </div>
                 </div>
 
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 relative shrink-0">
+                <div className="border border-blue-tint1 -rotate-2 p-4 rounded-lg flex gap-4">
+                  <div className="rounded-lg w-12 h-12 relative shrink-0">
                     <Image
-                      src="/globe.svg"
+                      src="/patterns/funfact_icon_4.svg"
                       alt="Advanced Programs"
                       fill
                       className="object-contain"
                     />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-2">
-                      Advanced Programs
+                    <h3 className="text-lg font-bold text-main-red-tint3">
+                      Cultural Activities
                     </h3>
-                    <p className="text-muted-foreground">
-                      AP and IB courses for college preparation
+                    <p className="text-main-blue-tint1">
+                      Learning about the Nigerian diversity
                     </p>
                   </div>
                 </div>
 
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 relative shrink-0">
+                <div className="border border-blue-tint1 p-4 rounded-lg flex gap-4">
+                  <div className="p-2 rounded-lg w-12 h-12 relative shrink-0">
                     <Image
-                      src="/class.png"
+                      src="/patterns/teach_icon_1.svg"
                       alt="Modern Labs"
                       fill
                       className="object-contain"
                     />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-2">
-                      Modern Laboratories
+                    <h3 className="text-lg font-bold text-main-red-tint3">
+                      Leadership Programs
                     </h3>
-                    <p className="text-muted-foreground">
-                      State-of-the-art facilities for hands-on learning
+                    <p className="text-main-blue-tint1">
+                      AP and IB courses for college preparation
                     </p>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-xl">
+            <div className="relative h-[500px] rounded-2xl overflow-hidden shadow-xl">
               <Image
-                src="/auth_pexels.jpg"
+                src={"/images/ymss-cultural2.jpg"}
                 alt="Academic Features"
                 fill
                 className="object-cover hover-scale"
@@ -167,24 +113,33 @@ export default function Academics() {
             </div>
           </div>
         </div>
+
+        {/* vectors */}
+        <div className="circle-vector-large"></div>
       </section>
 
       {/* Academic Success */}
-      <section className="py-20 container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-16">
+      <section className="py-20 container mx-auto px-4 space-y-15">
+        <h2 className="text-4xl font-bold text-center text-main-blue-tint3">
           Academic Success
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <div className="bg-primary/10 rounded-xl p-8 text-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-main-blue-tint3/10 rounded-xl p-8 text-center">
             <h3 className="text-4xl font-bold text-primary mb-2">98%</h3>
             <p className="text-lg font-medium">College Acceptance Rate</p>
           </div>
-          <div className="bg-secondary/10 rounded-xl p-8 text-center">
-            <h3 className="text-4xl font-bold text-secondary mb-2">85%</h3>
-            <p className="text-lg font-medium">AP Exam Pass Rate</p>
+          <div className="bg-main-blue-tint3 rounded-xl p-8 text-center -translate-y-6">
+            <h3 className="text-4xl font-bold text-main-blue-tint1 mb-2">
+              85%
+            </h3>
+            <p className="text-lg font-medium text-main-blue-tint1">
+              AP Exam Pass Rate
+            </p>
           </div>
-          <div className="bg-accent/10 rounded-xl p-8 text-center">
-            <h3 className="text-4xl font-bold text-accent mb-2">50+</h3>
+          <div className="bg-main-blue-tint3/10 rounded-xl p-8 text-center">
+            <h3 className="text-4xl font-bold text-main-blue-tint3 mb-2">
+              50+
+            </h3>
             <p className="text-lg font-medium">Academic Clubs</p>
           </div>
         </div>
