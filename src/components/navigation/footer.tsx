@@ -1,22 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import dayjs from "dayjs";
-import {
-  Phone,
-  Mail,
-  MapPin,
-  Facebook,
-  Twitter,
-  Instagram,
-  Youtube,
-} from "lucide-react";
+import { Phone, Mail, MapPin, Instagram } from "lucide-react";
 import { navItem } from "@/common/data";
 import Link from "next/link";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 const Footer = () => {
   const [date] = useState<Date>(new Date());
+  const pathName = usePathname();
 
   const departments = [
     "Main Office",
@@ -76,7 +71,12 @@ const Footer = () => {
                 <Link
                   href={item.url}
                   key={index}
-                  className="text-gray-300 hover:text-white transition-colors duration-200"
+                  className={cn(
+                    pathName === item.url
+                      ? "text-main-red-tint3"
+                      : "text-gray-300",
+                    "hover:text-main-red-tint3 transition-colors duration-200"
+                  )}
                 >
                   {item.label}
                 </Link>
@@ -103,32 +103,14 @@ const Footer = () => {
         </div>
 
         {/* Social Media & Bottom Bar */}
-        <div className="border-t border-gray-800 mt-12 pt-8">
+        <div className="border-t border-main-blue-tint2 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex space-x-6 mb-4 md:mb-0">
-              <a
-                href="#"
-                className="text-gray-400 hover:text-blue-400 transition-colors"
-              >
-                <Facebook className="h-6 w-6" />
-              </a>
-              <a
-                href="#"
-                className="text-gray-400 hover:text-blue-400 transition-colors"
-              >
-                <Twitter className="h-6 w-6" />
-              </a>
               <a
                 href="#"
                 className="text-gray-400 hover:text-pink-400 transition-colors"
               >
                 <Instagram className="h-6 w-6" />
-              </a>
-              <a
-                href="#"
-                className="text-gray-400 hover:text-red-400 transition-colors"
-              >
-                <Youtube className="h-6 w-6" />
               </a>
             </div>
 

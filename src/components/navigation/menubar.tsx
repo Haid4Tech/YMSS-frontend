@@ -124,7 +124,7 @@ export default function MenuBar({ view }: IMenuBar) {
               <Link
                 className={cn(
                   pathName === items.url
-                    ? "text-main-red"
+                    ? "text-main-red-tint3"
                     : "text-main-blue-tint3",
                   "text-sm hover:text-main-red transition-colors duration-200"
                 )}
