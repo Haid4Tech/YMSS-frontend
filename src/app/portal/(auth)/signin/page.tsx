@@ -159,14 +159,9 @@ export default function SignIn() {
 
       {/* Footer */}
       <div className="text-center space-y-4">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-main-blue-tint3">
           Don&apos;t have an account?{" "}
-          <Link
-            href="/portal/signup"
-            className="text-primary hover:underline font-medium"
-          >
-            Sign up
-          </Link>
+          <span className="font-semibold">Contact administrator</span>
         </p>
 
         <Button

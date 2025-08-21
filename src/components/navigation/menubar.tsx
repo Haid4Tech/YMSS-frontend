@@ -123,8 +123,10 @@ export default function MenuBar({ view }: IMenuBar) {
             {navItem.map((items, index) => (
               <Link
                 className={cn(
-                  pathName === items.url && "text-main-red",
-                  "text-sm hover:text-primary transition-colors duration-200"
+                  pathName === items.url
+                    ? "text-main-red"
+                    : "text-main-blue-tint3",
+                  "text-sm hover:text-main-red transition-colors duration-200"
                 )}
                 href={items.url}
                 key={index}
