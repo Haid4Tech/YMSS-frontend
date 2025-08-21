@@ -11,19 +11,21 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <main className="relative min-h-screen space-y-10">
+    <main className="relative min-h-screen">
       <MenuBar view={"main"} />
-      <HeroSection />
-      <AdmissionsSection />
-      <div className={"px-5 lg:px-10 xl:px-15"}>
-        <ExpectBanner />
-      </div>
-      <div className="px-5">
-        <CoreValues />
-      </div>
+      <div className="space-y-10">
+        <HeroSection />
+        <AdmissionsSection />
+        <div className={"px-5 lg:px-10 xl:px-15"}>
+          <ExpectBanner />
+        </div>
+        <div className="px-5">
+          <CoreValues />
+        </div>
 
-      <News />
-      <Footer />
+        <News />
+        <Footer />
+      </div>
 
       {/* vector */}
       <div className={"absolute top-[40%] left-5 opacity-50 z-10"}>
