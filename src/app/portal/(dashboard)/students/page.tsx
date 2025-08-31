@@ -3,27 +3,34 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
-import Link from "next/link";
 import {
   studentsAPI,
   studentListAtom,
   studentLoadingAtom,
 } from "@/jotai/students/student";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { PersonAvatar } from "@/components/ui/person-avatar";
 import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
 import { extractErrorMessage } from "@/utils/helpers";
 import { toast } from "sonner";
 
 import { Spinner } from "@radix-ui/themes";
-import { Eye, Trash2 } from "lucide-react";
-import { SafeRender } from "@/components/ui/safe-render";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+
+import { Student } from "@/jotai/students/student-types";
+import { DataTable } from "@/components/general/data-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ColumnDef } from "@tanstack/react-table";
 
 export default function StudentsPage() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState<string>("");
   const [reload, setReload] = useState<boolean>(false);
   const [students] = useAtom(studentListAtom);
   const [loading] = useAtom(studentLoadingAtom);
@@ -49,33 +56,10 @@ export default function StudentsPage() {
   }, [getAllStudents, reload]);
 
   const filteredStudents = Array.isArray(students?.students)
-    ? students.students.filter(
-        (student) =>
-          student?.user?.firstname
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          student?.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    ? students.students
     : [];
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (isParent || isStudent || isTeacher) {
-    if (filteredStudents.length === 0) {
-      return (
-        <div className="flex h-96 items-center justify-center">
-          <p>No student yet</p>
-        </div>
-      );
-    }
-  }
-
+  //
   const handleViewStudent = (studentId: number) => {
     setLoadingStates((prev) => ({
       ...prev,
@@ -104,6 +88,214 @@ export default function StudentsPage() {
       });
     }
   };
+
+  // Define columns inside component to access handler functions
+  const columns: ColumnDef<Student>[] = [
+    {
+      id: "studentImage",
+      header: () => <div className="text-left">Profile Image</div>,
+      cell: ({ row }) => {
+        const student = row.original;
+        return (
+          <PersonAvatar
+            imageUrl={student?.user?.photo}
+            name={`${student?.user?.firstname ?? "Unknown"} ${
+              student?.user?.lastname ?? "Student"
+            }`}
+            size="lg"
+          />
+        );
+      },
+      enableSorting: true,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "id",
+      header: "Student ID",
+      cell: ({ row }) => <div className="capitalize">{row.getValue("id")}</div>,
+    },
+    {
+      id: "firstName",
+      header: "First Name",
+      accessorFn: (row) => row.user?.firstname,
+      cell: ({ row }) => {
+        const student = row.original;
+        return (
+          <div className="capitalize">
+            {student?.user?.firstname || "Unknown"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "lastName",
+      header: "Last Name",
+      accessorFn: (row) => row.user?.lastname,
+      cell: ({ row }) => {
+        const student = row.original;
+        return (
+          <div className="capitalize">
+            {student?.user?.lastname || "Student"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "class",
+      header: "Class",
+      accessorFn: (row) => row.class?.name,
+      cell: ({ row }) => {
+        const student = row.original;
+        return (
+          <div className="capitalize">
+            {student?.class?.name || "Not assigned"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "status",
+      header: () => <div className="text-center">Status</div>,
+      accessorFn: (row) =>
+        row.enrollments?.length > 0 ? "Enrolled" : "Not Enrolled",
+      cell: ({ row }) => {
+        const student = row.original;
+        const isEnrolled = student?.enrollments?.length > 0;
+        return (
+          <div
+            className={`px-2 py-1 rounded-full text-center text-xs font-medium ${
+              isEnrolled
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {isEnrolled ? "Enrolled" : "Not Enrolled"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "enrollments",
+      header: () => <div className="text-center">Enrollments</div>,
+      accessorFn: (row) => row.enrollments?.length || 0,
+      cell: ({ row }) => {
+        const student = row.original;
+        const count = student?.enrollments?.length || 0;
+        return (
+          <div className="text-center">
+            <span className="px-3 py-2 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+              {count}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: "email",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Email
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      accessorFn: (row) => row.user?.email,
+      cell: ({ row }) => {
+        const student = row.original;
+        return (
+          <div className="lowercase">{student?.user?.email || "No email"}</div>
+        );
+      },
+    },
+    {
+      id: "dob",
+      header: "DOB",
+      accessorFn: (row) => row.user.DOB,
+      cell: ({ row }) => {
+        const student = row.original;
+        return <div>{student?.user?.DOB || "No DOB"}</div>;
+      },
+    },
+    {
+      id: "admissionDate",
+      header: "Admission Date",
+      accessorFn: (row) => row.admissionDate,
+      cell: ({ row }) => {
+        const student = row.original;
+        return (
+          <div>
+            {student?.admissionDate
+              ? new Date(student.admissionDate).toLocaleDateString()
+              : "Not set"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const student = row.original;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="border h-8 w-8 p-0">
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigator.clipboard.writeText(String(student.id))
+                }
+              >
+                Copy student ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className={"cursor-pointer"}
+                onClick={() => handleViewStudent(student.id)}
+              >
+                View student
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className={
+                  "cursor-pointer bg-destructive hover:bg-destructive/90 text-white"
+                }
+                onClick={() => handleDeleteStudent(student.id)}
+              >
+                Delete student
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (isParent || isStudent || isTeacher) {
+    if (filteredStudents.length === 0) {
+      return (
+        <div className="flex h-96 items-center justify-center">
+          <p>No student yet</p>
+        </div>
+      );
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -143,111 +335,12 @@ export default function StudentsPage() {
         )}
       </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-4">
-        <Input
-          placeholder="Search students..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
-
-      {/* Students Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredStudents.map((student) => (
-          <Card key={student?.id} className="hover-scale">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <PersonAvatar
-                    imageUrl={student?.user?.photo}
-                    name={`${student?.user?.firstname ?? "Unknown"} ${
-                      student?.user?.lastname ?? "Student"
-                    }`}
-                    size="lg"
-                  />
-                  <SafeRender fallback="Unnamed Student">
-                    {`${student?.user?.firstname} ${student?.user?.lastname}`}
-                  </SafeRender>
-                </div>
-                <div className="flex md:flex-row flex-col gap-2">
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleViewStudent(student.id)}
-                  >
-                    {loadingStates.view === student.id ? (
-                      <div>
-                        <Spinner />
-                      </div>
-                    ) : (
-                      <div className="flex flex-row gap-1">
-                        <p className="block md:hidden text-sm">View</p>
-                        <Eye size={12} />
-                      </div>
-                    )}
-                  </Button>
-                  <Button
-                    size={"sm"}
-                    variant={"destructive"}
-                    onClick={() => handleDeleteStudent(student.id)}
-                  >
-                    {loadingStates.delete === student.id ? (
-                      <div>
-                        <Spinner />
-                      </div>
-                    ) : (
-                      <div className="flex flex-row gap-1">
-                        <p className="block md:hidden text-sm">Delete</p>
-                        <Trash2 size={12} />
-                      </div>
-                    )}
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Email:</span>{" "}
-                  {student?.user?.email}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Class:</span>{" "}
-                  {student?.class?.name || "Not assigned"}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Student ID:</span> {student?.id}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Empty State */}
-      {filteredStudents?.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            {searchTerm
-              ? "No students found matching your search."
-              : "No students enrolled yet."}
-          </p>
-          {!searchTerm && (
-            <div>
-              {isParent || isStudent || isTeacher ? (
-                <></>
-              ) : (
-                <Button asChild className="mt-4">
-                  <Link href="/portal/students/new">Create First Record</Link>
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        data={filteredStudents}
+        searchPlaceholder="Search students by name, email, class, or phone..."
+        enableGlobalSearch={true}
+      />
     </div>
   );
 }
