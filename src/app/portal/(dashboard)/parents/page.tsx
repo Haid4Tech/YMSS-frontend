@@ -15,6 +15,7 @@ import { extractErrorMessage } from "@/utils/helpers";
 import { toast } from "sonner";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { PersonAvatar } from "@/components/ui/person-avatar";
+import { cn } from "@/lib/utils";
 
 import { Parent } from "@/jotai/parent/parent-types";
 import { DataTable } from "@/components/general/data-table";
@@ -169,14 +170,17 @@ export default function ParentsPage() {
         const parent = row.original;
         const noOfStudents = parent?.students?.length;
         return (
-          <div
-            className={`px-2 py-1 rounded-full text-center text-xs font-medium ${
-              noOfStudents > 0
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {noOfStudents}
+          <div className={"text-center"}>
+            <span
+              className={cn(
+                noOfStudents > 0
+                  ? "bg-green-100 text-green-800"
+                  : "bg-gray-100 text-gray-800",
+                "px-3 py-2  text-xs font-medium rounded-full"
+              )}
+            >
+              {noOfStudents}
+            </span>
           </div>
         );
       },
