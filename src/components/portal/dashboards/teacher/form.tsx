@@ -178,28 +178,6 @@ const TeacherForm: FC<ITeacherForm> = ({
                     onChange={handleFileChange}
                   />
                 </div>
-                {/* <div>
-                  <InputField
-                    label="Emergency Contact Name"
-                    placeholder="Enter Emergency Contact Name"
-                    id="emergencyContactName"
-                    value={formData?.emergencyContactName}
-                    onChange={(e) =>
-                      handleInputChange("emergencyContactName", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <InputField
-                    label=" Emergency Contact Phone"
-                    placeholder="e.g, 080473434832"
-                    id="emergencyContactPhone"
-                    value={formData?.emergencyContactPhone}
-                    onChange={(e) =>
-                      handleInputChange("emergencyContactPhone", e.target.value)
-                    }
-                  />
-                </div> */}
               </div>
             </div>
           )}

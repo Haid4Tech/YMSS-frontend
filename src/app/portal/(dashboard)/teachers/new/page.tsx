@@ -107,9 +107,6 @@ export default function AddTeacherPage() {
         gender: formData.gender,
         nationality: formData.nationality,
 
-        emergencyContactName: formData.emergencyContactName,
-        emergencyContactPhone: formData.emergencyContactPhone,
-
         previousInstitution: formData.previousInstitution,
         salary: formData.salary,
         employmentType: formData.employmentType,

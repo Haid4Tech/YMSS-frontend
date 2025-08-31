@@ -56,8 +56,7 @@ export interface ITeacherFormData {
   city?: string;
   degree: string;
   email: string;
-  emergencyContactName: string;
-  emergencyContactPhone: string;
+
   employmentType: string;
   experience: string;
   firstname: string;

@@ -79,16 +79,9 @@ export default function Page() {
         experience: teacher?.experience ?? "",
         hireDate: teacher?.hireDate ?? "",
         salary: teacher?.salary ?? 0,
-        emergencyContactName: teacher?.emergencyContactName ?? "",
-        emergencyContactPhone: teacher?.emergencyContactPhone ?? "",
         previousInstitution: teacher?.previousInstitution ?? "",
 
         employmentType: teacher?.employmentType ?? "",
-
-        // subjectId: formData.subjectSpecialization
-        //   ? parseInt(formData.subjectSpecialization)
-        //   : null,
-
         degree: teacher.degree,
         university: teacher?.university ?? "",
         graduationYear: teacher?.graduationYear || 0,
