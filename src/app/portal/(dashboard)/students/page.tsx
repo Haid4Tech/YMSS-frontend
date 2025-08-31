@@ -258,16 +258,11 @@ export default function StudentsPage() {
                 Copy student ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className={"cursor-pointer"}
-                onClick={() => handleViewStudent(student.id)}
-              >
+              <DropdownMenuItem onClick={() => handleViewStudent(student.id)}>
                 View student
               </DropdownMenuItem>
               <DropdownMenuItem
-                className={
-                  "cursor-pointer bg-destructive hover:bg-destructive/90 text-white"
-                }
+                variant="destructive"
                 onClick={() => handleDeleteStudent(student.id)}
               >
                 Delete student
@@ -338,7 +333,7 @@ export default function StudentsPage() {
       <DataTable
         columns={columns}
         data={filteredStudents}
-        searchPlaceholder="Search students by name, email, class, or phone..."
+        searchPlaceholder="Search students by name, email, or class..."
         enableGlobalSearch={true}
       />
     </div>

@@ -10,27 +10,28 @@ import {
   parentErrorAtom,
 } from "@/jotai/parent/parent";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 
-import { SafeRender } from "@/components/ui/safe-render";
 import { extractErrorMessage } from "@/utils/helpers";
 import { toast } from "sonner";
-import { Spinner } from "@radix-ui/themes";
-import { Eye, Trash2 } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { PersonAvatar } from "@/components/ui/person-avatar";
+
+import { Parent } from "@/jotai/parent/parent-types";
+import { DataTable } from "@/components/general/data-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ColumnDef } from "@tanstack/react-table";
 
 export default function ParentsPage() {
   const router = useRouter();
   const [reload, setReload] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState<string>("");
   const [parents] = useAtom(parentListAtom);
-  const [loadingStates, setLoadingStates] = useState<{
-    view: number | null;
-    delete: number | null;
-  }>({
-    view: null,
-    delete: null,
-  });
   const [loading] = useAtom(parentLoadingAtom);
   const [error] = useAtom(parentErrorAtom);
 
@@ -40,15 +41,7 @@ export default function ParentsPage() {
     getAllParents();
   }, [getAllParents, reload]);
 
-  const filteredParents = Array.isArray(parents)
-    ? parents.filter(
-        (parent) =>
-          parent?.user?.firstname
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          parent?.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [];
+  const filteredParents = Array.isArray(parents) ? parents : [];
 
   if (loading) {
     return (
@@ -67,17 +60,13 @@ export default function ParentsPage() {
     );
   }
 
+  // View Parent
   const handleViewParent = (parentId: number) => {
-    setLoadingStates((prev) => ({ ...prev, view: parentId }));
     router.push(`/portal/parents/${parentId}`);
-
-    setTimeout(() => {
-      setLoadingStates((prev) => ({ ...prev, view: null }));
-    }, 3000);
   };
 
+  // Delete Parent
   const handleDeleteParent = async (parentId: number) => {
-    setLoadingStates((prev) => ({ ...prev, delete: parentId }));
     try {
       await parentsAPI.delete(parentId);
       toast.success("Parent deleted successfully");
@@ -87,10 +76,160 @@ export default function ParentsPage() {
       toast.error("Failed to delete parent record. Please try again.", {
         description: errorMessage,
       });
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, delete: null }));
     }
   };
+
+  // Parent Table Column
+  const columns: ColumnDef<Parent>[] = [
+    {
+      id: "parentImage",
+      header: () => <div className="text-left">Profile Image</div>,
+      cell: ({ row }) => {
+        const parent = row.original;
+        return (
+          <PersonAvatar
+            imageUrl={parent?.user?.photo}
+            name={`${parent?.user?.firstname ?? "Unknown"} ${
+              parent?.user?.lastname ?? "Parent"
+            }`}
+            size="lg"
+          />
+        );
+      },
+      enableSorting: true,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "id",
+      header: "Parent ID",
+      cell: ({ row }) => <div className="capitalize">{row.getValue("id")}</div>,
+    },
+    {
+      id: "firstName",
+      header: "First Name",
+      accessorFn: (row) => row.user?.firstname,
+      cell: ({ row }) => {
+        const parent = row.original;
+        return (
+          <div className="capitalize">
+            {parent?.user?.firstname || "Unknown"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "lastName",
+      header: "Last Name",
+      accessorFn: (row) => row.user?.lastname,
+      cell: ({ row }) => {
+        const parent = row.original;
+        return (
+          <div className="capitalize">
+            {parent?.user?.lastname || "Teacher"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "email",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Email
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      accessorFn: (row) => row.user?.email,
+      cell: ({ row }) => {
+        const teacher = row.original;
+        return (
+          <div className="lowercase">{teacher?.user?.email || "No email"}</div>
+        );
+      },
+    },
+    {
+      id: "gender",
+      header: "Gender",
+      accessorFn: (row) => row.user?.gender,
+      cell: ({ row }) => {
+        const parent = row.original;
+        return (
+          <div className="capitalize">{parent?.user?.gender || "Unknown"}</div>
+        );
+      },
+    },
+    {
+      id: "status",
+      header: () => <div className="text-center">No. of Students</div>,
+      cell: ({ row }) => {
+        const parent = row.original;
+        const noOfStudents = parent?.students?.length;
+        return (
+          <div
+            className={`px-2 py-1 rounded-full text-center text-xs font-medium ${
+              noOfStudents > 0
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {noOfStudents}
+          </div>
+        );
+      },
+    },
+    {
+      id: "phone",
+      header: "Phone Number",
+      accessorFn: (row) => row.user?.phone,
+      cell: ({ row }) => {
+        const parent = row.original;
+        return (
+          <div className="capitalize">
+            {parent?.user?.phone || "No phone number"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const parent = row.original;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="border h-8 w-8 p-0">
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => navigator.clipboard.writeText(String(parent.id))}
+              >
+                Copy parent ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleViewParent(parent.id)}>
+                View parent
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => handleDeleteParent(parent.id)}
+              >
+                Delete parent
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -107,101 +246,13 @@ export default function ParentsPage() {
         </Button> */}
       </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-4">
-        <Input
-          placeholder="Search parents..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
-
-      {/* Parents Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredParents.map((parent) => (
-          <Card key={parent?.id} className="hover-scale">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <SafeRender fallback="Unnamed Student">
-                  {`${parent?.user?.firstname} ${parent?.user?.lastname}`}
-                </SafeRender>
-
-                <div className="flex md:flex-row flex-col gap-2">
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleViewParent(parent.id)}
-                  >
-                    {loadingStates.view === parent.id ? (
-                      <div>
-                        <Spinner />
-                      </div>
-                    ) : (
-                      <div className="flex flex-row gap-1">
-                        <p className="block md:hidden text-sm">View</p>
-                        <Eye size={12} />
-                      </div>
-                    )}
-                  </Button>
-                  <Button
-                    size={"sm"}
-                    variant={"destructive"}
-                    onClick={() => handleDeleteParent(parent.id)}
-                  >
-                    {loadingStates.delete === parent.id ? (
-                      <div>
-                        <Spinner />
-                      </div>
-                    ) : (
-                      <div className="flex flex-row gap-1">
-                        <p className="block md:hidden text-sm">Delete</p>
-                        <Trash2 size={12} />
-                      </div>
-                    )}
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Email:</span>{" "}
-                  {parent?.user?.email}
-                </p>
-
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Children:</span>{" "}
-                  {parent?.students?.length || 0} student(s)
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">User ID:</span> {parent?.userId}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Parent ID:</span> {parent?.id}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Empty State */}
-      {filteredParents?.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            {searchTerm
-              ? "No parents found matching your search."
-              : "No parents registered yet."}
-          </p>
-          {/* {!searchTerm && (
-            <Button asChild className="mt-4">
-              <Link href="/portal/parents/new">Add First Parent</Link>
-            </Button>
-          )} */}
-        </div>
-      )}
+      {/* Parent Data Table */}
+      <DataTable
+        columns={columns}
+        data={filteredParents}
+        searchPlaceholder="Search parents by name, email, or phone..."
+        enableGlobalSearch={true}
+      />
     </div>
   );
 }
