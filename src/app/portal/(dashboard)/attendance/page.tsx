@@ -103,10 +103,7 @@ export default function AttendancePage() {
       {/* Tab Navigation */}
       <div className="border-b">
         <nav className="flex space-x-8">
-          {[
-            { id: "class", label: "Class Attendance" },
-            { id: "subject", label: "Subject Attendance" },
-          ].map((tab) => (
+          {[{ id: "class", label: "Class Attendance" }].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -171,7 +168,7 @@ export default function AttendancePage() {
         </div>
       )}
 
-      {activeTab === "subject" && (
+      {/* {activeTab === "subject" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredSubjects.map((subject, index) => (
             <Card key={index}>
@@ -202,7 +199,7 @@ export default function AttendancePage() {
             </Card>
           ))}
         </div>
-      )}
+      )} */}
 
       {/* Empty State */}
       {((activeTab === "class" && filteredClasses?.length === 0) ||

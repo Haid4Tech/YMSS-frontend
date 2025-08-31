@@ -30,16 +30,10 @@ export const TeacherFormInitialData = {
   classesAssigned: [],
   preferredGrades: "",
 
-  // maxClassesPerWeek: "",
-
   achievements: "",
   notes: "",
   photo: null,
   role: Role.TEACHER,
-  emergencyContactName: "",
-  emergencyContactPhone: "",
-
-  // additionalCertifications: "",
 };
 
 export const StudentFormIntialData = {

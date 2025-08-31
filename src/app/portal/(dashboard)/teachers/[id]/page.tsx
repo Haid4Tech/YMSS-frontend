@@ -113,7 +113,7 @@ export default function TeacherDetailPage() {
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-blue-600">
               <SafeRender fallback="Not assigned">
-                {teacher?.subject?.name}
+                {teacher?.subjects?.map((subject) => subject.name).join(", ")}
               </SafeRender>
             </div>
             <p className="text-sm text-muted-foreground">Main Subject</p>
@@ -194,7 +194,9 @@ export default function TeacherDetailPage() {
                 </label>
                 <p className="text-sm">
                   <SafeRender fallback="Not assigned">
-                    {teacher?.subject?.name}
+                    {teacher?.subjects
+                      ?.map((subject) => subject.name)
+                      .join(", ")}
                   </SafeRender>
                 </p>
               </div>
