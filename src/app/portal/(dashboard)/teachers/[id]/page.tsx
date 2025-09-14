@@ -21,6 +21,8 @@ export default function TeacherDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
 
+  console.log(teacher);
+
   useEffect(() => {
     const fetchTeacherData = async () => {
       try {
