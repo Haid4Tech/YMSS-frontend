@@ -2,278 +2,458 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { SelectContent, SelectItem } from "@/components/ui/select";
-import { subjectAttendanceAPI } from "@/jotai/subject-attendance/subject-attendance";
-import {
-  AttendanceStatus,
-  AttendanceRecord,
-} from "@/jotai/subject-attendance/subject-attendance-type";
+import { AttendanceStatus } from "@/jotai/subject-attendance/subject-attendance-type";
+import { DataTable } from "@/components/general/data-table";
 
 import { studentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
-import TableComp from "@/components/general/table";
+import { attendanceAPI } from "@/jotai/attendance/attendance";
+import { Attendance } from "@/jotai/attendance/attendance-types";
+
 import { PageHeader } from "@/components/general/page-header";
 import DatePicker from "@/components/general/date-picker";
+import ActionsDropdown from "@/components/ui/actions-dropdown";
 
-import { Subject } from "@/jotai/subject/subject-types";
-import { SelectField } from "@/components/ui/form-field";
+import { ColumnDef } from "@tanstack/react-table";
+import { ArrowUpDown } from "lucide-react";
 
-import { subjectsAPI } from "@/jotai/subject/subject";
-import { RowAction } from "@/components/general/table";
 import { toast } from "sonner";
-
-const tableHeader = [
-  { key: "student_id", title: "Student ID" },
-  { key: "name", title: "Student Name" },
-  { key: "status", title: "Status" },
-  { key: "date", title: "Date" },
-  { key: "actions", title: "Actions" },
-];
+import { extractErrorMessage } from "@/utils/helpers";
 
 export default function MarkAttendancePage() {
   const params = useParams<{ classId: string }>();
   const classId = params.classId as string;
 
   const [loading, setLoading] = useState(false);
+  const [attendanceDate, setAttendanceDate] = useState<Date | string>(
+    new Date()
+  );
+
   const [students, setStudents] = useState<Student[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [existingAttendance, setExistingAttendance] = useState<any[]>([]);
-  const [attendanceSummary, setAttendanceSummary] = useState<any>(null);
-
-  const [selectedSubject, setSelectedSubject] = useState<string>("");
-  const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(
-    null
-  );
-
-  const [attendanceDate, setAttendanceDate] = useState<string | undefined>(
-    new Date().toISOString().split("T")[0]
-  );
-  const [attendanceRecords, setAttendanceRecords] = useState<
-    AttendanceRecord[]
-  >([]);
-
-  const getRowActions = (row: any): RowAction[] => {
-    return [
-      {
-        title: "Remove Attendance",
-        action: () => handleRemoveAttendance(row.id),
-        color: "text-danger",
-      },
-    ];
-  };
-
-  const fetchExistingAttendance = useCallback(async () => {
-    if (!attendanceDate) return;
-
-    try {
-      const attendance = await subjectAttendanceAPI.getByClassAndDate(
-        parseInt(classId),
-        attendanceDate
-      );
-      setExistingAttendance(attendance.attendance || []);
-
-      // Update attendance records with existing data
-      if (attendance.attendance && attendance.attendance.length > 0) {
-        setAttendanceRecords((prev) =>
-          prev.map((record) => {
-            const existing = attendance.attendance.find(
-              (a: any) => a.studentId === record.studentId
-            );
-            if (existing && existing.subjects && existing.subjects.length > 0) {
-              const subjectAttendance = existing.subjects.find(
-                (s: any) => s.subjectId === selectedSubjectId
-              );
-              return subjectAttendance
-                ? {
-                    ...record,
-                    status:
-                      subjectAttendance.attendance?.status ||
-                      AttendanceStatus.PRESENT,
-                  }
-                : record;
-            }
-            return record;
-          })
-        );
-      }
-    } catch (error) {
-      console.error("Failed to fetch existing attendance:", error);
-    }
-  }, [attendanceDate, classId, selectedSubjectId]);
-
-  const fetchAttendanceSummary = useCallback(async () => {
-    try {
-      const summary = await subjectAttendanceAPI.getClassAttendanceSummary(
-        parseInt(classId)
-      );
-      setAttendanceSummary(summary);
-    } catch (error) {
-      console.error("Failed to fetch attendance summary:", error);
-    }
-  }, [classId]);
+  const [attendanceRecords, setAttendanceRecords] = useState<Attendance[]>([]);
+  const [localAttendanceRecords, setLocalAttendanceRecords] = useState<
+    Record<number, string>
+  >({});
 
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchData = async () => {
       try {
-        const [studentsData] = await Promise.all([
-          studentsAPI.getStudentsByClass(parseInt(classId)),
-        ]);
-        setStudents(Array.isArray(studentsData) ? studentsData : []);
-
-        // Initialize attendance records
-        const records = studentsData.map((student: Student) => ({
-          studentId: student.id,
-          status: AttendanceStatus.PRESENT,
-          notes: "",
-        }));
-        setAttendanceRecords(records);
-      } catch (error) {
-        console.error("Failed to fetch students:", error);
-        setStudents([]);
-        setAttendanceRecords([]);
-      }
-    };
-    fetchStudents();
-    fetchAttendanceSummary();
-  }, [classId, fetchAttendanceSummary]);
-
-  useEffect(() => {
-    const fetchSubjects = async () => {
-      try {
-        const response = await subjectsAPI.getSubjectByClassID(
+        // Fetch students first
+        const studentsData = await studentsAPI.getStudentsByClass(
           parseInt(classId)
         );
-        setSubjects(Array.isArray(response) ? response : []);
+        setStudents(Array.isArray(studentsData) ? studentsData : []);
+
+        // Fetch attendance data separately (don't fail if no records exist)
+        try {
+          const attendanceData = await attendanceAPI.getByClassIdDate(
+            parseInt(classId),
+            attendanceDate
+          );
+          setAttendanceRecords(
+            Array.isArray(attendanceData) ? attendanceData : []
+          );
+        } catch (attendanceError) {
+          console.log(
+            "No attendance records found for this date:",
+            attendanceError
+          );
+          setAttendanceRecords([]);
+        }
       } catch (error) {
-        console.error("Failed to fetch subjects:", error);
-        setSubjects([]);
+        console.error("❌ Failed to fetch data:", error);
+        setStudents([]);
       }
     };
-    fetchSubjects();
-  }, [classId]);
+    fetchData();
+  }, [classId, attendanceDate]);
 
-  useEffect(() => {
-    if (attendanceDate) {
-      fetchExistingAttendance();
-    }
-  }, [attendanceDate, fetchExistingAttendance]);
+  const mappedStudents = students.map((student) => {
+    // Get current attendance record for the selected date
+    const currentAttendanceRecord = attendanceRecords.find(
+      (record) =>
+        record.classId === parseInt(classId) && record.date === attendanceDate
+    );
 
-  const handleSubjectChange = (subjectName: string) => {
-    setSelectedSubject(subjectName);
-    const subject = subjects.find((s) => s.name === subjectName);
-    setSelectedSubjectId(subject?.id || null);
+    // Get current status for this student - check local records first, then existing records
+    const localStatus = localAttendanceRecords[student.id];
+    const existingStatus = currentAttendanceRecord?.records?.[student.id];
+    const currentStatus = localStatus || existingStatus || "NOT_MARKED";
+
+    return {
+      student_id: student.id,
+      ...student,
+      attendance: {
+        status: currentStatus,
+        date: attendanceDate,
+        classId: parseInt(classId),
+        studentId: student.id, // Use student ID directly
+      },
+    };
+  });
+
+  // Calculate attendance summary
+  const attendanceSummary = {
+    totalStudents: mappedStudents.length,
+    present: mappedStudents.filter((s) => s.attendance?.status === "PRESENT")
+      .length,
+    absent: mappedStudents.filter((s) => s.attendance?.status === "ABSENT")
+      .length,
+    late: mappedStudents.filter((s) => s.attendance?.status === "LATE").length,
+    excused: mappedStudents.filter((s) => s.attendance?.status === "EXCUSED")
+      .length,
+    notMarked: mappedStudents.filter(
+      (s) => s.attendance?.status === "NOT_MARKED"
+    ).length,
   };
 
-  const handleAttendanceChange = (
+  const handleAttendanceChange = async (
     studentId: number,
     status: AttendanceStatus
   ) => {
-    setAttendanceRecords((prev) =>
-      prev.map((record) =>
-        record.studentId === studentId ? { ...record, status } : record
-      )
-    );
-  };
+    try {
+      // Update local state immediately for UI responsiveness
+      setLocalAttendanceRecords((prev) => ({
+        ...prev,
+        [studentId]: status,
+      }));
 
-  const handleNotesChange = (studentId: number, notes: string) => {
-    setAttendanceRecords((prev) =>
-      prev.map((record) =>
-        record.studentId === studentId ? { ...record, notes } : record
-      )
-    );
-  };
+      // Check if there's an existing attendance record for this class and date
+      const existingRecord = attendanceRecords.find(
+        (record) =>
+          record.classId === parseInt(classId) && record.date === attendanceDate
+      );
 
-  const handleSelectAll = (status: AttendanceStatus) => {
-    setAttendanceRecords((prev) =>
-      prev.map((record) => ({ ...record, status }))
-    );
+      if (existingRecord) {
+        // Update existing attendance record using class and date endpoint
+        const updatedRecords = {
+          ...existingRecord.records,
+          [studentId]: status,
+        };
+
+        const updatedAttendance =
+          await attendanceAPI.updateAttendanceByClassAndDate(
+            parseInt(classId),
+            attendanceDate,
+            updatedRecords
+          );
+
+        // Update local attendance records
+        setAttendanceRecords((prev) =>
+          prev.map((record) =>
+            record.id === existingRecord.id ? updatedAttendance : record
+          )
+        );
+      } else {
+        // Create new attendance record with just this student
+        const newRecords = {
+          [studentId]: status,
+        };
+
+        const newAttendance = await attendanceAPI.createAttendance({
+          records: newRecords,
+          date: attendanceDate,
+          classId: parseInt(classId),
+        });
+
+        // Add to local attendance records
+        setAttendanceRecords((prev) => [...prev, newAttendance]);
+      }
+
+      toast.success(`Student ${studentId} marked as ${status}`);
+    } catch (error: any) {
+      console.error("Failed to update attendance:", error);
+      const errorMessage =
+        error.response?.data?.error || "Failed to update attendance";
+      toast.error(errorMessage);
+
+      // Revert local state on error
+      setLocalAttendanceRecords((prev) => {
+        const updated = { ...prev };
+        delete updated[studentId];
+        return updated;
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedSubjectId) {
-      toast.error("Please select a subject");
+
+    if (Object.keys(localAttendanceRecords).length === 0) {
+      toast.error("No attendance changes to save");
       return;
     }
 
     setLoading(true);
 
     try {
-      const attendanceData = {
-        classId: parseInt(classId),
-        date: attendanceDate!,
-        attendanceData: attendanceRecords.map((record) => ({
-          studentId: record.studentId,
-          subjectId: selectedSubjectId,
-          status: record.status,
-        })),
-      };
-
-      await subjectAttendanceAPI.takeClassAttendance(attendanceData);
-
-      toast.success("Attendance marked successfully!");
-      await fetchExistingAttendance(); // Refresh existing attendance
-      await fetchAttendanceSummary(); // Refresh summary
-    } catch (error: any) {
-      console.error("Failed to mark attendance:", error);
-      toast.error(
-        error.message || "Failed to mark attendance. Please try again."
+      // Check if there's an existing attendance record for this class and date
+      const existingRecord = attendanceRecords.find(
+        (record) =>
+          record.classId === parseInt(classId) && record.date === attendanceDate
       );
+
+      if (existingRecord) {
+        // Update existing attendance record with all local changes
+        const updatedRecords = {
+          ...existingRecord.records,
+          ...localAttendanceRecords,
+        };
+
+        const updatedAttendance =
+          await attendanceAPI.updateAttendanceByClassAndDate(
+            parseInt(classId),
+            attendanceDate,
+            updatedRecords
+          );
+
+        // Update local attendance records
+        setAttendanceRecords((prev) =>
+          prev.map((record) =>
+            record.id === existingRecord.id ? updatedAttendance : record
+          )
+        );
+      } else {
+        // Create new bulk attendance record
+        const attendanceRecordsArray = Object.entries(
+          localAttendanceRecords
+        ).map(([studentId, status]) => ({
+          studentId: parseInt(studentId),
+          status: status,
+        }));
+
+        const result = await attendanceAPI.createBulkAttendance({
+          classId: parseInt(classId),
+          date: attendanceDate,
+          attendanceRecords: attendanceRecordsArray,
+        });
+
+        // Add to local attendance records
+        setAttendanceRecords((prev) => [...prev, result.attendance]);
+      }
+
+      // Clear local records after successful save
+      setLocalAttendanceRecords({});
+      toast.success("Attendance saved successfully");
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.error || extractErrorMessage(error);
+      console.error("Failed to save attendance:", errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRemoveAttendance = async (attendanceId: number) => {
+  // Bulk attendance operations
+  const handleMarkAllPresent = () => {
+    const allPresentRecords: Record<number, string> = {};
+    students.forEach((student) => {
+      allPresentRecords[student.id] = AttendanceStatus.PRESENT;
+    });
+    setLocalAttendanceRecords((prev) => ({ ...prev, ...allPresentRecords }));
+    toast.success("All students marked as present");
+  };
+
+  const handleMarkAllAbsent = () => {
+    const allAbsentRecords: Record<number, string> = {};
+    students.forEach((student) => {
+      allAbsentRecords[student.id] = AttendanceStatus.ABSENT;
+    });
+    setLocalAttendanceRecords((prev) => ({ ...prev, ...allAbsentRecords }));
+    toast.success("All students marked as absent");
+  };
+
+  // Refresh attendance data
+  const refreshAttendanceData = async () => {
     try {
-      await subjectAttendanceAPI.remove(attendanceId);
-      toast.success("Attendance record removed successfully!");
-      await fetchExistingAttendance(); // Refresh existing attendance
-      await fetchAttendanceSummary(); // Refresh summary
-    } catch (error: any) {
-      console.error("Failed to remove attendance:", error);
-      toast.error(
-        error.message || "Failed to remove attendance. Please try again."
+      const attendanceData = await attendanceAPI.getByClassIdDate(
+        parseInt(classId),
+        attendanceDate
       );
+      setAttendanceRecords(Array.isArray(attendanceData) ? attendanceData : []);
+    } catch (error) {
+      console.error("Failed to refresh attendance data:", error);
     }
   };
 
-  const presentCount = attendanceRecords.filter(
-    (r) => r.status === AttendanceStatus.PRESENT
-  ).length;
-  const absentCount = attendanceRecords.filter(
-    (r) => r.status === AttendanceStatus.ABSENT
-  ).length;
-  const lateCount = attendanceRecords.filter(
-    (r) => r.status === AttendanceStatus.LATE
-  ).length;
-  const excusedCount = attendanceRecords.filter(
-    (r) => r.status === AttendanceStatus.EXCUSED
-  ).length;
-  const attendanceRate =
-    attendanceRecords.length > 0
-      ? ((presentCount / attendanceRecords.length) * 100).toFixed(1)
-      : "0";
+  // Remove attendance
+  const handleRemoveAttendance = async (attendanceId: number) => {
+    try {
+      await attendanceAPI.deleteAttendance(attendanceId);
+      setAttendanceRecords((prev) =>
+        prev.filter((record) => record.id !== attendanceId)
+      );
+      toast.success("Attendance record deleted");
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.error || "Failed to delete attendance record";
+      console.error("Failed to remove attendance:", errorMessage);
+      toast.error(errorMessage);
+    }
+  };
 
-  // Prepare table data for existing attendance
-  const tableData = existingAttendance.flatMap((studentAttendance: any) =>
-    studentAttendance.subjects
-      .filter((subject: any) => subject.attendance)
-      .map((subject: any) => ({
-        student_id: studentAttendance.studentId,
-        name: `${studentAttendance.firstname} ${
-          studentAttendance.lastname || ""
-        }`,
-        status: subject.attendance.status,
-        date: new Date(subject.attendance.date).toLocaleDateString(),
-        id: subject.attendance.id,
-      }))
-  );
+  // Table Header
+  const columns: ColumnDef<any>[] = [
+    {
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => <div className="capitalize">{row.getValue("id")}</div>,
+    },
+    {
+      accessorKey: "student_id",
+      header: "Student ID",
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("student_id")}</div>
+      ),
+    },
+    {
+      id: "firstname",
+      header: "First Name",
+      accessorFn: (row) => row.user?.firstname,
+      cell: ({ row }) => {
+        const student = row.original;
+        return (
+          <div className="capitalize">
+            {student?.user?.firstname || "Unknown"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "lastName",
+      header: "Last Name",
+      accessorFn: (row) => row.user?.lastname,
+      cell: ({ row }) => {
+        const student = row.original;
+        return (
+          <div className="capitalize">
+            {student?.user?.lastname || "Student"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "class",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Class
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      accessorFn: (row) => row.class?.name,
+      cell: ({ row }) => {
+        const student = row.original;
+        return (
+          <div className="ml-3 uppercase">
+            {student?.class?.name || "No Class"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "attendanceStatus",
+      header: () => <div className="text-center">Attendance Status</div>,
+      accessorFn: (row) => row.attendance?.status,
+      cell: ({ row }) => {
+        const student = row.original;
+        const status = student?.attendance?.status || "NOT_MARKED";
+
+        const getStatusColor = (status: string) => {
+          switch (status) {
+            case "PRESENT":
+              return "bg-green-100 text-green-800 border-green-200";
+            case "ABSENT":
+              return "bg-red-100 text-red-800 border-red-200";
+            case "LATE":
+              return "bg-yellow-100 text-yellow-800 border-yellow-200";
+            case "EXCUSED":
+              return "bg-purple-100 text-purple-800 border-purple-200";
+            default:
+              return "bg-gray-100 text-gray-800 border-gray-200";
+          }
+        };
+
+        return (
+          <div className="flex justify-center">
+            <div
+              className={`px-3 py-1 rounded-full text-center text-xs font-medium border ${getStatusColor(
+                status
+              )}`}
+            >
+              {status.replace("_", " ")}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      id: "attendanceDate",
+      header: "Date",
+      accessorFn: (row) => row.attendance?.date,
+      cell: ({ row }) => {
+        const student = row.original;
+        const date = student?.attendance?.date;
+        return <div>{date ? new Date(date).toLocaleDateString() : "N/A"}</div>;
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const student = row.original;
+
+        return (
+          <ActionsDropdown
+            actions={[
+              {
+                label: "Copy student ID",
+                onClick: () =>
+                  navigator.clipboard.writeText(String(student.id)),
+              },
+              {
+                label: "View student",
+                onClick: () => {},
+              },
+              {
+                label: "Mark Present",
+                onClick: () =>
+                  handleAttendanceChange(student.id, AttendanceStatus.PRESENT),
+              },
+              {
+                label: "Mark Absent",
+                onClick: () =>
+                  handleAttendanceChange(student.id, AttendanceStatus.ABSENT),
+              },
+              {
+                label: "Mark Late",
+                onClick: () =>
+                  handleAttendanceChange(student.id, AttendanceStatus.LATE),
+              },
+              {
+                label: "Mark Excused",
+                onClick: () =>
+                  handleAttendanceChange(student.id, AttendanceStatus.EXCUSED),
+              },
+              {
+                label: "Refresh Data",
+                onClick: refreshAttendanceData,
+              },
+            ]}
+          />
+        );
+      },
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -283,57 +463,6 @@ export default function MarkAttendancePage() {
         subtitle={"Record student attendance"}
       />
 
-      {/* Attendance Summary Card */}
-      {attendanceSummary && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Class Attendance Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">
-                  {attendanceSummary.totalStudents}
-                </div>
-                <p className="text-sm text-muted-foreground">Total Students</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
-                  {attendanceSummary.summary?.filter(
-                    (s: any) => s.attendancePercentage >= 80
-                  ).length || 0}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Good Attendance (≥80%)
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-600">
-                  {attendanceSummary.summary?.filter(
-                    (s: any) =>
-                      s.attendancePercentage >= 60 &&
-                      s.attendancePercentage < 80
-                  ).length || 0}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Fair Attendance (60-79%)
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">
-                  {attendanceSummary.summary?.filter(
-                    (s: any) => s.attendancePercentage < 60
-                  ).length || 0}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Poor Attendance (&lt;60%)
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Subject Selection */}
         <Card>
@@ -342,25 +471,6 @@ export default function MarkAttendancePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SelectField
-                label={"Subject"}
-                placeholder="Select Subject"
-                value={selectedSubject}
-                onValueChange={handleSubjectChange}
-              >
-                <SelectContent>
-                  <SelectItem value={"none"}>Not Selected</SelectItem>
-                  {subjects.map((subject) => (
-                    <SelectItem
-                      key={subject.id}
-                      value={subject.name.toString()}
-                    >
-                      {subject.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </SelectField>
-
               <DatePicker
                 label={"Date"}
                 date={attendanceDate ? new Date(attendanceDate) : undefined}
@@ -374,16 +484,16 @@ export default function MarkAttendancePage() {
         </Card>
 
         {/* Attendance Statistics */}
-        {selectedSubject && attendanceRecords.length > 0 && (
+        {mappedStudents.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle>Today&apos;s Attendance Summary</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {attendanceRecords.length}
+                    {attendanceSummary.totalStudents}
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Total Students
@@ -391,209 +501,139 @@ export default function MarkAttendancePage() {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    {presentCount}
+                    {attendanceSummary.present}
                   </div>
                   <p className="text-sm text-muted-foreground">Present</p>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-red-600">
-                    {absentCount}
+                    {attendanceSummary.absent}
                   </div>
                   <p className="text-sm text-muted-foreground">Absent</p>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-yellow-600">
-                    {lateCount}
+                    {attendanceSummary.late}
                   </div>
                   <p className="text-sm text-muted-foreground">Late</p>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-purple-600">
-                    {excusedCount}
+                    {attendanceSummary.excused}
                   </div>
                   <p className="text-sm text-muted-foreground">Excused</p>
                 </div>
               </div>
-              <div className="mt-4 text-center">
-                <div className="text-lg font-semibold">
-                  Attendance Rate:{" "}
-                  <span className="text-blue-600">{attendanceRate}%</span>
+              {attendanceSummary.notMarked > 0 && (
+                <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                  <p className="text-sm text-orange-800">
+                    <strong>{attendanceSummary.notMarked}</strong> students not
+                    yet marked for attendance
+                  </p>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         )}
 
         {/* Student Attendance List */}
-        {selectedSubject && students.length > 0 && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Student Attendance</CardTitle>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSelectAll(AttendanceStatus.PRESENT)}
-                  >
-                    Mark All Present
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSelectAll(AttendanceStatus.ABSENT)}
-                  >
-                    Mark All Absent
-                  </Button>
-                </div>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Student Attendance</CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleMarkAllPresent}
+                >
+                  Mark All Present
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleMarkAllAbsent}
+                >
+                  Mark All Absent
+                </Button>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                {students.map((student) => {
-                  const record = attendanceRecords.find(
-                    (r) => r.studentId === student.id
-                  );
-                  return (
-                    <div
-                      key={student.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                          <span className="font-medium text-sm">
-                            {student.user.firstname
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <h3 className="font-medium">
-                            {student.user.firstname} {student.user.lastname}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {student.user.email}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            ID: {student.id}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleAttendanceChange(
-                                student.id,
-                                AttendanceStatus.PRESENT
-                              )
-                            }
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                              record?.status === AttendanceStatus.PRESENT
-                                ? "bg-green-500 text-white"
-                                : "bg-muted hover:bg-muted/80"
-                            }`}
-                          >
-                            Present
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleAttendanceChange(
-                                student.id,
-                                AttendanceStatus.ABSENT
-                              )
-                            }
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                              record?.status === AttendanceStatus.ABSENT
-                                ? "bg-red-500 text-white"
-                                : "bg-muted hover:bg-muted/80"
-                            }`}
-                          >
-                            Absent
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleAttendanceChange(
-                                student.id,
-                                AttendanceStatus.LATE
-                              )
-                            }
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                              record?.status === AttendanceStatus.LATE
-                                ? "bg-yellow-500 text-white"
-                                : "bg-muted hover:bg-muted/80"
-                            }`}
-                          >
-                            Late
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleAttendanceChange(
-                                student.id,
-                                AttendanceStatus.EXCUSED
-                              )
-                            }
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                              record?.status === AttendanceStatus.EXCUSED
-                                ? "bg-purple-500 text-white"
-                                : "bg-muted hover:bg-muted/80"
-                            }`}
-                          >
-                            Excused
-                          </button>
-                        </div>
-
-                        <Input
-                          placeholder="Notes (optional)"
-                          value={record?.notes || ""}
-                          onChange={(e) =>
-                            handleNotesChange(student.id, e.target.value)
-                          }
-                          className="w-40"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <DataTable
+              columns={columns}
+              data={mappedStudents}
+              searchKey="firstname"
+              searchPlaceholder="Search students..."
+            />
+          </CardContent>
+        </Card>
 
         {/* Existing Attendance Records */}
-        {tableData.length > 0 && (
+        {attendanceRecords.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle>
-                Existing Attendance Records for {attendanceDate}
+                Existing Attendance Records for{" "}
+                {new Date(attendanceDate).toLocaleDateString()}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <TableComp
-                headers={tableHeader}
-                data={tableData}
-                rowActions={getRowActions}
-              />
+              <div className="space-y-2">
+                {attendanceRecords.map((record) => (
+                  <div
+                    key={record.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <p className="font-medium">
+                          Attendance Record #{record.id}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Class: {record.class?.name} | Date:{" "}
+                          {new Date(record.date).toLocaleDateString()} |
+                          Students: {Object.keys(record.records || {}).length}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRemoveAttendance(record.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}
 
         {/* Form Actions */}
-        {selectedSubject && students.length > 0 && (
+        {mappedStudents.length > 0 && (
           <div className="flex items-center justify-between">
-            <Button type="button" variant="outline" asChild>
-              <Link href="/portal/attendance">Cancel</Link>
-            </Button>
-            <Button type="submit" disabled={loading}>
+            <div className="flex items-center gap-4">
+              <Button type="button" variant="outline" asChild>
+                <Link href="/portal/attendance">Cancel</Link>
+              </Button>
+              {Object.keys(localAttendanceRecords).length > 0 && (
+                <span className="text-sm text-orange-600 font-medium">
+                  {Object.keys(localAttendanceRecords).length} unsaved changes
+                </span>
+              )}
+            </div>
+            <Button
+              type="submit"
+              disabled={
+                loading || Object.keys(localAttendanceRecords).length === 0
+              }
+            >
               {loading ? "Saving Attendance..." : "Save Attendance"}
             </Button>
           </div>
