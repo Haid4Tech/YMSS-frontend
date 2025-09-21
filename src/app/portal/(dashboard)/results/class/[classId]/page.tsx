@@ -63,8 +63,6 @@ export default function ClassResultsPage() {
   const [academicYear] = useState<string>("2024/2025");
   const [term] = useState<string>("FIRST");
 
-  console.log("LOCAL RESULT, ", currentFormData);
-
   const [results] = useAtom(gradeListAtom);
   const [loading] = useAtom(gradeLoadingAtom);
   const [error] = useAtom(gradeErrorAtom);
@@ -156,14 +154,7 @@ export default function ClassResultsPage() {
 
       if (isUpdate && existingResult?.id) {
         // Update existing result using the updateResult API
-        console.log(
-          "Updating existing result with ID:",
-          existingResult.id,
-          "Data:",
-          resultData
-        );
-        const updatedResult = await updateResult(existingResult.id, resultData);
-        console.log("Update result response:", updatedResult);
+        await updateResult(existingResult.id, resultData);
         toast.success("Result updated successfully");
       } else {
         // Create new result using createOrUpdateResult API
@@ -175,9 +166,8 @@ export default function ClassResultsPage() {
           academicYear,
           term,
         };
-        console.log("Creating new result with data:", fullResultData);
-        const newResult = await createOrUpdateResult(fullResultData);
-        console.log("Create result response:", newResult);
+
+        await createOrUpdateResult(fullResultData);
         toast.success("Result created successfully");
       }
 
@@ -185,16 +175,7 @@ export default function ClassResultsPage() {
       setLocalResults({});
 
       // Refresh results
-      console.log("Refreshing results after update...");
-      const refreshedResults = await getResultsByClass(
-        classId,
-        academicYear,
-        term
-      );
-      console.log(
-        "Results refreshed successfully. New results:",
-        refreshedResults
-      );
+      await getResultsByClass(classId, academicYear, term);
 
       // Close modal
       setIsModalOpen(false);
@@ -480,7 +461,6 @@ export default function ClassResultsPage() {
       },
     },
     {
-      header: "Actions",
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
