@@ -7,8 +7,9 @@ import { classesAPI } from "@/jotai/class/class";
 import { Class } from "@/jotai/class/class-type";
 import { studentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
-import { enhancedGradesAPI } from "@/jotai/grades/grades";
+import { gradesAPI } from "@/jotai/grades/grades";
 import { Grade } from "@/jotai/grades/grades-types";
+import { useAtom } from "jotai";
 
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/general/page-header";
@@ -40,6 +41,8 @@ export default function ClassDetailPage() {
   // const [attendance, setAttendance] = useState<SubjectAttendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  
+  const [, getResultsByClass] = useAtom(gradesAPI.getResultsByClass);
 
   useEffect(() => {
     const fetchClassData = async () => {
@@ -47,7 +50,7 @@ export default function ClassDetailPage() {
         const studentsData = studentsAPI.getStudentsByClass(parseInt(classId));
         const [classInfo, gradesData] = await Promise.all([
           classesAPI.getById(parseInt(classId)),
-          enhancedGradesAPI.getByClass(parseInt(classId)),
+          getResultsByClass(parseInt(classId)),
           // enhancedSubjectAttendanceAPI.getByClass(parseInt(classId)),
         ]);
 
@@ -73,7 +76,7 @@ export default function ClassDetailPage() {
     averageGrade:
       grades.length > 0
         ? (
-            grades.reduce((sum, grade) => sum + (grade.marks || 0), 0) /
+            grades.reduce((sum, grade) => sum + (grade.overallScore || grade.value || 0), 0) /
             grades.length
           ).toFixed(1)
         : "N/A",
@@ -110,7 +113,7 @@ export default function ClassDetailPage() {
     if (!acc[subject]) {
       acc[subject] = { subject, totalMarks: 0, count: 0 };
     }
-    acc[subject].totalMarks += grade.marks || 0;
+    acc[subject].totalMarks += grade.overallScore || grade.value || 0;
     acc[subject].count += 1;
     return acc;
   }, {} as Record<string, { subject: string; totalMarks: number; count: number }>);
@@ -351,7 +354,7 @@ export default function ClassDetailPage() {
                       const avgGrade =
                         studentGrades.length > 0
                           ? studentGrades.reduce(
-                              (sum, g) => sum + (g.marks || 0),
+                              (sum, g) => sum + (g.overallScore || g.value || 0),
                               0
                             ) / studentGrades.length
                           : 0;

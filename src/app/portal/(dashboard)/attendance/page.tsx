@@ -87,17 +87,6 @@ export default function AttendancePage() {
             Select class to view each students attendance record
           </p>
         </div>
-
-        <div className="flex gap-2">
-          {!isParent && !isStudent && (
-            <Button asChild>
-              <Link href="/portal/attendance/new">Manage Class Attendance</Link>
-            </Button>
-          )}
-          <Button variant="outline" asChild>
-            <Link href="/portal/attendance/analytics">View Analytics</Link>
-          </Button>
-        </div>
       </div>
 
       {/* Tab Navigation */}

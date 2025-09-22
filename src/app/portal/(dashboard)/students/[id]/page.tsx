@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAtom } from "jotai";
 import { studentsAPI } from "@/jotai/students/student";
 import { Student } from "@/jotai/students/student-types";
-import { enhancedGradesAPI } from "@/jotai/grades/grades";
+import { gradesAPI } from "@/jotai/grades/grades";
 import { Grade } from "@/jotai/grades/grades-types";
 import { enhancedSubjectAttendanceAPI } from "@/jotai/subject-attendance/subject-attendance";
 import { SubjectAttendance } from "@/jotai/subject-attendance/subject-attendance-type";
@@ -38,6 +39,8 @@ export default function StudentDetailPage() {
   const [attendance, setAttendance] = useState<SubjectAttendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  
+  const [, getByStudent] = useAtom(gradesAPI.getByStudent);
 
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -46,7 +49,7 @@ export default function StudentDetailPage() {
 
         const [studentData, gradesData, attendanceData] = await Promise.all([
           studentsAPI.getById(parseInt(studentId)),
-          enhancedGradesAPI.getByStudent(parseInt(studentId)),
+          getByStudent(parseInt(studentId)),
           enhancedSubjectAttendanceAPI.getByStudent(parseInt(studentId)),
         ]);
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAtom } from "jotai";
 import { Exam } from "@/jotai/exams/exams-type";
 import { examsAPI } from "@/jotai/exams/exams";
 import { Grade } from "@/jotai/grades/grades-types";
@@ -34,6 +35,8 @@ export default function ExamDetailPage() {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [, getByExam] = useAtom(gradesAPI.getByExam);
   const [activeTab, setActiveTab] = useState("overview");
 
   console.log(grades);
@@ -43,7 +46,7 @@ export default function ExamDetailPage() {
       try {
         const [examData, gradesData] = await Promise.all([
           examsAPI.getById(parseInt(examId)),
-          gradesAPI.getByExam(parseInt(examId)),
+          getByExam(parseInt(examId)),
         ]);
 
         setExam(examData);
@@ -75,18 +78,18 @@ export default function ExamDetailPage() {
     averageScore:
       grades.length > 0
         ? (
-            grades.reduce((sum, grade) => sum + (grade.marks || 0), 0) /
+            grades.reduce((sum, grade) => sum + (grade.overallScore || grade.value || 0), 0) /
             grades.length
           ).toFixed(1)
         : "N/A",
     highestScore:
-      grades.length > 0 ? Math.max(...grades.map((g) => g.marks || 0)) : "N/A",
+      grades.length > 0 ? Math.max(...grades.map((g) => g.overallScore || g.value || 0)) : "N/A",
     lowestScore:
-      grades.length > 0 ? Math.min(...grades.map((g) => g.marks || 0)) : "N/A",
+      grades.length > 0 ? Math.min(...grades.map((g) => g.overallScore || g.value || 0)) : "N/A",
     passRate:
       grades.length > 0
         ? (
-            (grades.filter((g) => (g.marks || 0) >= 100 * 0.6).length /
+            (grades.filter((g) => (g.overallScore || g.value || 0) >= 100 * 0.6).length /
               grades.length) *
             100
           ).toFixed(1)
@@ -95,7 +98,7 @@ export default function ExamDetailPage() {
       grades.length > 0
         ? (() => {
             const sorted = grades
-              .map((g) => g.marks || 0)
+              .map((g) => g.overallScore || g.value || 0)
               .sort((a, b) => a - b);
             const mid = Math.floor(sorted.length / 2);
             return sorted.length % 2 === 0
@@ -135,7 +138,7 @@ export default function ExamDetailPage() {
   const scoreRanges = [
     {
       range: `${Math.floor(totalMarks * 0.9)}-${totalMarks}`,
-      count: grades.filter((g) => (g.marks || 0) >= totalMarks * 0.9).length,
+      count: grades.filter((g) => (g.overallScore || g.value || 0) >= totalMarks * 0.9).length,
       color: "#10B981",
     },
     {
@@ -144,8 +147,8 @@ export default function ExamDetailPage() {
       }`,
       count: grades.filter(
         (g) =>
-          (g.marks || 0) >= totalMarks * 0.8 &&
-          (g.marks || 0) < totalMarks * 0.9
+          (g.overallScore || g.value || 0) >= totalMarks * 0.8 &&
+          (g.overallScore || g.value || 0) < totalMarks * 0.9
       ).length,
       color: "#3B82F6",
     },
@@ -155,8 +158,8 @@ export default function ExamDetailPage() {
       }`,
       count: grades.filter(
         (g) =>
-          (g.marks || 0) >= totalMarks * 0.7 &&
-          (g.marks || 0) < totalMarks * 0.8
+          (g.overallScore || g.value || 0) >= totalMarks * 0.7 &&
+          (g.overallScore || g.value || 0) < totalMarks * 0.8
       ).length,
       color: "#F59E0B",
     },
@@ -166,14 +169,14 @@ export default function ExamDetailPage() {
       }`,
       count: grades.filter(
         (g) =>
-          (g.marks || 0) >= totalMarks * 0.6 &&
-          (g.marks || 0) < totalMarks * 0.7
+          (g.overallScore || g.value || 0) >= totalMarks * 0.6 &&
+          (g.overallScore || g.value || 0) < totalMarks * 0.7
       ).length,
       color: "#EF4444",
     },
     {
       range: `0-${Math.floor(totalMarks * 0.6) - 1}`,
-      count: grades.filter((g) => (g.marks || 0) < totalMarks * 0.6).length,
+      count: grades.filter((g) => (g.overallScore || g.value || 0) < totalMarks * 0.6).length,
       color: "#6B7280",
     },
   ];
@@ -188,7 +191,7 @@ export default function ExamDetailPage() {
       };
     })
     .filter((item) => item.student)
-    .sort((a, b) => (b.grade.marks || 0) - (a.grade.marks || 0));
+    .sort((a, b) => (b.grade.overallScore || b.grade.value || 0) - (a.grade.overallScore || a.grade.value || 0));
 
   // Statistical insights
   const standardDeviation =
@@ -197,7 +200,7 @@ export default function ExamDetailPage() {
           const mean = parseFloat(examStats.averageScore);
           const variance =
             grades.reduce((sum, grade) => {
-              return sum + Math.pow((grade.marks || 0) - mean, 2);
+              return sum + Math.pow((grade.overallScore || grade.value || 0) - mean, 2);
             }, 0) / grades.length;
           return Math.sqrt(variance).toFixed(2);
         })()
@@ -442,7 +445,7 @@ export default function ExamDetailPage() {
               <CardContent>
                 <div className="text-3xl font-bold text-green-600">
                   {
-                    grades.filter((g) => (g.marks || 0) >= totalMarks * 0.9)
+                    grades.filter((g) => (g.overallScore || g.value || 0) >= totalMarks * 0.9)
                       .length
                   }
                 </div>
@@ -460,8 +463,8 @@ export default function ExamDetailPage() {
                   {
                     grades.filter(
                       (g) =>
-                        (g.marks || 0) >= totalMarks * 0.7 &&
-                        (g.marks || 0) < totalMarks * 0.9
+                        (g.overallScore || g.value || 0) >= totalMarks * 0.7 &&
+                        (g.overallScore || g.value || 0) < totalMarks * 0.9
                     ).length
                   }
                 </div>
@@ -477,7 +480,7 @@ export default function ExamDetailPage() {
               <CardContent>
                 <div className="text-3xl font-bold text-red-600">
                   {
-                    grades.filter((g) => (g.marks || 0) < totalMarks * 0.6)
+                    grades.filter((g) => (g.overallScore || g.value || 0) < totalMarks * 0.6)
                       .length
                   }
                 </div>
@@ -533,7 +536,7 @@ export default function ExamDetailPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold">
-                        {result.grade.marks}/{100}
+                        {result.grade.overallScore || result.grade.value}/{100}
                       </p>
                       <p
                         className={`text-sm font-bold ${

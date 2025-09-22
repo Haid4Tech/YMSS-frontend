@@ -9,7 +9,7 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
   ({ className, variant = "default", ...props }, ref) => {
     const variantClasses = {
       default:
-        "border-transparent bg-main-blue-tint3 text-primary-foreground shadow hover:bg-primary/80",
+        "border-transparent bg-main-blue-tint3 text-primary-foreground shadow",
       secondary:
         "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
       destructive:

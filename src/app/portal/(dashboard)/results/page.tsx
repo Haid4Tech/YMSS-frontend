@@ -1,59 +1,69 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAtom } from "jotai";
-import Link from "next/link";
+// import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   gradesAPI,
-  gradeListAtom,
   gradeLoadingAtom,
+  gradeErrorAtom,
 } from "@/jotai/grades/grades";
-import { isParentAtom, isStudentAtom } from "@/jotai/auth/auth";
+import {
+  classesAPI,
+  getAllClassAtom,
+  classLoadingAtom,
+} from "@/jotai/class/class";
+import {
+  isParentAtom,
+  isStudentAtom,
+  isTeacherAtom,
+  isAdminAtom,
+} from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { InputField } from "@/components/ui/form-field";
+import { Badge } from "@/components/ui/badge";
+import { Eye } from "lucide-react";
+import { extractErrorMessage } from "@/utils/helpers";
+import { Class } from "@/jotai/class/class-type";
+
+import { StudentResult } from "@/components/portal/results/student-result";
+// import { TeacherResult } from "@/components/portal/results/teacher-result";
+import { ParentResult } from "@/components/portal/results/parent-result";
 
 export default function ResultsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [grades] = useAtom(gradeListAtom);
+  const router = useRouter();
   const [loading] = useAtom(gradeLoadingAtom);
-  const [, getAllGrades] = useAtom(gradesAPI.getAll);
+  const [error] = useAtom(gradeErrorAtom);
+  const [, getAllResults] = useAtom(gradesAPI.getAllResults);
+
+  const [classes] = useAtom(getAllClassAtom);
+  const [classLoading] = useAtom(classLoadingAtom);
+  const [, getAllClasses] = useAtom(classesAPI.getAll);
+
   const [isParent] = useAtom(isParentAtom);
   const [isStudent] = useAtom(isStudentAtom);
+  const [isTeacher] = useAtom(isTeacherAtom);
+  const [isAdmin] = useAtom(isAdminAtom);
 
   useEffect(() => {
-    getAllGrades();
-  }, [getAllGrades]);
+    getAllResults();
+    getAllClasses();
+  }, [getAllResults, getAllClasses]);
 
-  const filteredGrades = Array.isArray(grades)
-    ? grades.filter(
-        (grade) =>
-          grade?.student?.user?.firstname
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          grade?.exam?.title
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          grade?.exam?.subject?.name
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase())
-      )
-    : [];
-
-  if (isParent || isStudent) {
-    if (filteredGrades.length === 0) {
-      return (
-        <div className="flex h-96 items-center justify-center">
-          <p>No results yet</p>
-        </div>
-      );
-    }
-  }
-
-  if (loading) {
+  if (loading || classLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600 mb-4">{extractErrorMessage(error)}</p>
+        <Button onClick={() => getAllResults()}>Retry</Button>
       </div>
     );
   }
@@ -63,98 +73,102 @@ export default function ResultsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Results</h1>
+          <h1 className="text-3xl font-bold">
+            {isStudent && "Your Results"}
+            {isParent && "Wards Results"}
+            {isAdmin || (isTeacher && "Results by Class")}
+          </h1>
           <p className="text-muted-foreground">
-            Manage student grades and exam results
+            {isParent && "View your Wards Results"}
+            {isStudent && "View your results"}
+            {(isAdmin || isTeacher) &&
+              "View and manage student results organized by class"}
           </p>
         </div>
-
-        {isParent || isStudent ? (
-          <></>
-        ) : (
-          <Button asChild>
-            <Link href="/portal/results/new">Add Grade</Link>
-          </Button>
-        )}
+        {/* {(isAdmin || isTeacher) && (
+          <div className="flex gap-2">
+            <Button asChild>
+              <Link href="/portal/results/bulk">
+                <Plus className="h-4 w-4 mr-2" />
+                Bulk Grade
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/portal/results/new">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Result
+              </Link>
+            </Button>
+          </div>
+        )} */}
       </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-4">
-        <InputField
-          label=""
-          placeholder="Search results..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm w-full md:w-[20rem]"
-        />
-      </div>
+      {isParent && <ParentResult />}
+      {/* {isTeacher && <TeacherResult />} */}
 
-      {/* Results Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredGrades.map((grade) => (
-          <Card key={grade?.id} className="hover-scale">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{`${grade?.student?.user?.firstname ?? "Not"} ${
-                  grade?.student?.user?.lastname ?? "Available"
-                }`}</span>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/portal/results/${grade?.id}`}>View</Link>
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Exam:</span>{" "}
-                  {grade?.exam?.title || "Not specified"}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Subject:</span>{" "}
-                  {grade?.exam?.subject?.name || "Not specified"}
-                </p>
+      {isStudent && <StudentResult />}
 
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Grade:</span>{" "}
-                  <span
-                    className={`font-bold ${
-                      grade?.grade === "A"
-                        ? "text-green-600"
-                        : grade?.grade === "B"
-                        ? "text-blue-600"
-                        : grade?.grade === "C"
-                        ? "text-yellow-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {grade?.grade || "Not graded"}
-                  </span>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Class Cards */}
+      {isAdmin && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {classes.map((classItem: Class) => {
+            return (
+              <Card
+                key={classItem.id}
+                className="hover:shadow-lg transition-shadow cursor-pointer"
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl">{classItem.name}</CardTitle>
+                    <Badge variant="outline">
+                      {classItem.grade || "Class"}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Room: {classItem.roomNumber || "N/A"}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="space-y-3 pt-2 border-t">
+                      <div>
+                        <p className="text-sm text-gray-600">
+                          Teacher:{" "}
+                          {`${classItem?.teacher?.user?.firstname ?? "Not"} ${
+                            classItem?.teacher?.user?.lastname ?? "Assigned"
+                          }`}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-gray-600">
+                          {classItem?.students?.length ?? 0} enrolled students
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Action Button */}
+                    <Button
+                      className="w-full"
+                      onClick={() =>
+                        router.push(`/portal/results/class/${classItem.id}`)
+                      }
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Class Results
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* Empty State */}
-      {filteredGrades?.length === 0 && !loading && (
+      {classes?.length === 0 && !loading && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            {searchTerm
-              ? "No results found matching your search."
-              : "No grades recorded yet."}
-          </p>
-          {!searchTerm && (
-            <div>
-              {isParent || isStudent ? (
-                <></>
-              ) : (
-                <Button asChild className="mt-4">
-                  <Link href="/portal/results/new">Record First Grade</Link>
-                </Button>
-              )}
-            </div>
-          )}
+          <p>No classes found</p>
         </div>
       )}
     </div>

@@ -46,3 +46,21 @@ export function isPathMatch(
       : currentPath === path;
   });
 }
+
+/**
+ * Generate academic years
+ * @param start
+ * @param count
+ * @returns
+ */
+export function generateAcademicYears(start: number, count: number): string[] {
+  const years: string[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const firstYear = start + i;
+    const secondYear = firstYear + 1;
+    years.push(`${firstYear}/${secondYear}`);
+  }
+
+  return years;
+}
