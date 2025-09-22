@@ -47,7 +47,7 @@ const Modal: FC<IModal> = ({
       <DialogContent
         className={cn(
           maxWidth,
-          "h-[35rem] lg:h-[40rem] 2xl:h-fit overflow-y-auto scrollbar-width"
+          "h-[30rem] lg:h-[40rem] 2xl:h-fit overflow-y-auto scrollbar-width"
         )}
       >
         <DialogHeader>
