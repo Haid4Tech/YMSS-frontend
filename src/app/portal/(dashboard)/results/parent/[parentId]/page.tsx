@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   gradesAPI,
   gradeListAtom,
@@ -16,8 +16,8 @@ import {
 } from "@/jotai/students/student";
 import {
   isParentAtom,
-  isStudentAtom,
-  isTeacherAtom,
+  // isStudentAtom,
+  // isTeacherAtom,
   isAdminAtom,
   userAtom,
 } from "@/jotai/auth/auth";
@@ -27,26 +27,26 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/general/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowLeft, BookOpen, TrendingUp, Award, Users } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { extractErrorMessage } from "@/utils/helpers";
 import { cn } from "@/lib/utils";
 import { Student } from "@/jotai/students/student-types";
 import { Grade } from "@/jotai/grades/grades-types";
-import { PageHeader } from "@/components/general/page-header";
+// import { PageHeader } from "@/components/general/page-header";
 
 export default function ParentResultsPage() {
-  const params = useParams();
+  // const params = useParams();
   const router = useRouter();
-  const parentId = Number(params.parentId);
+  // const parentId = Number(params.parentId);
 
   const [ward, setWard] = useState<Student | null>(null);
-  const [academicYear, setAcademicYear] = useState<string>("2024/2025");
-  const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("FIRST");
+  const [academicYear] = useState<string>("2024/2025");
+  const [term] = useState<"FIRST" | "SECOND" | "THIRD">("FIRST");
 
   // Role-based access control
   const [isParent] = useAtom(isParentAtom);
-  const [isStudent] = useAtom(isStudentAtom);
-  const [isTeacher] = useAtom(isTeacherAtom);
+  // const [isStudent] = useAtom(isStudentAtom);
+  // const [isTeacher] = useAtom(isTeacherAtom);
   const [isAdmin] = useAtom(isAdminAtom);
   const [user] = useAtom(userAtom);
 
@@ -65,8 +65,8 @@ export default function ParentResultsPage() {
   // Get ward information
   useEffect(() => {
     if (students?.students) {
-      const wardData = students.students.find(student => 
-        student.parents?.some(parent => parent.parent.userId === user?.id)
+      const wardData = students.students.find((student) =>
+        student.parents?.some((parent) => parent.parent.userId === user?.id)
       );
       setWard(wardData || null);
     }
@@ -81,15 +81,18 @@ export default function ParentResultsPage() {
   }, [canViewResults]);
 
   // Filter results for this parent's ward
-  const wardResults = results?.filter(result => 
-    ward && result.studentId === ward.id &&
-    result.academicYear === academicYear &&
-    result.term === term
-  ) || [];
+  const wardResults =
+    results?.filter(
+      (result) =>
+        ward &&
+        result.studentId === ward.id &&
+        result.academicYear === academicYear &&
+        result.term === term
+    ) || [];
 
   // Group results by subject
   const resultsBySubject = wardResults.reduce((acc, result) => {
-    const subjectName = result.subject?.name || 'Unknown Subject';
+    const subjectName = result.subject?.name || "Unknown Subject";
     if (!acc[subjectName]) {
       acc[subjectName] = [];
     }
@@ -100,20 +103,30 @@ export default function ParentResultsPage() {
   // Calculate overall statistics
   const overallStats = {
     totalSubjects: Object.keys(resultsBySubject).length,
-    averageScore: wardResults.length > 0 
-      ? wardResults.reduce((sum, result) => sum + (result.overallScore || 0), 0) / wardResults.length 
-      : 0,
+    averageScore:
+      wardResults.length > 0
+        ? wardResults.reduce(
+            (sum, result) => sum + (result.overallScore || 0),
+            0
+          ) / wardResults.length
+        : 0,
     totalResults: wardResults.length,
-    passRate: wardResults.length > 0 
-      ? (wardResults.filter(result => (result.overallScore || 0) >= 50).length / wardResults.length) * 100 
-      : 0,
+    passRate:
+      wardResults.length > 0
+        ? (wardResults.filter((result) => (result.overallScore || 0) >= 50)
+            .length /
+            wardResults.length) *
+          100
+        : 0,
   };
 
   // Access control check
   if (!canViewResults) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600 mb-4">Access denied. You don't have permission to view results.</p>
+        <p className="text-red-600 mb-4">
+          Access denied. You don&apos;t have permission to view results.
+        </p>
         <Button onClick={() => router.back()}>Go Back</Button>
       </div>
     );
@@ -139,7 +152,9 @@ export default function ParentResultsPage() {
   if (!ward) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground mb-4">No ward found for this parent.</p>
+        <p className="text-muted-foreground mb-4">
+          No ward found for this parent.
+        </p>
         <Button onClick={() => router.back()}>Go Back</Button>
       </div>
     );
@@ -147,12 +162,18 @@ export default function ParentResultsPage() {
 
   const getGradeColor = (grade: string) => {
     switch (grade) {
-      case "A": return "bg-green-100 text-green-800";
-      case "B": return "bg-blue-100 text-blue-800";
-      case "C": return "bg-yellow-100 text-yellow-800";
-      case "D": return "bg-orange-100 text-orange-800";
-      case "F": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "A":
+        return "bg-green-100 text-green-800";
+      case "B":
+        return "bg-blue-100 text-blue-800";
+      case "C":
+        return "bg-yellow-100 text-yellow-800";
+      case "D":
+        return "bg-orange-100 text-orange-800";
+      case "F":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -185,9 +206,7 @@ export default function ParentResultsPage() {
       header: "CA1",
       cell: ({ row }) => {
         const result = row.original;
-        return (
-          <span>{result.ca1 ? result.ca1.toFixed(1) : "-"}</span>
-        );
+        return <span>{result.ca1 ? result.ca1.toFixed(1) : "-"}</span>;
       },
     },
     {
@@ -195,9 +214,7 @@ export default function ParentResultsPage() {
       header: "CA2",
       cell: ({ row }) => {
         const result = row.original;
-        return (
-          <span>{result.ca2 ? result.ca2.toFixed(1) : "-"}</span>
-        );
+        return <span>{result.ca2 ? result.ca2.toFixed(1) : "-"}</span>;
       },
     },
     {
@@ -215,9 +232,7 @@ export default function ParentResultsPage() {
       header: "LTC",
       cell: ({ row }) => {
         const result = row.original;
-        return (
-          <span>{result.ltc ? result.ltc.toFixed(1) : "-"}</span>
-        );
+        return <span>{result.ltc ? result.ltc.toFixed(1) : "-"}</span>;
       },
     },
     {
@@ -253,7 +268,9 @@ export default function ParentResultsPage() {
         const result = row.original;
         return result.subjectPosition ? (
           <span>
-            {`${result.subjectPosition}${getOrdinalSuffix(result.subjectPosition)}`}
+            {`${result.subjectPosition}${getOrdinalSuffix(
+              result.subjectPosition
+            )}`}
           </span>
         ) : (
           <span className="text-muted-foreground">-</span>
@@ -272,7 +289,7 @@ export default function ParentResultsPage() {
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Ward's Academic Results</h1>
+            <h1 className="text-3xl font-bold">Ward&apos;s Academic Results</h1>
             <p className="text-muted-foreground">
               {ward.user?.firstname} {ward.user?.lastname} - {ward.class?.name}
             </p>
@@ -292,7 +309,9 @@ export default function ParentResultsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <p className="text-sm text-gray-600">Student Name</p>
-              <p className="font-medium">{ward.user?.firstname} {ward.user?.lastname}</p>
+              <p className="font-medium">
+                {ward.user?.firstname} {ward.user?.lastname}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Class</p>
@@ -300,7 +319,9 @@ export default function ParentResultsPage() {
             </div>
             <div>
               <p className="text-sm text-gray-600">Academic Year</p>
-              <p className="font-medium">{academicYear} - {term} Term</p>
+              <p className="font-medium">
+                {academicYear} - {term} Term
+              </p>
             </div>
           </div>
         </CardContent>
@@ -314,7 +335,9 @@ export default function ParentResultsPage() {
               <BookOpen className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Subjects</p>
-                <p className="text-2xl font-bold">{overallStats.totalSubjects}</p>
+                <p className="text-2xl font-bold">
+                  {overallStats.totalSubjects}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -325,8 +348,12 @@ export default function ParentResultsPage() {
             <div className="flex items-center">
               <TrendingUp className="h-8 w-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Average Score</p>
-                <p className="text-2xl font-bold">{overallStats.averageScore.toFixed(1)}%</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Average Score
+                </p>
+                <p className="text-2xl font-bold">
+                  {overallStats.averageScore.toFixed(1)}%
+                </p>
               </div>
             </div>
           </CardContent>
@@ -338,7 +365,9 @@ export default function ParentResultsPage() {
               <Award className="h-8 w-8 text-purple-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Pass Rate</p>
-                <p className="text-2xl font-bold">{overallStats.passRate.toFixed(1)}%</p>
+                <p className="text-2xl font-bold">
+                  {overallStats.passRate.toFixed(1)}%
+                </p>
               </div>
             </div>
           </CardContent>
@@ -349,8 +378,12 @@ export default function ParentResultsPage() {
             <div className="flex items-center">
               <Users className="h-8 w-8 text-orange-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Results</p>
-                <p className="text-2xl font-bold">{overallStats.totalResults}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Total Results
+                </p>
+                <p className="text-2xl font-bold">
+                  {overallStats.totalResults}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -360,23 +393,25 @@ export default function ParentResultsPage() {
       {/* Results by Subject */}
       {Object.keys(resultsBySubject).length > 0 ? (
         <div className="space-y-6">
-          {Object.entries(resultsBySubject).map(([subjectName, subjectResults]) => (
-            <Card key={subjectName}>
-              <CardHeader>
-                <CardTitle>{subjectName} Results</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {subjectResults.length} result(s) for this subject
-                </p>
-              </CardHeader>
-              <CardContent>
-                <DataTable
-                  columns={columns}
-                  data={subjectResults}
-                  enableGlobalSearch={false}
-                />
-              </CardContent>
-            </Card>
-          ))}
+          {Object.entries(resultsBySubject).map(
+            ([subjectName, subjectResults]) => (
+              <Card key={subjectName}>
+                <CardHeader>
+                  <CardTitle>{subjectName} Results</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {subjectResults.length} result(s) for this subject
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <DataTable
+                    columns={columns}
+                    data={subjectResults}
+                    enableGlobalSearch={false}
+                  />
+                </CardContent>
+              </Card>
+            )
+          )}
         </div>
       ) : (
         <Card>
@@ -386,7 +421,8 @@ export default function ParentResultsPage() {
               No Results Found
             </h3>
             <p className="text-gray-500">
-              No results available for {ward.user?.firstname} {ward.user?.lastname} 
+              No results available for {ward.user?.firstname}{" "}
+              {ward.user?.lastname}
               for {academicYear} - {term} Term.
             </p>
           </CardContent>
@@ -395,4 +431,3 @@ export default function ParentResultsPage() {
     </div>
   );
 }
-

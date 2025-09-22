@@ -14,12 +14,10 @@ import {
   studentListAtom,
   studentLoadingAtom,
 } from "@/jotai/students/student";
+// import { subjectsAPI } from "@/jotai/subject/subject";
 import {
-  subjectsAPI,
-} from "@/jotai/subject/subject";
-import {
-  isParentAtom,
-  isStudentAtom,
+  // isParentAtom,
+  // isStudentAtom,
   isTeacherAtom,
   isAdminAtom,
   userAtom,
@@ -29,14 +27,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/general/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowLeft, BookOpen, TrendingUp, Award, Users, GraduationCap, BarChart3 } from "lucide-react";
-import { toast } from "sonner";
+import {
+  ArrowLeft,
+  BookOpen,
+  TrendingUp,
+  Award,
+  Users,
+  GraduationCap,
+  BarChart3,
+} from "lucide-react";
+// import { toast } from "sonner";
 import { extractErrorMessage } from "@/utils/helpers";
 import { cn } from "@/lib/utils";
 import { Student } from "@/jotai/students/student-types";
 import { Grade } from "@/jotai/grades/grades-types";
 import { Subject } from "@/jotai/subject/subject-types";
-import { PageHeader } from "@/components/general/page-header";
+// import { PageHeader } from "@/components/general/page-header";
 import {
   Select,
   SelectContent,
@@ -51,16 +57,14 @@ export default function TeacherResultsPage() {
   const router = useRouter();
   const teacherId = Number(params.teacherId);
 
-  const [teacher, setTeacher] = useState<any>(null);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
+  // const [teacher, setTeacher] = useState<any>(null);
+  const [subjects] = useState<Subject[]>([]);
+  const [, setStudents] = useState<Student[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [academicYear, setAcademicYear] = useState<string>("2024/2025");
   const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("FIRST");
 
   // Role-based access control
-  const [isParent] = useAtom(isParentAtom);
-  const [isStudent] = useAtom(isStudentAtom);
   const [isTeacher] = useAtom(isTeacherAtom);
   const [isAdmin] = useAtom(isAdminAtom);
   const [user] = useAtom(userAtom);
@@ -82,16 +86,17 @@ export default function TeacherResultsPage() {
     const fetchTeacherSubjects = async () => {
       try {
         // Get all subjects and filter by teacher assignment
-        const allSubjects = await subjectsAPI.getAll();
-        const teacherSubjects = allSubjects.filter((subject: Subject) =>
-          subject.teachers?.some(teacher => teacher.teacher.userId === user?.id)
-        );
-        setSubjects(teacherSubjects);
-        
+        // const allSubjects = await getAllStudents();
+        // const teacherSubjects = allSubjects.filter((subject: Subject) =>
+        //   subject.teachers?.some(
+        //     (teacher) => teacher.teacher.userId === user?.id
+        //   )
+        // );
+        // setSubjects(teacherSubjects);
         // Auto-select first subject if only one
-        if (teacherSubjects.length === 1) {
-          setSelectedSubject(teacherSubjects[0].id.toString());
-        }
+        // if (teacherSubjects.length === 1) {
+        //   setSelectedSubject(teacherSubjects[0].id.toString());
+        // }
       } catch (error) {
         console.error("Error fetching teacher subjects:", error);
       }
@@ -118,22 +123,27 @@ export default function TeacherResultsPage() {
   }, [studentsData]);
 
   // Filter results for this teacher's subjects
-  const teacherResults = results?.filter(result => {
-    const isAssignedSubject = subjects.some(subject => subject.id === result.subjectId);
-    return isAssignedSubject &&
-           result.academicYear === academicYear &&
-           result.term === term &&
-           (!selectedSubject || result.subjectId === Number(selectedSubject));
-  }) || [];
+  const teacherResults =
+    results?.filter((result) => {
+      const isAssignedSubject = subjects.some(
+        (subject) => subject.id === result.subjectId
+      );
+      return (
+        isAssignedSubject &&
+        result.academicYear === academicYear &&
+        result.term === term &&
+        (!selectedSubject || result.subjectId === Number(selectedSubject))
+      );
+    }) || [];
 
   // Get selected subject data
-  const selectedSubjectData = selectedSubject 
-    ? subjects.find(s => s.id.toString() === selectedSubject)
-    : null;
+  // const selectedSubjectData = selectedSubject
+  //   ? subjects.find((s) => s.id.toString() === selectedSubject)
+  //   : null;
 
   // Group results by subject
   const resultsBySubject = teacherResults.reduce((acc, result) => {
-    const subjectName = result.subject?.name || 'Unknown Subject';
+    const subjectName = result.subject?.name || "Unknown Subject";
     if (!acc[subjectName]) {
       acc[subjectName] = [];
     }
@@ -146,20 +156,31 @@ export default function TeacherResultsPage() {
     totalSubjects: subjects.length,
     assignedSubjects: subjects.length,
     totalResults: teacherResults.length,
-    averageScore: teacherResults.length > 0 
-      ? teacherResults.reduce((sum, result) => sum + (result.overallScore || 0), 0) / teacherResults.length 
-      : 0,
-    passRate: teacherResults.length > 0 
-      ? (teacherResults.filter(result => (result.overallScore || 0) >= 50).length / teacherResults.length) * 100 
-      : 0,
-    studentsTaught: new Set(teacherResults.map(result => result.studentId)).size,
+    averageScore:
+      teacherResults.length > 0
+        ? teacherResults.reduce(
+            (sum, result) => sum + (result.overallScore || 0),
+            0
+          ) / teacherResults.length
+        : 0,
+    passRate:
+      teacherResults.length > 0
+        ? (teacherResults.filter((result) => (result.overallScore || 0) >= 50)
+            .length /
+            teacherResults.length) *
+          100
+        : 0,
+    studentsTaught: new Set(teacherResults.map((result) => result.studentId))
+      .size,
   };
 
   // Access control check
   if (!canViewResults) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600 mb-4">Access denied. You don't have permission to view results.</p>
+        <p className="text-red-600 mb-4">
+          Access denied. You don&apos;t have permission to view results.
+        </p>
         <Button onClick={() => router.back()}>Go Back</Button>
       </div>
     );
@@ -169,7 +190,9 @@ export default function TeacherResultsPage() {
   if (isTeacher && user && teacherId !== user.id) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600 mb-4">Access denied. You can only view your own teaching results.</p>
+        <p className="text-red-600 mb-4">
+          Access denied. You can only view your own teaching results.
+        </p>
         <Button onClick={() => router.back()}>Go Back</Button>
       </div>
     );
@@ -194,12 +217,18 @@ export default function TeacherResultsPage() {
 
   const getGradeColor = (grade: string) => {
     switch (grade) {
-      case "A": return "bg-green-100 text-green-800";
-      case "B": return "bg-blue-100 text-blue-800";
-      case "C": return "bg-yellow-100 text-yellow-800";
-      case "D": return "bg-orange-100 text-orange-800";
-      case "F": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "A":
+        return "bg-green-100 text-green-800";
+      case "B":
+        return "bg-blue-100 text-blue-800";
+      case "C":
+        return "bg-yellow-100 text-yellow-800";
+      case "D":
+        return "bg-orange-100 text-orange-800";
+      case "F":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -223,7 +252,8 @@ export default function TeacherResultsPage() {
           <div className="flex items-center space-x-3">
             <div>
               <p className="font-medium">
-                {result.student?.user?.firstname} {result.student?.user?.lastname}
+                {result.student?.user?.firstname}{" "}
+                {result.student?.user?.lastname}
               </p>
               <p className="text-sm text-gray-500">
                 {result.student?.user?.email}
@@ -251,9 +281,7 @@ export default function TeacherResultsPage() {
       header: "CA1",
       cell: ({ row }) => {
         const result = row.original;
-        return (
-          <span>{result.ca1 ? result.ca1.toFixed(1) : "-"}</span>
-        );
+        return <span>{result.ca1 ? result.ca1.toFixed(1) : "-"}</span>;
       },
     },
     {
@@ -261,9 +289,7 @@ export default function TeacherResultsPage() {
       header: "CA2",
       cell: ({ row }) => {
         const result = row.original;
-        return (
-          <span>{result.ca2 ? result.ca2.toFixed(1) : "-"}</span>
-        );
+        return <span>{result.ca2 ? result.ca2.toFixed(1) : "-"}</span>;
       },
     },
     {
@@ -281,9 +307,7 @@ export default function TeacherResultsPage() {
       header: "LTC",
       cell: ({ row }) => {
         const result = row.original;
-        return (
-          <span>{result.ltc ? result.ltc.toFixed(1) : "-"}</span>
-        );
+        return <span>{result.ltc ? result.ltc.toFixed(1) : "-"}</span>;
       },
     },
     {
@@ -319,7 +343,9 @@ export default function TeacherResultsPage() {
         const result = row.original;
         return result.subjectPosition ? (
           <span>
-            {`${result.subjectPosition}${getOrdinalSuffix(result.subjectPosition)}`}
+            {`${result.subjectPosition}${getOrdinalSuffix(
+              result.subjectPosition
+            )}`}
           </span>
         ) : (
           <span className="text-muted-foreground">-</span>
@@ -368,7 +394,12 @@ export default function TeacherResultsPage() {
             </div>
             <div>
               <label className="text-sm font-medium">Term</label>
-              <Select value={term} onValueChange={(value: "FIRST" | "SECOND" | "THIRD") => setTerm(value)}>
+              <Select
+                value={term}
+                onValueChange={(value: "FIRST" | "SECOND" | "THIRD") =>
+                  setTerm(value)
+                }
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -414,11 +445,15 @@ export default function TeacherResultsPage() {
             </div>
             <div>
               <p className="text-sm text-gray-600">Students Taught</p>
-              <p className="font-medium">{overallStats.studentsTaught} students</p>
+              <p className="font-medium">
+                {overallStats.studentsTaught} students
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Academic Period</p>
-              <p className="font-medium">{academicYear} - {term} Term</p>
+              <p className="font-medium">
+                {academicYear} - {term} Term
+              </p>
             </div>
           </div>
         </CardContent>
@@ -432,7 +467,9 @@ export default function TeacherResultsPage() {
               <BookOpen className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Subjects</p>
-                <p className="text-2xl font-bold">{overallStats.assignedSubjects}</p>
+                <p className="text-2xl font-bold">
+                  {overallStats.assignedSubjects}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -444,7 +481,9 @@ export default function TeacherResultsPage() {
               <Users className="h-8 w-8 text-green-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Students</p>
-                <p className="text-2xl font-bold">{overallStats.studentsTaught}</p>
+                <p className="text-2xl font-bold">
+                  {overallStats.studentsTaught}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -455,8 +494,12 @@ export default function TeacherResultsPage() {
             <div className="flex items-center">
               <TrendingUp className="h-8 w-8 text-purple-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Average Score</p>
-                <p className="text-2xl font-bold">{overallStats.averageScore.toFixed(1)}%</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Average Score
+                </p>
+                <p className="text-2xl font-bold">
+                  {overallStats.averageScore.toFixed(1)}%
+                </p>
               </div>
             </div>
           </CardContent>
@@ -468,7 +511,9 @@ export default function TeacherResultsPage() {
               <Award className="h-8 w-8 text-orange-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Pass Rate</p>
-                <p className="text-2xl font-bold">{overallStats.passRate.toFixed(1)}%</p>
+                <p className="text-2xl font-bold">
+                  {overallStats.passRate.toFixed(1)}%
+                </p>
               </div>
             </div>
           </CardContent>
@@ -478,35 +523,39 @@ export default function TeacherResultsPage() {
       {/* Results by Subject */}
       {Object.keys(resultsBySubject).length > 0 ? (
         <div className="space-y-6">
-          {Object.entries(resultsBySubject).map(([subjectName, subjectResults]) => (
-            <Card key={subjectName}>
-              <CardHeader>
-                <CardTitle>{subjectName} Results</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {subjectResults.length} result(s) for this subject
-                </p>
-              </CardHeader>
-              <CardContent>
-                <DataTable
-                  columns={columns}
-                  data={subjectResults}
-                  enableGlobalSearch={true}
-                  searchKey="student.user.firstname"
-                  searchPlaceholder="Search students..."
-                />
-              </CardContent>
-            </Card>
-          ))}
+          {Object.entries(resultsBySubject).map(
+            ([subjectName, subjectResults]) => (
+              <Card key={subjectName}>
+                <CardHeader>
+                  <CardTitle>{subjectName} Results</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {subjectResults.length} result(s) for this subject
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <DataTable
+                    columns={columns}
+                    data={subjectResults}
+                    enableGlobalSearch={true}
+                    searchKey="student.user.firstname"
+                    searchPlaceholder="Search students..."
+                  />
+                </CardContent>
+              </Card>
+            )
+          )}
         </div>
       ) : (
         <Card>
           <CardContent className="text-center py-12">
             <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {subjects.length === 0 ? "No Subjects Assigned" : "No Results Found"}
+              {subjects.length === 0
+                ? "No Subjects Assigned"
+                : "No Results Found"}
             </h3>
             <p className="text-gray-500">
-              {subjects.length === 0 
+              {subjects.length === 0
                 ? "You are not assigned to teach any subjects. Contact your administrator for subject assignments."
                 : `No results available for ${academicYear} - ${term} Term.`}
             </p>
@@ -516,4 +565,3 @@ export default function TeacherResultsPage() {
     </div>
   );
 }
-

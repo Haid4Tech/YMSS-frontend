@@ -3,7 +3,7 @@
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { usersAPI } from "@/jotai/users/user";
+// import { usersAPI } from "@/jotai/users/user";
 import { userAtom } from "@/jotai/auth/auth";
 import {
   studentsAPI,
@@ -12,7 +12,7 @@ import {
 } from "@/jotai/students/student";
 import {
   gradesAPI,
-  gradeListAtom,
+  // gradeListAtom,
   gradeLoadingAtom,
 } from "@/jotai/grades/grades";
 import { Button } from "@/components/ui/button";
@@ -20,16 +20,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, BookOpen, TrendingUp, Award } from "lucide-react";
 import { Student } from "@/jotai/students/student-types";
-import { Grade } from "@/jotai/grades/grades-types";
+// import { Grade } from "@/jotai/grades/grades-types";
 
 const ParentResult = () => {
   const router = useRouter();
   const [user] = useAtom(userAtom);
-  const [, getUserById] = useAtom(usersAPI.getById);
+  // const [, getUserById] = useAtom(usersAPI.getById);
   const [students] = useAtom(studentListAtom);
   const [studentLoading] = useAtom(studentLoadingAtom);
   const [, getAllStudents] = useAtom(studentsAPI.getAll);
-  const [results] = useAtom(gradeListAtom);
+  // const [results] = useAtom(gradeListAtom);
   const [gradeLoading] = useAtom(gradeLoadingAtom);
   const [, getAllResults] = useAtom(gradesAPI.getAllResults);
 
@@ -69,7 +69,7 @@ const ParentResult = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Your Ward's Results</h2>
+          <h2 className="text-2xl font-bold">Your Ward&apos;s Results</h2>
           <p className="text-muted-foreground">
             View academic results for your children
           </p>
@@ -147,7 +147,7 @@ const ParentResult = () => {
                     <div>
                       <p className="text-sm text-gray-600">
                         Admission Date:{" "}
-                        {new Date(ward.admissionDate).toLocaleDateString()}
+                        {/* {new Date(ward.admissionDate).toLocaleDateString()} */}
                       </p>
                     </div>
                   </div>

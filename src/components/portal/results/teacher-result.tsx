@@ -3,23 +3,27 @@
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { usersAPI } from "@/jotai/users/user";
+// import { usersAPI } from "@/jotai/users/user";
 import { userAtom } from "@/jotai/auth/auth";
-import { subjectsAPI, subjectListAtom, subjectLoadingAtom } from "@/jotai/subject/subject";
+import {
+  subjectsAPI,
+  subjectListAtom,
+  subjectLoadingAtom,
+} from "@/jotai/subject/subject";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Users, GraduationCap, BarChart3 } from "lucide-react";
+import { BookOpen, Users, BarChart3 } from "lucide-react";
 import { Subject } from "@/jotai/subject/subject-types";
 
 const TeacherResult = () => {
   const router = useRouter();
   const [user] = useAtom(userAtom);
-  const [_, getUserById] = useAtom(usersAPI.getById);
+  // const [, getUserById] = useAtom(usersAPI.getById);
   const [subjects] = useAtom(subjectListAtom);
   const [loading] = useAtom(subjectLoadingAtom);
   const [, getAllSubjects] = useAtom(subjectsAPI.getAll);
-  
+
   const [teacherSubjects, setTeacherSubjects] = useState<Subject[]>([]);
 
   useEffect(() => {
@@ -37,7 +41,7 @@ const TeacherResult = () => {
   useEffect(() => {
     if (subjects && user) {
       const teacherSubjects = subjects.filter((subject: Subject) =>
-        subject.teachers?.some(teacher => teacher.teacher.userId === user.id)
+        subject.teachers?.some((teacher) => teacher.teacher.userId === user.id)
       );
       setTeacherSubjects(teacherSubjects);
     }
@@ -70,7 +74,9 @@ const TeacherResult = () => {
             <div className="flex items-center">
               <BookOpen className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Subjects</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Total Subjects
+                </p>
                 <p className="text-2xl font-bold">{teacherSubjects.length}</p>
               </div>
             </div>
@@ -84,7 +90,7 @@ const TeacherResult = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Classes</p>
                 <p className="text-2xl font-bold">
-                  {new Set(teacherSubjects.map(s => s.classId)).size}
+                  {new Set(teacherSubjects.map((s) => s.classId)).size}
                 </p>
               </div>
             </div>
@@ -142,7 +148,9 @@ const TeacherResult = () => {
                   <Button
                     className="w-full"
                     onClick={() =>
-                      router.push(`/portal/results/teacher/${user?.id}?subject=${subject.id}`)
+                      router.push(
+                        `/portal/results/teacher/${user?.id}?subject=${subject.id}`
+                      )
                     }
                   >
                     <BarChart3 className="h-4 w-4 mr-2" />
@@ -161,7 +169,8 @@ const TeacherResult = () => {
               No Subjects Assigned
             </h3>
             <p className="text-gray-500">
-              You are not assigned to teach any subjects. Contact your administrator for subject assignments.
+              You are not assigned to teach any subjects. Contact your
+              administrator for subject assignments.
             </p>
           </CardContent>
         </Card>
