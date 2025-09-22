@@ -14,18 +14,22 @@ import {
   getAllClassAtom,
   classLoadingAtom,
 } from "@/jotai/class/class";
-// import {
-//   isParentAtom,
-//   isStudentAtom,
-//   isTeacherAtom,
-//   isAdminAtom,
-// } from "@/jotai/auth/auth";
+import {
+  isParentAtom,
+  isStudentAtom,
+  isTeacherAtom,
+  isAdminAtom,
+} from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
 import { extractErrorMessage } from "@/utils/helpers";
 import { Class } from "@/jotai/class/class-type";
+
+import { StudentResult } from "@/components/portal/results/student-result";
+// import { TeacherResult } from "@/components/portal/results/teacher-result";
+import { ParentResult } from "@/components/portal/results/parent-result";
 
 export default function ResultsPage() {
   const router = useRouter();
@@ -37,10 +41,10 @@ export default function ResultsPage() {
   const [classLoading] = useAtom(classLoadingAtom);
   const [, getAllClasses] = useAtom(classesAPI.getAll);
 
-  // const [isParent] = useAtom(isParentAtom);
-  // const [isStudent] = useAtom(isStudentAtom);
-  // const [isTeacher] = useAtom(isTeacherAtom);
-  // const [isAdmin] = useAtom(isAdminAtom);
+  const [isParent] = useAtom(isParentAtom);
+  const [isStudent] = useAtom(isStudentAtom);
+  const [isTeacher] = useAtom(isTeacherAtom);
+  const [isAdmin] = useAtom(isAdminAtom);
 
   useEffect(() => {
     getAllResults();
@@ -69,9 +73,16 @@ export default function ResultsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Results by Class</h1>
+          <h1 className="text-3xl font-bold">
+            {isStudent && "Your Results"}
+            {isParent && "Wards Results"}
+            {isAdmin || (isTeacher && "Results by Class")}
+          </h1>
           <p className="text-muted-foreground">
-            View and manage student results organized by class
+            {isParent && "View your Wards Results"}
+            {isStudent && "View your results"}
+            {(isAdmin || isTeacher) &&
+              "View and manage student results organized by class"}
           </p>
         </div>
         {/* {(isAdmin || isTeacher) && (
@@ -92,58 +103,67 @@ export default function ResultsPage() {
         )} */}
       </div>
 
+      {isParent && <ParentResult />}
+      {/* {isTeacher && <TeacherResult />} */}
+
+      {isStudent && <StudentResult />}
+
       {/* Class Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {classes.map((classItem: Class) => {
-          return (
-            <Card
-              key={classItem.id}
-              className="hover:shadow-lg transition-shadow cursor-pointer"
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl">{classItem.name}</CardTitle>
-                  <Badge variant="outline">{classItem.grade || "Class"}</Badge>
-                </div>
-                <p className="text-sm text-gray-600">
-                  Room: {classItem.roomNumber || "N/A"}
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-3 pt-2 border-t">
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        Teacher:{" "}
-                        {`${classItem?.teacher?.user?.firstname ?? "Not"} ${
-                          classItem?.teacher?.user?.lastname ?? "Assigned"
-                        }`}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        {classItem?.students?.length ?? 0} enrolled students
-                      </p>
-                    </div>
+      {isAdmin && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {classes.map((classItem: Class) => {
+            return (
+              <Card
+                key={classItem.id}
+                className="hover:shadow-lg transition-shadow cursor-pointer"
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl">{classItem.name}</CardTitle>
+                    <Badge variant="outline">
+                      {classItem.grade || "Class"}
+                    </Badge>
                   </div>
+                  <p className="text-sm text-gray-600">
+                    Room: {classItem.roomNumber || "N/A"}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="space-y-3 pt-2 border-t">
+                      <div>
+                        <p className="text-sm text-gray-600">
+                          Teacher:{" "}
+                          {`${classItem?.teacher?.user?.firstname ?? "Not"} ${
+                            classItem?.teacher?.user?.lastname ?? "Assigned"
+                          }`}
+                        </p>
+                      </div>
 
-                  {/* Action Button */}
-                  <Button
-                    className="w-full"
-                    onClick={() =>
-                      router.push(`/portal/results/class/${classItem.id}`)
-                    }
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Class Results
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">
+                          {classItem?.students?.length ?? 0} enrolled students
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Action Button */}
+                    <Button
+                      className="w-full"
+                      onClick={() =>
+                        router.push(`/portal/results/class/${classItem.id}`)
+                      }
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Class Results
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* Empty State */}
       {classes?.length === 0 && !loading && (

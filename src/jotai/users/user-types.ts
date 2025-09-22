@@ -1,4 +1,7 @@
 import { Role } from "@/common/enum";
+import { Student } from "../students/student-types";
+import { Teacher } from "../teachers/teachers-types";
+import { Parent } from "../parent/parent-types";
 
 export interface UserManagement {
   id: number;
@@ -17,6 +20,10 @@ export interface UserManagement {
   profileImage?: string;
   dateOfBirth?: string;
   address?: string;
+
+  student?: Student;
+  teacher?: Teacher;
+  parent?: Parent;
 }
 
 export interface UserResponse {

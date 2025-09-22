@@ -14,17 +14,17 @@ import {
   getAllClassAtom,
   classLoadingAtom,
 } from "@/jotai/class/class";
-// import {
-//   isParentAtom,
-//   isStudentAtom,
-//   isTeacherAtom,
-//   isAdminAtom,
-//   userAtom,
-// } from "@/jotai/auth/auth";
+import {
+  isParentAtom,
+  isStudentAtom,
+  isTeacherAtom,
+  isAdminAtom,
+  userAtom,
+} from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/general/data-table";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Users, BookOpen, TrendingUp, Award } from "lucide-react";
 import { toast } from "sonner";
@@ -40,6 +40,7 @@ import { Grade } from "@/jotai/grades/grades-types";
 import { PageHeader } from "@/components/general/page-header";
 import { SelectField } from "@/components/ui/form-field";
 import { SelectItem } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import ActionsDropdown from "@/components/ui/actions-dropdown";
 import { UpdateResult } from "@/components/portal/dashboards/results/update-result-modal";
 
@@ -60,6 +61,13 @@ export default function ClassResultsPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [currentFormData, setCurrentFormData] = useState<Partial<Grade>>({});
 
+  // Role-based access control
+  const [isParent] = useAtom(isParentAtom);
+  const [isStudent] = useAtom(isStudentAtom);
+  const [isTeacher] = useAtom(isTeacherAtom);
+  const [isAdmin] = useAtom(isAdminAtom);
+  const [user] = useAtom(userAtom);
+
   const [academicYear] = useState<string>("2024/2025");
   const [term] = useState<string>("FIRST");
 
@@ -69,6 +77,48 @@ export default function ClassResultsPage() {
   const [, getResultsByClass] = useAtom(gradesAPI.getResultsByClass);
   const [, createOrUpdateResult] = useAtom(gradesAPI.createOrUpdateResult);
   const [, updateResult] = useAtom(gradesAPI.updateResult);
+
+  // Access control
+  const canManageResults = isAdmin || isTeacher;
+  const canViewResults = isAdmin || isTeacher || isParent || isStudent;
+
+  // Check if teacher is assigned to the selected subject
+  const isTeacherAssignedToSubject = (subjectId: number) => {
+    if (!isTeacher || !user) return false;
+    const subject = subjects.find((s) => s.id === subjectId);
+    return (
+      subject?.teachers?.some(
+        (teacher) => teacher.teacher.userId === user.id
+      ) || false
+    );
+  };
+
+  // Filter students based on user role
+  const getFilteredStudents = () => {
+    if (isParent) {
+      // Parents can only see their ward's results
+      return students.filter((student) =>
+        student.parents?.some((parent) => parent.parent.userId === user?.id)
+      );
+    } else if (isStudent) {
+      // Students can only see their own results
+      return students.filter((student) => student.userId === user?.id);
+    }
+    // Admin and teachers can see all students
+    return students;
+  };
+
+  // Filter subjects based on user role
+  const getFilteredSubjects = () => {
+    if (isTeacher && !isAdmin) {
+      // Teachers can only see subjects they teach
+      return subjects.filter((subject) =>
+        subject.teachers?.some((teacher) => teacher.teacher.userId === user?.id)
+      );
+    }
+    // Admin can see all subjects
+    return subjects;
+  };
 
   const [classes] = useAtom(getAllClassAtom);
   const [classLoading] = useAtom(classLoadingAtom);
@@ -127,6 +177,18 @@ export default function ClassResultsPage() {
 
   const handleUpdateResult = async (resultData: Partial<Grade>) => {
     if (!selectedStudent || !selectedSubjectData) return;
+
+    // Check if teacher is assigned to the subject (for teachers)
+    if (
+      isTeacher &&
+      !isAdmin &&
+      !isTeacherAssignedToSubject(selectedSubjectData.id)
+    ) {
+      toast.error(
+        "You are not assigned to teach this subject. Only the assigned teacher or admin can manage results for this subject."
+      );
+      return;
+    }
 
     setIsUpdating(true);
     try {
@@ -200,8 +262,19 @@ export default function ClassResultsPage() {
     : null;
 
   // Create results for students in the selected subject only
+  // Access control check
+  if (!canViewResults) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600 mb-4">
+          Access denied. You don&apos;t have permission to view results.
+        </p>
+      </div>
+    );
+  }
+
   const mappedResults = selectedSubjectData
-    ? students.map((student) => {
+    ? getFilteredStudents().map((student) => {
         const key = `${student.id}-${selectedSubjectData.id}`;
         const existingResult = Array.isArray(results)
           ? results.find(
@@ -460,52 +533,56 @@ export default function ClassResultsPage() {
         );
       },
     },
-    {
-      id: "actions",
-      enableHiding: false,
-      cell: ({ row }) => {
-        const result = row.original;
+    ...(canManageResults
+      ? [
+          {
+            id: "actions",
+            enableHiding: false,
+            cell: ({ row }: { row: Row<Grade> }) => {
+              const result = row.original;
 
-        return (
-          <ActionsDropdown
-            actions={[
-              {
-                label:
-                  result.id && typeof result.id === "number"
-                    ? "Edit Result"
-                    : "Add Result",
-                onClick: () => handleEditResult(result),
-              },
+              return (
+                <ActionsDropdown
+                  actions={[
+                    {
+                      label:
+                        result.id && typeof result.id === "number"
+                          ? "Edit Result"
+                          : "Add Result",
+                      onClick: () => handleEditResult(result),
+                    },
 
-              {
-                label: "Calculate Grade",
-                onClick: () => {
-                  // TODO: Implement calculate grade functionality
-                  console.log(
-                    "Calculate grade for student:",
-                    result.studentId,
-                    "subject:",
-                    result.subjectId
-                  );
-                },
-              },
-              // {
-              //   label: "Print Result",
-              //   onClick: () => {
-              //     // TODO: Implement print result functionality
-              //     console.log(
-              //       "Print result for student:",
-              //       result.studentId,
-              //       "subject:",
-              //       result.subjectId
-              //     );
-              //   },
-              // },
-            ]}
-          />
-        );
-      },
-    },
+                    {
+                      label: "Calculate Grade",
+                      onClick: () => {
+                        // TODO: Implement calculate grade functionality
+                        console.log(
+                          "Calculate grade for student:",
+                          result.studentId,
+                          "subject:",
+                          result.subjectId
+                        );
+                      },
+                    },
+                    // {
+                    //   label: "Print Result",
+                    //   onClick: () => {
+                    //     // TODO: Implement print result functionality
+                    //     console.log(
+                    //       "Print result for student:",
+                    //       result.studentId,
+                    //       "subject:",
+                    //       result.subjectId
+                    //     );
+                    //   },
+                    // },
+                  ]}
+                />
+              );
+            },
+          },
+        ]
+      : []),
   ];
 
   if (loading || classLoading) {
@@ -550,22 +627,36 @@ export default function ClassResultsPage() {
       <div className={"space-y-5"}>
         <div>
           <p className={"leading-none font-semibold"}>
-            Filter Results by Subject and Acacemic year
+            Filter Results by Subject and Academic Year
           </p>
+          {isTeacher && !isAdmin && getFilteredSubjects().length === 0 && (
+            <p className="text-sm text-amber-600 mt-2">
+              You are not assigned to teach any subjects in this class.
+            </p>
+          )}
         </div>
         <div className={"max-w-md"}>
-          <SelectField
-            label="Select Subject"
-            placeholder="Choose a subject to view results"
-            value={selectedSubject || ""}
-            onValueChange={(value) => setSelectedSubject(value || null)}
-          >
-            {subjects.map((subject, index) => (
-              <SelectItem key={index} value={subject.id.toString()}>
-                {subject.name}
-              </SelectItem>
-            ))}
-          </SelectField>
+          {isTeacher && !isAdmin && getFilteredSubjects().length === 0 ? (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Select Subject</Label>
+              <div className="h-10 px-3 py-2 text-sm border rounded-sm bg-gray-50 text-gray-500 flex items-center">
+                No subjects assigned to you
+              </div>
+            </div>
+          ) : (
+            <SelectField
+              label="Select Subject"
+              placeholder="Choose a subject to view results"
+              value={selectedSubject || ""}
+              onValueChange={(value) => setSelectedSubject(value || null)}
+            >
+              {getFilteredSubjects().map((subject, index) => (
+                <SelectItem key={index} value={subject.id.toString()}>
+                  {subject.name}
+                </SelectItem>
+              ))}
+            </SelectField>
+          )}
         </div>
       </div>
 
@@ -692,10 +783,14 @@ export default function ClassResultsPage() {
             <div className="text-center">
               <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Select a Subject
+                {isTeacher && !isAdmin && getFilteredSubjects().length === 0
+                  ? "No Subjects Assigned"
+                  : "Select a Subject"}
               </h3>
               <p className="text-gray-500">
-                Choose a subject from the filter above to view student results.
+                {isTeacher && !isAdmin && getFilteredSubjects().length === 0
+                  ? "You are not assigned to teach any subjects in this class. Contact your administrator for subject assignments."
+                  : "Choose a subject from the filter above to view student results."}
               </p>
             </div>
           </CardContent>
