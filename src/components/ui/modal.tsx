@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 interface IModal {
   content: ReactNode;
@@ -34,7 +35,7 @@ const Modal: FC<IModal> = ({
   open,
   onOpenChange,
   hideTrigger = false,
-  maxWidth = "sm:max-w-[425px]",
+  maxWidth = "sm:max-w-[500px]",
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -43,7 +44,12 @@ const Modal: FC<IModal> = ({
           <Button variant="outline">{triggerText}</Button>
         </DialogTrigger>
       )}
-      <DialogContent className={maxWidth}>
+      <DialogContent
+        className={cn(
+          maxWidth,
+          "h-[35rem] lg:h-[40rem] 2xl:h-fit overflow-y-auto scrollbar-width"
+        )}
+      >
         <DialogHeader>
           <DialogTitle>{modalTitle}</DialogTitle>
           <DialogDescription>{modalDescription}</DialogDescription>
