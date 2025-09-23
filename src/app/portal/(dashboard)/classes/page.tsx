@@ -14,7 +14,6 @@ import { authPersistedAtom } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { teachersAPI } from "@/jotai/teachers/teachers";
 import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
 
 import { toast } from "sonner";
@@ -55,12 +54,8 @@ export default function ClassesPage() {
 
     if (auth?.user?.role === "TEACHER") {
       (async () => {
-        const teacherId = await teachersAPI.getById(auth?.teacher?.id);
-
-        if (teacherId) {
-          const classes = await classesAPI.getById(teacherId?.id);
-          setClasses([classes]);
-        }
+        const classes = await getAllClasses();
+        setClasses(classes);
       })();
     }
   }, [getAllClasses, auth, reload]);
@@ -181,7 +176,6 @@ export default function ClassesPage() {
 
                 <div className="flex md:flex-row flex-col gap-2">
                   <Button
-                    asChild
                     variant="outline"
                     size="sm"
                     onClick={() => handleViewClass(classItem.id)}

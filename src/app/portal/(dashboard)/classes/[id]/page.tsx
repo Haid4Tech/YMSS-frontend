@@ -40,6 +40,7 @@ export default function ClassDetailPage() {
   const [grades, setGrades] = useState<Grade[]>([]);
   // const [attendance, setAttendance] = useState<SubjectAttendance[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
   
   const [, getResultsByClass] = useAtom(gradesAPI.getResultsByClass);
@@ -47,6 +48,7 @@ export default function ClassDetailPage() {
   useEffect(() => {
     const fetchClassData = async () => {
       try {
+        setError(null);
         const studentsData = studentsAPI.getStudentsByClass(parseInt(classId));
         const [classInfo, gradesData] = await Promise.all([
           classesAPI.getById(parseInt(classId)),
@@ -58,8 +60,9 @@ export default function ClassDetailPage() {
         setStudents(Array.isArray(studentsData) ? studentsData : []);
         setGrades(Array.isArray(gradesData) ? gradesData : []);
         // setAttendance(Array.isArray(attendanceData) ? attendanceData : []);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to fetch class data:", error);
+        setError(error?.response?.data?.error || error?.message || "Failed to load class data");
       } finally {
         setLoading(false);
       }
@@ -127,6 +130,17 @@ export default function ClassDetailPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500 mb-4">Error: {error}</p>
+        <Button asChild className="mt-4">
+          <Link href="/portal/classes">Back to Classes</Link>
+        </Button>
       </div>
     );
   }
