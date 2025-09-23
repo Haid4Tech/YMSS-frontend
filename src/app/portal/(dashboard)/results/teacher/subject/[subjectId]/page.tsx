@@ -9,21 +9,9 @@ import {
   gradeLoadingAtom,
   gradeErrorAtom,
 } from "@/jotai/grades/grades";
-import {
-  subjectsAPI,
-  subjectListAtom,
-  subjectLoadingAtom,
-} from "@/jotai/subject/subject";
-import {
-  studentsAPI,
-  studentListAtom,
-  studentLoadingAtom,
-} from "@/jotai/students/student";
-import {
-  isTeacherAtom,
-  isAdminAtom,
-  userAtom,
-} from "@/jotai/auth/auth";
+import { subjectsAPI } from "@/jotai/subject/subject";
+import { studentsAPI } from "@/jotai/students/student";
+import { isTeacherAtom, isAdminAtom, userAtom } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/general/data-table";
@@ -39,9 +27,6 @@ import { Student } from "@/jotai/students/student-types";
 import { Grade } from "@/jotai/grades/grades-types";
 
 import { PageHeader } from "@/components/general/page-header";
-import { SelectField } from "@/components/ui/form-field";
-import { SelectItem } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import ActionsDropdown from "@/components/ui/actions-dropdown";
 import { UpdateResult } from "@/components/portal/dashboards/results/update-result-modal";
 
@@ -72,7 +57,9 @@ export default function TeacherSubjectResultsPage() {
   const [results] = useAtom(gradeListAtom);
   const [loading] = useAtom(gradeLoadingAtom);
   const [error] = useAtom(gradeErrorAtom);
-  const [, getResultsByClassAndSubject] = useAtom(gradesAPI.getResultsByClassAndSubject);
+  const [, getResultsByClassAndSubject] = useAtom(
+    gradesAPI.getResultsByClassAndSubject
+  );
   const [, createOrUpdateResult] = useAtom(gradesAPI.createOrUpdateResult);
   const [, updateResult] = useAtom(gradesAPI.updateResult);
 
@@ -84,9 +71,8 @@ export default function TeacherSubjectResultsPage() {
   const isTeacherAssignedToSubject = () => {
     if (!isTeacher || !user || !subject) return false;
     return (
-      subject.teachers?.some(
-        (teacher) => teacher.teacher.userId === user.id
-      ) || false
+      subject.teachers?.some((teacher) => teacher.teacher.userId === user.id) ||
+      false
     );
   };
 
@@ -112,7 +98,9 @@ export default function TeacherSubjectResultsPage() {
     const fetchStudents = async () => {
       if (subject?.classId) {
         try {
-          const studentsData = await studentsAPI.getStudentsByClass(subject.classId);
+          const studentsData = await studentsAPI.getStudentsByClass(
+            subject.classId
+          );
           setStudents(Array.isArray(studentsData) ? studentsData : []);
         } catch (error) {
           console.error("Failed to fetch students:", error);
@@ -129,9 +117,20 @@ export default function TeacherSubjectResultsPage() {
   // Load results for this subject
   useEffect(() => {
     if (subjectId && subject?.classId) {
-      getResultsByClassAndSubject(subject.classId, subjectId, academicYear, term);
+      getResultsByClassAndSubject(
+        subject.classId,
+        subjectId,
+        academicYear,
+        term
+      );
     }
-  }, [subjectId, subject?.classId, academicYear, term, getResultsByClassAndSubject]);
+  }, [
+    subjectId,
+    subject?.classId,
+    academicYear,
+    term,
+    getResultsByClassAndSubject,
+  ]);
 
   // Modal handling functions
   const handleEditResult = (result: Grade) => {
@@ -209,7 +208,12 @@ export default function TeacherSubjectResultsPage() {
 
       // Refresh results
       if (subject.classId) {
-        await getResultsByClassAndSubject(subject.classId, subject.id, academicYear, term);
+        await getResultsByClassAndSubject(
+          subject.classId,
+          subject.id,
+          academicYear,
+          term
+        );
       }
 
       // Close modal
@@ -542,7 +546,17 @@ export default function TeacherSubjectResultsPage() {
     return (
       <div className="text-center py-12">
         <p className="text-red-600 mb-4">{extractErrorMessage(error)}</p>
-        <Button onClick={() => subject?.classId && getResultsByClassAndSubject(subject.classId, subjectId, academicYear, term)}>
+        <Button
+          onClick={() =>
+            subject?.classId &&
+            getResultsByClassAndSubject(
+              subject.classId,
+              subjectId,
+              academicYear,
+              term
+            )
+          }
+        >
           Retry
         </Button>
       </div>
@@ -565,7 +579,9 @@ export default function TeacherSubjectResultsPage() {
       {/* Header */}
       <PageHeader
         title={`${subject.name} Results`}
-        subtitle={`Class: ${subject.class?.name || "Unknown"} | Academic Year: ${academicYear} | Term: ${term}`}
+        subtitle={`Class: ${
+          subject.class?.name || "Unknown"
+        } | Academic Year: ${academicYear} | Term: ${term}`}
       />
 
       {/* Subject Statistics */}
@@ -592,9 +608,7 @@ export default function TeacherSubjectResultsPage() {
               <BookOpen className="h-8 w-8 text-green-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Subject</p>
-                <p className="text-lg font-bold">
-                  {subjectStats.subjectName}
-                </p>
+                <p className="text-lg font-bold">{subjectStats.subjectName}</p>
               </div>
             </div>
           </CardContent>
@@ -668,8 +682,8 @@ export default function TeacherSubjectResultsPage() {
           </CardTitle>
           <div className="text-sm text-muted-foreground">
             <span className="text-foreground">●</span> Existing results |{" "}
-            <span className="text-muted-foreground">●</span> Placeholder
-            entries (click &quot;Add Result&quot; to create)
+            <span className="text-muted-foreground">●</span> Placeholder entries
+            (click &quot;Add Result&quot; to create)
           </div>
         </CardHeader>
         <CardContent>
