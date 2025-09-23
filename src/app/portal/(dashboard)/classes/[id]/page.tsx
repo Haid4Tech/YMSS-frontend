@@ -27,7 +27,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-
+import { extractErrorMessage } from "@/utils/helpers";
 import { StudentRosterCard } from "@/components/portal/dashboards/class/student-roster-card";
 
 export default function ClassDetailPage() {
@@ -42,7 +42,7 @@ export default function ClassDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
-  
+
   const [, getResultsByClass] = useAtom(gradesAPI.getResultsByClass);
 
   useEffect(() => {
@@ -60,9 +60,10 @@ export default function ClassDetailPage() {
         setStudents(Array.isArray(studentsData) ? studentsData : []);
         setGrades(Array.isArray(gradesData) ? gradesData : []);
         // setAttendance(Array.isArray(attendanceData) ? attendanceData : []);
-      } catch (error: any) {
-        console.error("Failed to fetch class data:", error);
-        setError(error?.response?.data?.error || error?.message || "Failed to load class data");
+      } catch (error) {
+        const errorMessage = extractErrorMessage(error);
+        console.error("Failed to fetch class data:", errorMessage);
+        setError(errorMessage || "Failed to load class data");
       } finally {
         setLoading(false);
       }
@@ -79,8 +80,10 @@ export default function ClassDetailPage() {
     averageGrade:
       grades.length > 0
         ? (
-            grades.reduce((sum, grade) => sum + (grade.overallScore || grade.value || 0), 0) /
-            grades.length
+            grades.reduce(
+              (sum, grade) => sum + (grade.overallScore || grade.value || 0),
+              0
+            ) / grades.length
           ).toFixed(1)
         : "N/A",
     capacity: classData?.capacity || 0,
@@ -368,7 +371,8 @@ export default function ClassDetailPage() {
                       const avgGrade =
                         studentGrades.length > 0
                           ? studentGrades.reduce(
-                              (sum, g) => sum + (g.overallScore || g.value || 0),
+                              (sum, g) =>
+                                sum + (g.overallScore || g.value || 0),
                               0
                             ) / studentGrades.length
                           : 0;
