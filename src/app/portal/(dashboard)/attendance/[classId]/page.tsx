@@ -78,7 +78,8 @@ export default function MarkAttendancePage() {
       (record) =>
         record.studentId === student.id &&
         record.classId === parseInt(classId) &&
-        new Date(record.date).toDateString() === new Date(attendanceDate).toDateString()
+        new Date(record.date).toDateString() ===
+          new Date(attendanceDate).toDateString()
     );
 
     // Get current status for this student - check local records first, then existing records
@@ -132,7 +133,8 @@ export default function MarkAttendancePage() {
         (record) =>
           record.studentId === studentId &&
           record.classId === parseInt(classId) &&
-          new Date(record.date).toDateString() === new Date(attendanceDate).toDateString()
+          new Date(record.date).toDateString() ===
+            new Date(attendanceDate).toDateString()
       );
 
       if (existingRecord) {
@@ -190,13 +192,13 @@ export default function MarkAttendancePage() {
 
     try {
       // Create attendance records for all students with local changes
-      const attendanceRecordsArray = Object.entries(
-        localAttendanceRecords
-      ).map(([studentId, data]) => ({
-        studentId: parseInt(studentId),
-        status: data.status,
-        notes: data.notes,
-      }));
+      const attendanceRecordsArray = Object.entries(localAttendanceRecords).map(
+        ([studentId, data]) => ({
+          studentId: parseInt(studentId),
+          status: data.status,
+          notes: data.notes,
+        })
+      );
 
       const result = await attendanceAPI.createBulkAttendance({
         classId: parseInt(classId),
@@ -222,7 +224,10 @@ export default function MarkAttendancePage() {
 
   // Bulk attendance operations
   const handleMarkAllPresent = () => {
-    const allPresentRecords: Record<number, { status: string; notes?: string }> = {};
+    const allPresentRecords: Record<
+      number,
+      { status: string; notes?: string }
+    > = {};
     students.forEach((student) => {
       allPresentRecords[student.id] = { status: AttendanceStatus.PRESENT };
     });
@@ -231,7 +236,8 @@ export default function MarkAttendancePage() {
   };
 
   const handleMarkAllAbsent = () => {
-    const allAbsentRecords: Record<number, { status: string; notes?: string }> = {};
+    const allAbsentRecords: Record<number, { status: string; notes?: string }> =
+      {};
     students.forEach((student) => {
       allAbsentRecords[student.id] = { status: AttendanceStatus.ABSENT };
     });
@@ -561,7 +567,8 @@ export default function MarkAttendancePage() {
                     <div className="flex items-center gap-4">
                       <div>
                         <p className="font-medium">
-                          {record.student?.user?.firstname} {record.student?.user?.lastname}
+                          {record.student?.user?.firstname}{" "}
+                          {record.student?.user?.lastname}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Status: {record.status} | Date:{" "}
