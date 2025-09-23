@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import Link from "next/link";
+// import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,6 @@ export default function MarkAttendancePage() {
   const params = useParams<{ classId: string }>();
   const classId = params.classId as string;
 
-  const [loading, setLoading] = useState(false);
   const [attendanceDate, setAttendanceDate] = useState<Date | string>(
     new Date()
   );
@@ -78,7 +77,8 @@ export default function MarkAttendancePage() {
       (record) =>
         record.studentId === student.id &&
         record.classId === parseInt(classId) &&
-        new Date(record.date).toDateString() === new Date(attendanceDate).toDateString()
+        new Date(record.date).toDateString() ===
+          new Date(attendanceDate).toDateString()
     );
 
     // Get current status for this student - check local records first, then existing records
@@ -132,7 +132,8 @@ export default function MarkAttendancePage() {
         (record) =>
           record.studentId === studentId &&
           record.classId === parseInt(classId) &&
-          new Date(record.date).toDateString() === new Date(attendanceDate).toDateString()
+          new Date(record.date).toDateString() ===
+            new Date(attendanceDate).toDateString()
       );
 
       if (existingRecord) {
@@ -186,17 +187,17 @@ export default function MarkAttendancePage() {
       return;
     }
 
-    setLoading(true);
+    // setLoading(true);
 
     try {
       // Create attendance records for all students with local changes
-      const attendanceRecordsArray = Object.entries(
-        localAttendanceRecords
-      ).map(([studentId, data]) => ({
-        studentId: parseInt(studentId),
-        status: data.status,
-        notes: data.notes,
-      }));
+      const attendanceRecordsArray = Object.entries(localAttendanceRecords).map(
+        ([studentId, data]) => ({
+          studentId: parseInt(studentId),
+          status: data.status,
+          notes: data.notes,
+        })
+      );
 
       const result = await attendanceAPI.createBulkAttendance({
         classId: parseInt(classId),
@@ -215,14 +216,15 @@ export default function MarkAttendancePage() {
         error.response?.data?.error || extractErrorMessage(error);
       console.error("Failed to save attendance:", errorMessage);
       toast.error(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
   // Bulk attendance operations
   const handleMarkAllPresent = () => {
-    const allPresentRecords: Record<number, { status: string; notes?: string }> = {};
+    const allPresentRecords: Record<
+      number,
+      { status: string; notes?: string }
+    > = {};
     students.forEach((student) => {
       allPresentRecords[student.id] = { status: AttendanceStatus.PRESENT };
     });
@@ -231,7 +233,8 @@ export default function MarkAttendancePage() {
   };
 
   const handleMarkAllAbsent = () => {
-    const allAbsentRecords: Record<number, { status: string; notes?: string }> = {};
+    const allAbsentRecords: Record<number, { status: string; notes?: string }> =
+      {};
     students.forEach((student) => {
       allAbsentRecords[student.id] = { status: AttendanceStatus.ABSENT };
     });
@@ -253,20 +256,20 @@ export default function MarkAttendancePage() {
   };
 
   // Remove attendance
-  const handleRemoveAttendance = async (attendanceId: number) => {
-    try {
-      await attendanceAPI.deleteAttendance(attendanceId);
-      setAttendanceRecords((prev) =>
-        prev.filter((record) => record.id !== attendanceId)
-      );
-      toast.success("Attendance record deleted");
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.error || "Failed to delete attendance record";
-      console.error("Failed to remove attendance:", errorMessage);
-      toast.error(errorMessage);
-    }
-  };
+  // const handleRemoveAttendance = async (attendanceId: number) => {
+  //   try {
+  //     await attendanceAPI.deleteAttendance(attendanceId);
+  //     setAttendanceRecords((prev) =>
+  //       prev.filter((record) => record.id !== attendanceId)
+  //     );
+  //     toast.success("Attendance record deleted");
+  //   } catch (error: any) {
+  //     const errorMessage =
+  //       error.response?.data?.error || "Failed to delete attendance record";
+  //     console.error("Failed to remove attendance:", errorMessage);
+  //     toast.error(errorMessage);
+  //   }
+  // };
 
   // Table Header
   const columns: ColumnDef<any>[] = [
@@ -542,52 +545,8 @@ export default function MarkAttendancePage() {
           </CardContent>
         </Card>
 
-        {/* Existing Attendance Records */}
-        {attendanceRecords.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                Existing Attendance Records for{" "}
-                {new Date(attendanceDate).toLocaleDateString()}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {attendanceRecords.map((record) => (
-                  <div
-                    key={record.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div>
-                        <p className="font-medium">
-                          {record.student?.user?.firstname} {record.student?.user?.lastname}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Status: {record.status} | Date:{" "}
-                          {new Date(record.date).toLocaleDateString()}
-                          {record.notes && ` | Notes: ${record.notes}`}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRemoveAttendance(record.id)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Form Actions */}
-        {mappedStudents.length > 0 && (
+        {/* {mappedStudents.length > 0 && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button type="button" variant="outline" asChild>
@@ -608,7 +567,7 @@ export default function MarkAttendancePage() {
               {loading ? "Saving Attendance..." : "Save Attendance"}
             </Button>
           </div>
-        )}
+        )} */}
       </form>
     </div>
   );
