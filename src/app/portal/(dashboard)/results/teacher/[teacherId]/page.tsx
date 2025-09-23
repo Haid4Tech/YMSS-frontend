@@ -27,30 +27,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/general/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  ArrowLeft,
-  BookOpen,
-  TrendingUp,
-  Award,
-  Users,
-  GraduationCap,
-  BarChart3,
-} from "lucide-react";
-// import { toast } from "sonner";
+import { BookOpen, TrendingUp, Award, Users, BarChart3 } from "lucide-react";
 import { extractErrorMessage } from "@/utils/helpers";
 import { cn } from "@/lib/utils";
 import { Student } from "@/jotai/students/student-types";
 import { Grade } from "@/jotai/grades/grades-types";
 import { Subject } from "@/jotai/subject/subject-types";
-// import { PageHeader } from "@/components/general/page-header";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { PageHeader } from "@/components/general/page-header";
+import { SelectItem } from "@/components/ui/select";
 import { SelectField } from "@/components/ui/form-field";
+// import { toast } from "sonner";
 
 export default function TeacherResultsPage() {
   const params = useParams();
@@ -58,7 +44,7 @@ export default function TeacherResultsPage() {
   const teacherId = Number(params.teacherId);
 
   // const [teacher, setTeacher] = useState<any>(null);
-  const [subjects] = useState<Subject[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [, setStudents] = useState<Student[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [academicYear, setAcademicYear] = useState<string>("2024/2025");
@@ -86,17 +72,9 @@ export default function TeacherResultsPage() {
     const fetchTeacherSubjects = async () => {
       try {
         // Get all subjects and filter by teacher assignment
-        // const allSubjects = await getAllStudents();
-        // const teacherSubjects = allSubjects.filter((subject: Subject) =>
-        //   subject.teachers?.some(
-        //     (teacher) => teacher.teacher.userId === user?.id
-        //   )
-        // );
-        // setSubjects(teacherSubjects);
-        // Auto-select first subject if only one
-        // if (teacherSubjects.length === 1) {
-        //   setSelectedSubject(teacherSubjects[0].id.toString());
-        // }
+        const allSubjects = await getAllStudents();
+
+        setSubjects(Array.isArray(allSubjects) ? allSubjects : []);
       } catch (error) {
         console.error("Error fetching teacher subjects:", error);
       }
@@ -357,20 +335,10 @@ export default function TeacherResultsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Teaching Results Dashboard</h1>
-            <p className="text-muted-foreground">
-              View and manage results for subjects you teach
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={"Results Dashboard"}
+        subtitle={"View and manage results for subjects you teach"}
+      />
 
       {/* Filters */}
       <Card>
@@ -383,32 +351,41 @@ export default function TeacherResultsPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium">Academic Year</label>
-              <input
-                type="text"
+              <SelectField
+                label="Academic Year"
                 value={academicYear}
-                onChange={(e) => setAcademicYear(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border rounded-md"
-                placeholder="e.g., 2024/2025"
-              />
+                onValueChange={(value) => setAcademicYear(value)}
+                placeholder="Select academic year"
+              >
+                {Array.from({ length: 5 }, (_, i) => {
+                  const currentYear = new Date().getFullYear();
+                  const yearStart = currentYear + i;
+                  const yearEnd = yearStart + 1;
+                  return (
+                    <SelectItem
+                      key={yearStart}
+                      value={`${yearStart}-${yearEnd}`}
+                    >
+                      {yearStart}/{yearEnd}
+                    </SelectItem>
+                  );
+                })}
+              </SelectField>
             </div>
             <div>
-              <label className="text-sm font-medium">Term</label>
-              <Select
+              <SelectField
+                label="Term"
                 value={term}
-                onValueChange={(value: "FIRST" | "SECOND" | "THIRD") =>
-                  setTerm(value)
+                onValueChange={(value: string) =>
+                  setTerm(value as "FIRST" | "SECOND" | "THIRD")
                 }
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FIRST">First Term</SelectItem>
-                  <SelectItem value="SECOND">Second Term</SelectItem>
-                  <SelectItem value="THIRD">Third Term</SelectItem>
-                </SelectContent>
-              </Select>
+                {["FIRST", "SECOND", "THIRD"].map((term, index) => (
+                  <SelectItem key={index} value={term}>
+                    {term}
+                  </SelectItem>
+                ))}
+              </SelectField>
             </div>
             <div>
               <SelectField
@@ -417,43 +394,12 @@ export default function TeacherResultsPage() {
                 value={selectedSubject || ""}
                 onValueChange={(value) => setSelectedSubject(value || null)}
               >
-                <SelectItem value="">All Subjects</SelectItem>
                 {subjects.map((subject) => (
                   <SelectItem key={subject.id} value={subject.id.toString()}>
                     {subject.name}
                   </SelectItem>
                 ))}
               </SelectField>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Teacher Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" />
-            Teacher Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-gray-600">Assigned Subjects</p>
-              <p className="font-medium">{subjects.length} subjects</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Students Taught</p>
-              <p className="font-medium">
-                {overallStats.studentsTaught} students
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Academic Period</p>
-              <p className="font-medium">
-                {academicYear} - {term} Term
-              </p>
             </div>
           </div>
         </CardContent>
