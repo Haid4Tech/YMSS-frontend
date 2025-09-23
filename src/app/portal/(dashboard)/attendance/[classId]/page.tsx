@@ -36,7 +36,7 @@ export default function MarkAttendancePage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<Attendance[]>([]);
   const [localAttendanceRecords, setLocalAttendanceRecords] = useState<
-    Record<number, string>
+    Record<number, { status: string; notes?: string }>
   >({});
 
   useEffect(() => {
@@ -76,22 +76,26 @@ export default function MarkAttendancePage() {
     // Get current attendance record for the selected date
     const currentAttendanceRecord = attendanceRecords.find(
       (record) =>
-        record.classId === parseInt(classId) && record.date === attendanceDate
+        record.studentId === student.id &&
+        record.classId === parseInt(classId) &&
+        new Date(record.date).toDateString() === new Date(attendanceDate).toDateString()
     );
 
     // Get current status for this student - check local records first, then existing records
     const localStatus = localAttendanceRecords[student.id];
-    const existingStatus = currentAttendanceRecord?.records?.[student.id];
-    const currentStatus = localStatus || existingStatus || "NOT_MARKED";
+    const existingStatus = currentAttendanceRecord?.status;
+    const currentStatus = localStatus?.status || existingStatus || "NOT_MARKED";
 
     return {
       student_id: student.id,
       ...student,
       attendance: {
+        id: currentAttendanceRecord?.id,
         status: currentStatus,
+        notes: localStatus?.notes || currentAttendanceRecord?.notes || "",
         date: attendanceDate,
         classId: parseInt(classId),
-        studentId: student.id, // Use student ID directly
+        studentId: student.id,
       },
     };
   });
@@ -113,34 +117,30 @@ export default function MarkAttendancePage() {
 
   const handleAttendanceChange = async (
     studentId: number,
-    status: AttendanceStatus
+    status: AttendanceStatus,
+    notes?: string
   ) => {
     try {
       // Update local state immediately for UI responsiveness
       setLocalAttendanceRecords((prev) => ({
         ...prev,
-        [studentId]: status,
+        [studentId]: { status, notes: notes || "" },
       }));
 
-      // Check if there's an existing attendance record for this class and date
+      // Check if there's an existing attendance record for this student, class and date
       const existingRecord = attendanceRecords.find(
         (record) =>
-          record.classId === parseInt(classId) && record.date === attendanceDate
+          record.studentId === studentId &&
+          record.classId === parseInt(classId) &&
+          new Date(record.date).toDateString() === new Date(attendanceDate).toDateString()
       );
 
       if (existingRecord) {
-        // Update existing attendance record using class and date endpoint
-        const updatedRecords = {
-          ...existingRecord.records,
-          [studentId]: status,
-        };
-
-        const updatedAttendance =
-          await attendanceAPI.updateAttendanceByClassAndDate(
-            parseInt(classId),
-            attendanceDate,
-            updatedRecords
-          );
+        // Update existing attendance record
+        const updatedAttendance = await attendanceAPI.updateAttendance(
+          existingRecord.id,
+          { status, notes }
+        );
 
         // Update local attendance records
         setAttendanceRecords((prev) =>
@@ -149,15 +149,13 @@ export default function MarkAttendancePage() {
           )
         );
       } else {
-        // Create new attendance record with just this student
-        const newRecords = {
-          [studentId]: status,
-        };
-
+        // Create new attendance record
         const newAttendance = await attendanceAPI.createAttendance({
-          records: newRecords,
-          date: attendanceDate,
+          studentId,
           classId: parseInt(classId),
+          date: attendanceDate,
+          status,
+          notes,
         });
 
         // Add to local attendance records
@@ -191,50 +189,23 @@ export default function MarkAttendancePage() {
     setLoading(true);
 
     try {
-      // Check if there's an existing attendance record for this class and date
-      const existingRecord = attendanceRecords.find(
-        (record) =>
-          record.classId === parseInt(classId) && record.date === attendanceDate
-      );
+      // Create attendance records for all students with local changes
+      const attendanceRecordsArray = Object.entries(
+        localAttendanceRecords
+      ).map(([studentId, data]) => ({
+        studentId: parseInt(studentId),
+        status: data.status,
+        notes: data.notes,
+      }));
 
-      if (existingRecord) {
-        // Update existing attendance record with all local changes
-        const updatedRecords = {
-          ...existingRecord.records,
-          ...localAttendanceRecords,
-        };
+      const result = await attendanceAPI.createBulkAttendance({
+        classId: parseInt(classId),
+        date: attendanceDate,
+        attendanceRecords: attendanceRecordsArray,
+      });
 
-        const updatedAttendance =
-          await attendanceAPI.updateAttendanceByClassAndDate(
-            parseInt(classId),
-            attendanceDate,
-            updatedRecords
-          );
-
-        // Update local attendance records
-        setAttendanceRecords((prev) =>
-          prev.map((record) =>
-            record.id === existingRecord.id ? updatedAttendance : record
-          )
-        );
-      } else {
-        // Create new bulk attendance record
-        const attendanceRecordsArray = Object.entries(
-          localAttendanceRecords
-        ).map(([studentId, status]) => ({
-          studentId: parseInt(studentId),
-          status: status,
-        }));
-
-        const result = await attendanceAPI.createBulkAttendance({
-          classId: parseInt(classId),
-          date: attendanceDate,
-          attendanceRecords: attendanceRecordsArray,
-        });
-
-        // Add to local attendance records
-        setAttendanceRecords((prev) => [...prev, result.attendance]);
-      }
+      // Add to local attendance records
+      setAttendanceRecords((prev) => [...prev, ...result.attendance]);
 
       // Clear local records after successful save
       setLocalAttendanceRecords({});
@@ -251,18 +222,18 @@ export default function MarkAttendancePage() {
 
   // Bulk attendance operations
   const handleMarkAllPresent = () => {
-    const allPresentRecords: Record<number, string> = {};
+    const allPresentRecords: Record<number, { status: string; notes?: string }> = {};
     students.forEach((student) => {
-      allPresentRecords[student.id] = AttendanceStatus.PRESENT;
+      allPresentRecords[student.id] = { status: AttendanceStatus.PRESENT };
     });
     setLocalAttendanceRecords((prev) => ({ ...prev, ...allPresentRecords }));
     toast.success("All students marked as present");
   };
 
   const handleMarkAllAbsent = () => {
-    const allAbsentRecords: Record<number, string> = {};
+    const allAbsentRecords: Record<number, { status: string; notes?: string }> = {};
     students.forEach((student) => {
-      allAbsentRecords[student.id] = AttendanceStatus.ABSENT;
+      allAbsentRecords[student.id] = { status: AttendanceStatus.ABSENT };
     });
     setLocalAttendanceRecords((prev) => ({ ...prev, ...allAbsentRecords }));
     toast.success("All students marked as absent");
@@ -467,7 +438,7 @@ export default function MarkAttendancePage() {
         {/* Subject Selection */}
         <Card>
           <CardHeader>
-            <CardTitle>Select Subject & Date</CardTitle>
+            <CardTitle>Select Date</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -590,12 +561,12 @@ export default function MarkAttendancePage() {
                     <div className="flex items-center gap-4">
                       <div>
                         <p className="font-medium">
-                          Attendance Record #{record.id}
+                          {record.student?.user?.firstname} {record.student?.user?.lastname}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Class: {record.class?.name} | Date:{" "}
-                          {new Date(record.date).toLocaleDateString()} |
-                          Students: {Object.keys(record.records || {}).length}
+                          Status: {record.status} | Date:{" "}
+                          {new Date(record.date).toLocaleDateString()}
+                          {record.notes && ` | Notes: ${record.notes}`}
                         </p>
                       </div>
                     </div>

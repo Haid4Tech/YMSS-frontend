@@ -196,7 +196,11 @@ export default function TeachersPage() {
       accessorFn: (row) => row.user.DOB,
       cell: ({ row }) => {
         const student = row.original;
-        return <div>{student?.user?.DOB || "No DOB"}</div>;
+        return (
+          <div>
+            {new Date(student?.user?.DOB).toLocaleDateString() || "No DOB"}
+          </div>
+        );
       },
     },
     {
