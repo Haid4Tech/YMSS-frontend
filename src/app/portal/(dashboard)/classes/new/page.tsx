@@ -209,13 +209,11 @@ export default function AddClassPage() {
                 onValueChange={(value) => handleInputChange("grade", value)}
                 placeholder="Select grade"
               >
-                {Array.from({ length: 12 }, (_, i) => (
+                {Array.from({ length: 6 }, (_, i) => (
                   <SelectItem key={i + 1} value={(i + 1).toString()}>
                     Grade {i + 1}
                   </SelectItem>
                 ))}
-                <SelectItem value="kindergarten">Kindergarten</SelectItem>
-                <SelectItem value="pre-k">Pre-K</SelectItem>
               </SelectField>
 
               {/* <SelectField

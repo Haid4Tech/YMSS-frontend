@@ -28,7 +28,7 @@ import { extractErrorMessage } from "@/utils/helpers";
 import { Class } from "@/jotai/class/class-type";
 
 import { StudentResult } from "@/components/portal/results/student-result";
-// import { TeacherResult } from "@/components/portal/results/teacher-result";
+import { TeacherResult } from "@/components/portal/results/teacher-result";
 import { ParentResult } from "@/components/portal/results/parent-result";
 
 export default function ResultsPage() {
@@ -76,13 +76,15 @@ export default function ResultsPage() {
           <h1 className="text-3xl font-bold">
             {isStudent && "Your Results"}
             {isParent && "Wards Results"}
-            {isAdmin || (isTeacher && "Results by Class")}
+            {isAdmin && "Results by Class"}
+            {isTeacher && "Results by Subjects"}
           </h1>
           <p className="text-muted-foreground">
             {isParent && "View your Wards Results"}
             {isStudent && "View your results"}
-            {(isAdmin || isTeacher) &&
-              "View and manage student results organized by class"}
+            {isAdmin && "View and manage student results organized by class"}
+            {isTeacher &&
+              "View and manage student results organized by Subjects"}
           </p>
         </div>
         {/* {(isAdmin || isTeacher) && (
@@ -104,7 +106,7 @@ export default function ResultsPage() {
       </div>
 
       {isParent && <ParentResult />}
-      {/* {isTeacher && <TeacherResult />} */}
+      {isTeacher && <TeacherResult />}
 
       {isStudent && <StudentResult />}
 

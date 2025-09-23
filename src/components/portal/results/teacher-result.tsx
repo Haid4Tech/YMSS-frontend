@@ -13,13 +13,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Users, BarChart3 } from "lucide-react";
+import { BookOpen, BarChart3 } from "lucide-react";
 import { Subject } from "@/jotai/subject/subject-types";
 
 const TeacherResult = () => {
   const router = useRouter();
   const [user] = useAtom(userAtom);
-  // const [, getUserById] = useAtom(usersAPI.getById);
+  const userId = user?.id;
+
   const [subjects] = useAtom(subjectListAtom);
   const [loading] = useAtom(subjectLoadingAtom);
   const [, getAllSubjects] = useAtom(subjectsAPI.getAll);
@@ -29,13 +30,12 @@ const TeacherResult = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (user) {
-        // Get all subjects first
         await getAllSubjects();
       }
     };
 
     fetchData();
-  }, [user?.id]);
+  }, [userId]);
 
   // Filter subjects for this teacher
   useEffect(() => {
@@ -57,59 +57,6 @@ const TeacherResult = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Subjects You Teach</h2>
-          <p className="text-muted-foreground">
-            Manage results for the subjects you are assigned to teach
-          </p>
-        </div>
-      </div>
-
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <BookOpen className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  Total Subjects
-                </p>
-                <p className="text-2xl font-bold">{teacherSubjects.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Classes</p>
-                <p className="text-2xl font-bold">
-                  {new Set(teacherSubjects.map((s) => s.classId)).size}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <BarChart3 className="h-8 w-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Active</p>
-                <p className="text-2xl font-bold">{teacherSubjects.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Subjects Grid */}
       {teacherSubjects.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -149,7 +96,7 @@ const TeacherResult = () => {
                     className="w-full"
                     onClick={() =>
                       router.push(
-                        `/portal/results/teacher/${user?.id}?subject=${subject.id}`
+                        `/portal/results/teacher/subject/${subject.id}`
                       )
                     }
                   >
