@@ -13,6 +13,7 @@ import { PersonAvatar } from "@/components/ui/person-avatar";
 import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
 import { extractErrorMessage } from "@/utils/helpers";
 import { toast } from "sonner";
+import { TooltipComp } from "@/components/ui/tooltip-comp";
 
 import { Spinner } from "@radix-ui/themes";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
@@ -59,7 +60,7 @@ export default function StudentsPage() {
     ? students.students
     : [];
 
-  //
+  // handle Student View
   const handleViewStudent = (studentId: number) => {
     setLoadingStates((prev) => ({
       ...prev,
@@ -142,12 +143,29 @@ export default function StudentsPage() {
     },
     {
       id: "class",
-      header: "Class",
+      header: ({ column }) => {
+        return (
+          <TooltipComp
+            trigger={
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  column.toggleSorting(column.getIsSorted() === "asc")
+                }
+              >
+                Class
+                <ArrowUpDown />
+              </Button>
+            }
+            content={"Sort By Classes"}
+          />
+        );
+      },
       accessorFn: (row) => row.class?.name,
       cell: ({ row }) => {
         const student = row.original;
         return (
-          <div className="capitalize">
+          <div className="capitalize text-left ml-5">
             {student?.class?.name || "Not assigned"}
           </div>
         );
@@ -192,17 +210,7 @@ export default function StudentsPage() {
     },
     {
       id: "email",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Email
-            <ArrowUpDown />
-          </Button>
-        );
-      },
+      header: "Email",
       accessorFn: (row) => row.user?.email,
       cell: ({ row }) => {
         const student = row.original;
@@ -217,7 +225,11 @@ export default function StudentsPage() {
       accessorFn: (row) => row.user.DOB,
       cell: ({ row }) => {
         const student = row.original;
-        return <div>{student?.user?.DOB || "No DOB"}</div>;
+        return (
+          <div>
+            {new Date(student?.user?.DOB).toLocaleDateString() || "No DOB"}
+          </div>
+        );
       },
     },
     {

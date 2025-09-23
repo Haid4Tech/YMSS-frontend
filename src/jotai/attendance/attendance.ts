@@ -59,9 +59,11 @@ export const attendanceAPI = {
 
   // 🔹 Create attendance
   createAttendance: async (data: {
-    records: any;
-    date: string | Date;
+    studentId: number;
     classId: number;
+    date: string | Date;
+    status: string;
+    notes?: string;
   }): Promise<Attendance> => {
     try {
       const response = await axiosInstance.post("/attendance", data);
@@ -82,7 +84,7 @@ export const attendanceAPI = {
       status: string;
       notes?: string;
     }>;
-  }): Promise<{ message: string; attendance: Attendance; totalRecords: number }> => {
+  }): Promise<{ message: string; attendance: Attendance[]; totalRecords: number }> => {
     try {
       const response = await axiosInstance.post("/attendance/bulk", data);
       return response.data;
@@ -96,10 +98,41 @@ export const attendanceAPI = {
   // 🔹 Update attendance by ID
   updateAttendance: async (
     id: number,
-    updates: Partial<Attendance>
+    updates: {
+      status: string;
+      notes?: string;
+    }
   ): Promise<Attendance> => {
     try {
       const response = await axiosInstance.put(`/attendance/${id}`, updates);
+      return response.data;
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error);
+      console.error(errorMessage);
+      throw error;
+    }
+  },
+
+  // 🔹 Get attendance by student
+  getByStudent: async (studentId: number): Promise<Attendance[]> => {
+    try {
+      const response = await axiosInstance.get(`/attendance/student/${studentId}`);
+      return response.data;
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error);
+      console.error(errorMessage);
+      throw error;
+    }
+  },
+
+  // 🔹 Get attendance statistics for a class
+  getStats: async (classId: number, startDate?: string, endDate?: string): Promise<any> => {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      
+      const response = await axiosInstance.get(`/attendance/class/${classId}/stats?${params.toString()}`);
       return response.data;
     } catch (error) {
       const errorMessage = extractErrorMessage(error);
