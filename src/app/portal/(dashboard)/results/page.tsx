@@ -123,7 +123,7 @@ export default function ResultsPage() {
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-xl">{classItem.name}</CardTitle>
                     <Badge variant="outline">
-                      {classItem.grade || "Class"}
+                      {classItem.gradeLevel ? `Grade ${classItem.gradeLevel}` : "Class"}
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-600">

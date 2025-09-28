@@ -85,6 +85,7 @@ export default function Page() {
         degree: teacher.degree,
         university: teacher?.university ?? "",
         graduationYear: teacher?.graduationYear || 0,
+        subjectSpecialization: teacher?.subjects?.[0]?.id?.toString() ?? "",
       });
     };
 

@@ -8,7 +8,8 @@ import { Teacher } from "@/jotai/teachers/teachers-types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SafeRender } from "@/components/ui/safe-render";
-
+import { subjectTeacherAPI } from "@/jotai/subject-teacher/subject-teacher";
+import { SubjectTeacher } from "@/jotai/subject-teacher/subject-teacher-type";
 import { DynamicHeader } from "@/components/general/page-header";
 
 export default function TeacherDetailPage() {
@@ -17,11 +18,10 @@ export default function TeacherDetailPage() {
   const router = useRouter();
 
   const [teacher, setTeacher] = useState<Teacher | null>(null);
+  const [teacherSubjects, setTeacherSubjects] = useState<SubjectTeacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
-
-  console.log(teacher);
 
   useEffect(() => {
     const fetchTeacherData = async () => {
@@ -39,7 +39,12 @@ export default function TeacherDetailPage() {
 
         // Validate teacher data structure
         if (teacherData && typeof teacherData === "object") {
+          const subjectsData = await subjectTeacherAPI.getByTeacher(
+            teacherData.id
+          );
+
           setTeacher(teacherData);
+          setTeacherSubjects(subjectsData);
         } else {
           throw new Error("Invalid teacher data received");
         }
@@ -115,10 +120,12 @@ export default function TeacherDetailPage() {
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-blue-600">
               <SafeRender fallback="Not assigned">
-                {teacher?.subjects?.map((subject) => subject.name).join(", ")}
+                {teacherSubjects
+                  ?.map((subjectTeacher) => subjectTeacher.subject.name)
+                  .join(", ")}
               </SafeRender>
             </div>
-            <p className="text-sm text-muted-foreground">Main Subject</p>
+            <p className="text-sm text-muted-foreground">Main Subject(s)</p>
           </CardContent>
         </Card>
         <Card>
@@ -192,12 +199,12 @@ export default function TeacherDetailPage() {
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
-                  Main Subject
+                  Main Subject(s)
                 </label>
                 <p className="text-sm">
                   <SafeRender fallback="Not assigned">
-                    {teacher?.subjects
-                      ?.map((subject) => subject.name)
+                    {teacherSubjects
+                      ?.map((subjectTeacher) => subjectTeacher.subject.name)
                       .join(", ")}
                   </SafeRender>
                 </p>
@@ -246,23 +253,23 @@ export default function TeacherDetailPage() {
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
-                  Qualification
+                  University Qualification
                 </label>
-                {/* <p className="text-sm">
+                <p className="text-sm">
                   <SafeRender fallback="Not provided">
-                    {teacher?.}
+                    {teacher?.university}
                   </SafeRender>
-                </p> */}
+                </p>
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
-                  Department
+                  Previous Experience
                 </label>
-                {/* <p className="text-sm">
-                  <SafeRender fallback="Not provided">
-                    {teacher?.department}
+                <p className="text-sm">
+                  <SafeRender fallback="First Experience">
+                    {teacher?.previousInstitution}
                   </SafeRender>
-                </p> */}
+                </p>
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">

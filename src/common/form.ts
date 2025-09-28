@@ -71,7 +71,7 @@ export const StudentFormIntialData = {
 
 export const ClassFormInitialData = {
   name: "",
-  grade: "",
+  gradeLevel: "",
   capacity: "",
   roomNumber: "",
   description: "",

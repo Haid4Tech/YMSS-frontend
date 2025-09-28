@@ -1,3 +1,5 @@
+"use client";
+
 import { Dispatch, FC, SetStateAction, ChangeEvent } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,9 +13,9 @@ import {
 } from "@/components/ui/form-field";
 import { LucideIcon } from "lucide-react";
 import { Gender } from "@/common/enum";
-
 import { ITeacherFormData } from "@/common/types";
 import { Subject } from "@/jotai/subject/subject-types";
+import { CountrySelector, ReligionSelector } from "@/components/ui/selectors";
 
 interface IDate {
   DOB: Date | undefined;
@@ -159,14 +161,13 @@ const TeacherForm: FC<ITeacherForm> = ({
                   </SelectField>
                 </div>
                 <div>
-                  <InputField
-                    label="Nationality"
-                    placeholder="Enter Nationality"
-                    id="nationality"
-                    value={formData?.nationality}
-                    onChange={(e) =>
-                      handleInputChange("nationality", e.target.value)
+                  <ReligionSelector
+                    label="Religion"
+                    value={formData?.religion}
+                    onValueChange={(value) =>
+                      handleInputChange("religion", value)
                     }
+                    placeholder="Select Religion"
                   />
                 </div>
                 <div>
@@ -227,12 +228,11 @@ const TeacherForm: FC<ITeacherForm> = ({
                   onChange={(e) => handleInputChange("zipcode", e.target.value)}
                 />
 
-                <InputField
-                  label={"Country"}
-                  placeholder="Enter Country"
-                  id="country"
+                <CountrySelector
+                  label="Country"
                   value={formData?.country}
-                  onChange={(e) => handleInputChange("country", e.target.value)}
+                  onValueChange={(value) => handleInputChange("country", value)}
+                  placeholder="Select Country"
                 />
               </div>
             </div>

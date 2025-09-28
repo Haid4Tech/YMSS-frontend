@@ -10,7 +10,12 @@ import {
 } from "@/jotai/students/student";
 import { Button } from "@/components/ui/button";
 import { PersonAvatar } from "@/components/ui/person-avatar";
-import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
+import {
+  isAdminAtom,
+  isParentAtom,
+  isStudentAtom,
+  isTeacherAtom,
+} from "@/jotai/auth/auth";
 import { extractErrorMessage } from "@/utils/helpers";
 import { toast } from "sonner";
 import { TooltipComp } from "@/components/ui/tooltip-comp";
@@ -49,6 +54,7 @@ export default function StudentsPage() {
   const [isParent] = useAtom(isParentAtom);
   const [isStudent] = useAtom(isStudentAtom);
   const [isTeacher] = useAtom(isTeacherAtom);
+  const [isAdmin] = useAtom(isAdminAtom);
 
   useEffect(() => {
     (() => {
@@ -273,12 +279,14 @@ export default function StudentsPage() {
               <DropdownMenuItem onClick={() => handleViewStudent(student.id)}>
                 View student
               </DropdownMenuItem>
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => handleDeleteStudent(student.id)}
-              >
-                Delete student
-              </DropdownMenuItem>
+              {isAdmin && (
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => handleDeleteStudent(student.id)}
+                >
+                  Delete student
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );

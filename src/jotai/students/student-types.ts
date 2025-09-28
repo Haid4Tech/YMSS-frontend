@@ -13,10 +13,10 @@ interface Parents {
 export interface Student {
   id: number;
   userId: number;
-  classId: number;
+  classId?: number;
   parentId?: number;
   user: User;
-  class: Class;
+  class?: Class;
   parents?: Array<Parents>;
   enrollments: Array<Enrollment>;
 
