@@ -38,12 +38,13 @@ export default function ClassDetailPage() {
   const [classData, setClassData] = useState<Class | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [grades, setGrades] = useState<Grade[]>([]);
-  // const [attendance, setAttendance] = useState<SubjectAttendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
 
   const [, getResultsByClass] = useAtom(gradesAPI.getResultsByClass);
+
+  console.log("Class Data:", classData);
 
   useEffect(() => {
     const fetchClassData = async () => {
@@ -168,7 +169,12 @@ export default function ClassDetailPage() {
         link="/portal/classes"
         endBtns={
           <div className="flex gap-2">
-            <Button variant="outline">Edit Class</Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/portal/classes/${classId}/edit`)}
+            >
+              Edit Class
+            </Button>
             <Button onClick={() => router.push(`${classId}/students`)}>
               Students
             </Button>
@@ -249,9 +255,9 @@ export default function ClassDetailPage() {
                   <label className="text-sm font-medium text-muted-foreground">
                     Grade Level
                   </label>
-                  <p className="text-sm">
-                    {classData.grade || "Not specified"}
-                  </p>
+                    <p className="text-sm">
+                      {classData.gradeLevel ? `Grade ${classData.gradeLevel}` : "Not specified"}
+                    </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">
@@ -263,7 +269,9 @@ export default function ClassDetailPage() {
                   <label className="text-sm font-medium text-muted-foreground">
                     Current Enrollment
                   </label>
-                  <p className="text-sm">{students.length} students</p>
+                  <p className="text-sm">
+                    {classData.students.length} students
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">

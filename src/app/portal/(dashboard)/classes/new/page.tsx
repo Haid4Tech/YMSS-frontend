@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form-field";
 import DatePicker from "@/components/general/date-picker";
 import { ClassFormInitialData } from "@/common/form";
+import { IClassFormData } from "@/common/types";
 
 import { classesAPI } from "@/jotai/class/class";
 import { teachersAPI } from "@/jotai/teachers/teachers";
@@ -31,7 +32,8 @@ export default function AddClassPage() {
   // form states and dates states
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [formData, setFormData] = useState(ClassFormInitialData);
+  const [formData, setFormData] =
+    useState<IClassFormData>(ClassFormInitialData);
 
   // Validation state for dates
   const [dateError, setDateError] = useState<string>("");
@@ -147,7 +149,7 @@ export default function AddClassPage() {
     try {
       const classData = {
         name: formData.name,
-        grade: parseInt(formData.grade) || null,
+        gradeLevel: parseInt(formData.gradeLevel) || null,
         capacity: parseInt(formData.capacity),
         roomNumber: formData.roomNumber,
         description: formData.description,
@@ -205,8 +207,10 @@ export default function AddClassPage() {
               <SelectField
                 label="Grade Level"
                 required
-                value={formData.grade}
-                onValueChange={(value) => handleInputChange("grade", value)}
+                value={formData.gradeLevel}
+                onValueChange={(value) =>
+                  handleInputChange("gradeLevel", value)
+                }
                 placeholder="Select grade"
               >
                 {Array.from({ length: 6 }, (_, i) => (

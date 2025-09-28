@@ -18,10 +18,10 @@ export interface Class {
   endDate?: string;
   startTime?: string;
   endTime?: string;
-  teacher: Teacher;
+  teacher?: Teacher;
 
   // Additional fields used in the application
-  grade?: string; // Grade level like "10th", "11th"
+  gradeLevel?: string; // Grade level like "1", "2", "3", etc.
 }
 
 export interface ClassResponse {

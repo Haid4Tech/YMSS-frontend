@@ -14,7 +14,12 @@ import { authPersistedAtom } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { isParentAtom, isStudentAtom, isTeacherAtom } from "@/jotai/auth/auth";
+import {
+  isParentAtom,
+  isStudentAtom,
+  isTeacherAtom,
+  isAdminAtom,
+} from "@/jotai/auth/auth";
 
 import { toast } from "sonner";
 import { Spinner } from "@radix-ui/themes";
@@ -43,6 +48,7 @@ export default function ClassesPage() {
   const [isParent] = useAtom(isParentAtom);
   const [isStudent] = useAtom(isStudentAtom);
   const [isTeacher] = useAtom(isTeacherAtom);
+  const [isAdmin] = useAtom(isAdminAtom);
 
   useEffect(() => {
     if (auth?.user?.role === "ADMIN") {
@@ -191,22 +197,24 @@ export default function ClassesPage() {
                       </div>
                     )}
                   </Button>
-                  <Button
-                    size={"sm"}
-                    variant={"destructive"}
-                    onClick={() => handleDeleteClass(classItem.id)}
-                  >
-                    {loadingStates.delete === classItem.id ? (
-                      <div>
-                        <Spinner />
-                      </div>
-                    ) : (
-                      <div className="flex flex-row gap-1">
-                        <p className="block md:hidden text-sm">Delete</p>
-                        <Trash2 size={12} />
-                      </div>
-                    )}
-                  </Button>
+                  {isAdmin && (
+                    <Button
+                      size={"sm"}
+                      variant={"destructive"}
+                      onClick={() => handleDeleteClass(classItem.id)}
+                    >
+                      {loadingStates.delete === classItem.id ? (
+                        <div>
+                          <Spinner />
+                        </div>
+                      ) : (
+                        <div className="flex flex-row gap-1">
+                          <p className="block md:hidden text-sm">Delete</p>
+                          <Trash2 size={12} />
+                        </div>
+                      )}
+                    </Button>
+                  )}
                 </div>
               </CardTitle>
             </CardHeader>

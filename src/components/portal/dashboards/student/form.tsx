@@ -14,6 +14,7 @@ import { LucideIcon } from "lucide-react";
 import { IStudentFormData } from "@/common/types";
 import { Class } from "@/jotai/class/class-type";
 import { ParentStudentResponse } from "@/jotai/parent/parent-types";
+import { CountrySelector, ReligionSelector } from "@/components/ui/selectors";
 
 interface ITabs {
   id: string;
@@ -167,25 +168,11 @@ const StudentForm: FC<IStudentForm> = ({
                   />
                 </div>
                 <div>
-                  <InputField
-                    label={"Nationality"}
-                    id="nationality"
-                    placeholder="Enter nationality"
-                    value={formData?.nationality ?? undefined}
-                    onChange={(e) =>
-                      handleInputChange("nationality", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <InputField
-                    label={"Religion"}
-                    id="religion"
-                    placeholder="Enter religion"
+                  <ReligionSelector
+                    label="Religion"
                     value={formData?.religion ?? undefined}
-                    onChange={(e) =>
-                      handleInputChange("religion", e.target.value)
-                    }
+                    onValueChange={(value) => handleInputChange("religion", value)}
+                    placeholder="Select Religion"
                   />
                 </div>
                 <div>
@@ -274,14 +261,11 @@ const StudentForm: FC<IStudentForm> = ({
                   />
                 </div>
                 <div>
-                  <InputField
-                    label={"Country"}
-                    id="country"
-                    placeholder={"Enter country"}
+                  <CountrySelector
+                    label="Country"
                     value={formData?.country ?? undefined}
-                    onChange={(e) =>
-                      handleInputChange("country", e.target.value)
-                    }
+                    onValueChange={(value) => handleInputChange("country", value)}
+                    placeholder="Select Country"
                     required
                   />
                 </div>

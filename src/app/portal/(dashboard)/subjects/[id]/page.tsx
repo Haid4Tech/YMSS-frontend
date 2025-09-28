@@ -300,7 +300,7 @@ export default function SubjectDetailPage() {
                         {enrollment.student.user.lastname}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Class: {enrollment.student.class.name} | Enrolled:{" "}
+                        Class: {enrollment.student.class?.name || "Not assigned"} | Enrolled:{" "}
                         {formatDate(new Date(enrollment.enrolledAt))}
                       </p>
                     </div>

@@ -20,7 +20,6 @@ export interface IStudentFormData {
   DOB?: string;
   gender: string;
   phone: string;
-  nationality: string;
   religion: string;
   bloodGroup: string;
   photo?: File | null;
@@ -65,6 +64,7 @@ export interface ITeacherFormData {
   hireDate: string;
   lastname: string;
   nationality: string;
+  religion?: string;
   password?: string;
   phone: string;
   previousInstitution: string;
@@ -97,4 +97,22 @@ export interface IExamFormData {
   startTime: string;
   duration: string | number;
   examType: string;
+}
+
+export interface IClassFormData {
+  name: string;
+  gradeLevel: string;
+  capacity: string;
+  roomNumber: string;
+  description: string;
+  teacherId: string;
+  academicYear: string;
+  schedule: {
+    startDate: string;
+    endDate: string;
+    startTime: string;
+    endTime: string;
+    days: string[];
+  };
+  subjects: string[];
 }
