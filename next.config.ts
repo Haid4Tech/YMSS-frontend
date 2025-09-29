@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       "images.unsplash.com",
       "plus.unsplash.com",
+      "scontent-los2-1.cdninstagram.com",
       "fra1.digitaloceanspaces.com",
     ].map((hostname) => ({
       protocol: "https",
