@@ -1,14 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 // import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Subject } from "@/jotai/subject/subject-types";
 import { formatDate } from "@/common/helper";
-import { Plus, Users, BookOpen, Calendar, Trash2 } from "lucide-react";
+import {
+  Plus,
+  Users,
+  BookOpen,
+  Calendar,
+  Trash2,
+  MoreHorizontal,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/general/data-table";
+import { ColumnDef } from "@tanstack/react-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { enrollmentsAPI } from "@/jotai/enrollment/enrollment";
 import { Enrollment } from "@/jotai/enrollment/enrollment-types";
@@ -29,6 +46,7 @@ import { toast } from "sonner";
 export default function SubjectDetailPage() {
   const params = useParams();
   const subjectId = params.id as string;
+  const router = useRouter();
 
   const [subject, setSubject] = useState<Subject | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,11 +67,294 @@ export default function SubjectDetailPage() {
   const [attendance, setAttendance] = useState<SubjectAttendance[]>([]);
   const [addTeacher, setAddTeacher] = useState<boolean>(false);
 
+  // Column definitions for enrollments table
+  const enrollmentColumns: ColumnDef<Enrollment>[] = [
+    {
+      accessorKey: "student.user.firstname",
+      header: "First Name",
+      cell: ({ row }) => {
+        const enrollment = row.original;
+        return (
+          <div className="font-medium">{enrollment.student.user.firstname}</div>
+        );
+      },
+    },
+    {
+      accessorKey: "student.user.lastname",
+      header: "Last Name",
+      cell: ({ row }) => {
+        const enrollment = row.original;
+        return (
+          <div className="font-medium">{enrollment.student.user.lastname}</div>
+        );
+      },
+    },
+    {
+      accessorKey: "student.class.name",
+      header: "Class",
+      cell: ({ row }) => {
+        const enrollment = row.original;
+        return (
+          <div className="text-sm text-muted-foreground">
+            {enrollment.student.class?.name || "Not assigned"}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "enrolledAt",
+      header: "Enrolled Date",
+      cell: ({ row }) => {
+        const enrollment = row.original;
+        return (
+          <div className="text-sm">
+            {formatDate(new Date(enrollment.enrolledAt))}
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const enrollment = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="border h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigator.clipboard.writeText(enrollment.id.toString())
+                }
+              >
+                Copy enrollment ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() =>
+                  router.push(`/portal/students/${enrollment.student.id}`)
+                }
+              >
+                View student
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Remove enrollment
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+
+  // Column definitions for teachers table
+  const teacherColumns: ColumnDef<SubjectTeacher>[] = [
+    {
+      accessorKey: "teacher.user.firstname",
+      header: "First Name",
+      cell: ({ row }) => {
+        const subjectTeacher = row.original;
+        return (
+          <div className="font-medium">
+            {subjectTeacher.teacher.user.firstname}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "teacher.user.lastname",
+      header: "Last Name",
+      cell: ({ row }) => {
+        const subjectTeacher = row.original;
+        return (
+          <div className="font-medium">
+            {subjectTeacher.teacher.user.lastname}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "teacher.degree",
+      header: "Degree",
+      cell: ({ row }) => {
+        const subjectTeacher = row.original;
+        return (
+          <div className="text-sm text-muted-foreground">
+            {subjectTeacher.teacher.degree || "No degree specified"}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "teacher.employmentType",
+      header: "Employment Type",
+      cell: ({ row }) => {
+        const subjectTeacher = row.original;
+        return (
+          <div className="text-sm">
+            {subjectTeacher.teacher.employmentType || "Not specified"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const subjectTeacher = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="border h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigator.clipboard.writeText(subjectTeacher.id.toString())
+                }
+              >
+                Copy assignment ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() =>
+                  router.push(`/portal/teachers/${subjectTeacher.teacher.id}`)
+                }
+              >
+                View teacher
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={() =>
+                  subject && deleteTeacher(subject.id, subjectTeacher.teacherId)
+                }
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Remove from subject
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+
+  // Column definitions for attendance table
+  const attendanceColumns: ColumnDef<SubjectAttendance>[] = [
+    {
+      accessorKey: "enrollment.student.user.firstname",
+      header: "First Name",
+      cell: ({ row }) => {
+        const attendance = row.original;
+        return (
+          <div className="font-medium">
+            {attendance.enrollment.student.user.firstname}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "enrollment.student.user.lastname",
+      header: "Last Name",
+      cell: ({ row }) => {
+        const attendance = row.original;
+        return (
+          <div className="font-medium">
+            {attendance.enrollment.student.user.lastname}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "date",
+      header: "Date",
+      cell: ({ row }) => {
+        const attendance = row.original;
+        return (
+          <div className="text-sm">
+            {new Date(attendance.date).toLocaleDateString()}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const attendance = row.original;
+        return (
+          <div
+            className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${
+              attendance.status === "PRESENT"
+                ? "bg-green-100 text-green-800"
+                : attendance.status === "ABSENT"
+                ? "bg-red-100 text-red-800"
+                : attendance.status === "LATE"
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-blue-100 text-blue-800"
+            }`}
+          >
+            {attendance.status}
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const attendance = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="border h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigator.clipboard.writeText(attendance.id.toString())
+                }
+              >
+                Copy attendance ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() =>
+                  router.push(
+                    `/portal/students/${attendance.enrollment.student.id}`
+                  )
+                }
+              >
+                View student
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete record
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+
   useEffect(() => {
     const fetchSubjectData = async () => {
       try {
         const [subjectData, enrollmentsData, teachersData, attendanceData] =
-          await Promise.all([
+          await Promise.allSettled([
             subjectsAPI.getById(parseInt(subjectId)),
             enrollmentsAPI.getBySubject(parseInt(subjectId)),
             subjectTeacherAPI.getBySubject(parseInt(subjectId)),
@@ -61,12 +362,17 @@ export default function SubjectDetailPage() {
             // studentsAPI.getBySubject(subjectId),
           ]);
 
-        setSubject(subjectData);
-        setEnrollments(enrollmentsData);
-        setSubjectTeachers(teachersData);
-        setAttendance(attendanceData);
+        if (subjectData.status === "fulfilled") setSubject(subjectData.value);
+        if (enrollmentsData.status === "fulfilled")
+          setEnrollments(enrollmentsData.value);
+        if (teachersData.status === "fulfilled")
+          setSubjectTeachers(teachersData.value);
+        if (attendanceData.status === "fulfilled")
+          setAttendance(attendanceData.value);
       } catch (error) {
         console.error("Failed to fetch subject data:", error);
+        console.error("Error details:", error);
+        toast.error("Failed to load subject data. Please try again.");
         setSubject(null);
       } finally {
         setLoading(false);
@@ -154,7 +460,12 @@ export default function SubjectDetailPage() {
         subtitle={"Subject Information"}
         endBtns={
           <div className="flex gap-2">
-            <Button variant="outline">Edit Subject</Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/portal/subjects/${subjectId}/edit`)}
+            >
+              Edit Subject
+            </Button>
             <Button>Schedule Exam</Button>
           </div>
         }
@@ -233,13 +544,15 @@ export default function SubjectDetailPage() {
                 </label>
                 <p className="text-sm">{subject.name}</p>
               </div>
+
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
-                  Subject Code
+                  Class
                 </label>
-                <p className="text-sm">{subject.code || "Not set"}</p>
+                <p className="text-sm">{subject.class?.name || "Not set"}</p>
               </div>
-              <div className="md:col-span-2">
+
+              <div>
                 <label className="text-sm font-medium text-muted-foreground">
                   Description
                 </label>
@@ -247,6 +560,7 @@ export default function SubjectDetailPage() {
                   {subject.description || "No description provided"}
                 </p>
               </div>
+
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
                   Assigned Teacher
@@ -261,12 +575,6 @@ export default function SubjectDetailPage() {
                     : "Not Assigned"}
                 </div>
               </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">
-                  Credits
-                </label>
-                <p className="text-sm">{subject.credits || "Not specified"}</p>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -277,6 +585,10 @@ export default function SubjectDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Enrolled Students</span>
+              <div className="text-sm text-muted-foreground">
+                {enrollments.length} student
+                {enrollments.length !== 1 ? "s" : ""} enrolled
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -288,28 +600,12 @@ export default function SubjectDetailPage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {enrollments.map((enrollment) => (
-                  <div
-                    key={enrollment.id}
-                    className="flex flex-row flex-wrap items-center justify-between p-4 border rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {enrollment.student.user.firstname}{" "}
-                        {enrollment.student.user.lastname}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Class: {enrollment.student.class?.name || "Not assigned"} | Enrolled:{" "}
-                        {formatDate(new Date(enrollment.enrolledAt))}
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+              <DataTable
+                columns={enrollmentColumns}
+                data={enrollments}
+                searchPlaceholder="Search students..."
+                searchKey="student.user.firstname"
+              />
             )}
           </CardContent>
         </Card>
@@ -319,7 +615,13 @@ export default function SubjectDetailPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Assigned Teachers</span>
+              <div className="flex items-center gap-4">
+                <span>Assigned Teachers</span>
+                <div className="text-sm text-muted-foreground">
+                  {subjectTeachers.length} teacher
+                  {subjectTeachers.length !== 1 ? "s" : ""} assigned
+                </div>
+              </div>
 
               <Button
                 variant={addTeacher ? "outline" : "default"}
@@ -367,35 +669,12 @@ export default function SubjectDetailPage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {subjectTeachers.map((subjectTeacher) => (
-                      <div
-                        key={subjectTeacher.id}
-                        className="flex items-center justify-between p-4 border rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium">
-                            {subjectTeacher.teacher.user.firstname}{" "}
-                            {subjectTeacher.teacher.user.lastname}
-                          </p>
-                          <p className="capitalize text-sm text-muted-foreground">
-                            Holder Degree:{" "}
-                            {subjectTeacher.teacher.degree ||
-                              "No degree specified"}
-                          </p>
-                        </div>
-                        <Button
-                          onClick={() =>
-                            deleteTeacher(subject.id, subjectTeacher.teacherId)
-                          }
-                          variant="outline"
-                          size="sm"
-                        >
-                          <Trash2 size={15} />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+                  <DataTable
+                    columns={teacherColumns}
+                    data={subjectTeachers}
+                    searchPlaceholder="Search teachers..."
+                    searchKey="teacher.user.firstname"
+                  />
                 )}
               </>
             )}
@@ -407,7 +686,13 @@ export default function SubjectDetailPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Attendance Records</span>
+              <div className="flex items-center gap-4">
+                <span>Attendance Records</span>
+                <div className="text-sm text-muted-foreground">
+                  {attendance.length} record{attendance.length !== 1 ? "s" : ""}{" "}
+                  found
+                </div>
+              </div>
               <Button size="sm" className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
                 Mark Attendance
@@ -423,38 +708,12 @@ export default function SubjectDetailPage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {attendance.map((record) => (
-                  <div
-                    key={record.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {record.enrollment.student.user.firstname}{" "}
-                        {record.enrollment.student.user.lastname}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Date: {new Date(record.date).toLocaleDateString()} |
-                        Status: {record.status}
-                      </p>
-                    </div>
-                    <div
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        record.status === "PRESENT"
-                          ? "bg-green-100 text-green-800"
-                          : record.status === "ABSENT"
-                          ? "bg-red-100 text-red-800"
-                          : record.status === "LATE"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-blue-100 text-blue-800"
-                      }`}
-                    >
-                      {record.status}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <DataTable
+                columns={attendanceColumns}
+                data={attendance}
+                searchPlaceholder="Search attendance records..."
+                searchKey="enrollment.student.user.firstname"
+              />
             )}
           </CardContent>
         </Card>

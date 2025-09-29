@@ -30,6 +30,8 @@ export default function Page() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [parents, setParents] = useState<ParentStudentResponse[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
   const [activeTab, setActiveTab] = useState<string>("personal");
@@ -48,27 +50,45 @@ export default function Page() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setDataLoading(true);
+        setError(null);
+
         const [student, parent] = await Promise.all([
           studentsAPI.getById(studentId),
           studentsAPI.getParents(studentId),
         ]);
-        const classData = await classesAPI.getById(parseInt(student.classId));
 
         setParents(parent);
-        setClasses([classData]);
+
+        // Handle class data - only fetch if student has a class
+        if (student.classId) {
+          try {
+            const classData = await classesAPI.getById(parseInt(student.classId.toString()));
+            setClasses([classData]);
+          } catch (classError) {
+            console.error("Failed to fetch class data:", classError);
+            setClasses([]);
+          }
+        } else {
+          setClasses([]);
+        }
 
         setFormData({
           ...student.user,
-          ...student.user.medicalInfo,
-          classId: student.classId,
+          ...(student.user.medicalInfo || {}),
+          classId: student.classId?.toString() || "",
         });
 
         setDate({
-          dob: new Date(student.user.DOB),
-          admissionDate: new Date(student.admissionDate),
+          dob: student.user.DOB ? new Date(student.user.DOB) : undefined,
+          admissionDate: student.admissionDate ? new Date(student.admissionDate) : undefined,
         });
       } catch (error) {
         console.error("Failed to fetch student data:", error);
+        setError("Failed to load student data. Please try again.");
+        toast.error("Failed to load student data. Please try again.");
+      } finally {
+        setDataLoading(false);
       }
     };
 
@@ -98,7 +118,7 @@ export default function Page() {
     e.preventDefault();
     setLoading(true);
     try {
-      await await studentsAPI.update(studentId, formData);
+      await studentsAPI.update(studentId, formData);
       toast.success("Updated Successfully");
       router.back();
     } catch (error) {
@@ -109,6 +129,28 @@ export default function Page() {
       setLoading(false);
     }
   };
+
+  if (dataLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground mb-4">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
