@@ -248,62 +248,147 @@ export default function SubjectDetailPage() {
     },
   ];
 
-  // Column definitions for attendance table
-  const attendanceColumns: ColumnDef<SubjectAttendance>[] = [
+  // Calculate attendance summary for each student
+  const calculateAttendanceSummary = () => {
+    const studentAttendanceMap = new Map();
+    
+    attendance.forEach((record) => {
+      const studentId = record.enrollment.student.id;
+      const studentName = `${record.enrollment.student.user.firstname} ${record.enrollment.student.user.lastname}`;
+      
+      if (!studentAttendanceMap.has(studentId)) {
+        studentAttendanceMap.set(studentId, {
+          studentId,
+          studentName,
+          totalDays: 0,
+          presentDays: 0,
+          absentDays: 0,
+          lateDays: 0,
+          excusedDays: 0,
+          attendancePercentage: 0,
+        });
+      }
+      
+      const summary = studentAttendanceMap.get(studentId);
+      summary.totalDays++;
+      
+      switch (record.status) {
+        case "PRESENT":
+          summary.presentDays++;
+          break;
+        case "ABSENT":
+          summary.absentDays++;
+          break;
+        case "LATE":
+          summary.lateDays++;
+          break;
+        case "EXCUSED":
+          summary.excusedDays++;
+          break;
+      }
+    });
+    
+    // Calculate percentages
+    studentAttendanceMap.forEach((summary) => {
+      summary.attendancePercentage = summary.totalDays > 0 
+        ? Math.round((summary.presentDays / summary.totalDays) * 100)
+        : 0;
+    });
+    
+    return Array.from(studentAttendanceMap.values());
+  };
+
+  const attendanceSummary = calculateAttendanceSummary();
+
+  // Column definitions for attendance summary table
+  const attendanceColumns: ColumnDef<any>[] = [
     {
-      accessorKey: "enrollment.student.user.firstname",
-      header: "First Name",
+      accessorKey: "studentName",
+      header: "Student Name",
       cell: ({ row }) => {
-        const attendance = row.original;
+        const summary = row.original;
         return (
           <div className="font-medium">
-            {attendance.enrollment.student.user.firstname}
+            {summary.studentName}
           </div>
         );
       },
     },
     {
-      accessorKey: "enrollment.student.user.lastname",
-      header: "Last Name",
+      accessorKey: "totalDays",
+      header: "Total Days",
       cell: ({ row }) => {
-        const attendance = row.original;
+        const summary = row.original;
         return (
-          <div className="font-medium">
-            {attendance.enrollment.student.user.lastname}
+          <div className="text-sm text-muted-foreground">
+            {summary.totalDays}
           </div>
         );
       },
     },
     {
-      accessorKey: "date",
-      header: "Date",
+      accessorKey: "presentDays",
+      header: "Present",
       cell: ({ row }) => {
-        const attendance = row.original;
+        const summary = row.original;
         return (
-          <div className="text-sm">
-            {new Date(attendance.date).toLocaleDateString()}
+          <div className="text-sm text-green-600 font-medium">
+            {summary.presentDays}
           </div>
         );
       },
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: "absentDays",
+      header: "Absent",
       cell: ({ row }) => {
-        const attendance = row.original;
+        const summary = row.original;
         return (
-          <div
-            className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${
-              attendance.status === "PRESENT"
-                ? "bg-green-100 text-green-800"
-                : attendance.status === "ABSENT"
-                ? "bg-red-100 text-red-800"
-                : attendance.status === "LATE"
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-blue-100 text-blue-800"
-            }`}
-          >
-            {attendance.status}
+          <div className="text-sm text-red-600 font-medium">
+            {summary.absentDays}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "lateDays",
+      header: "Late",
+      cell: ({ row }) => {
+        const summary = row.original;
+        return (
+          <div className="text-sm text-yellow-600 font-medium">
+            {summary.lateDays}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "excusedDays",
+      header: "Excused",
+      cell: ({ row }) => {
+        const summary = row.original;
+        return (
+          <div className="text-sm text-blue-600 font-medium">
+            {summary.excusedDays}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "attendancePercentage",
+      header: "Attendance %",
+      cell: ({ row }) => {
+        const summary = row.original;
+        const percentage = summary.attendancePercentage;
+        const colorClass = percentage >= 80 
+          ? "text-green-600" 
+          : percentage >= 60 
+          ? "text-yellow-600" 
+          : "text-red-600";
+        
+        return (
+          <div className={`text-sm font-bold ${colorClass}`}>
+            {percentage}%
           </div>
         );
       },
@@ -311,7 +396,7 @@ export default function SubjectDetailPage() {
     {
       id: "actions",
       cell: ({ row }) => {
-        const attendance = row.original;
+        const summary = row.original;
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -324,24 +409,21 @@ export default function SubjectDetailPage() {
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() =>
-                  navigator.clipboard.writeText(attendance.id.toString())
+                  navigator.clipboard.writeText(summary.studentId.toString())
                 }
               >
-                Copy attendance ID
+                Copy student ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() =>
-                  router.push(
-                    `/portal/students/${attendance.enrollment.student.id}`
-                  )
+                  router.push(`/portal/students/${summary.studentId}`)
                 }
               >
                 View student
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete record
+              <DropdownMenuItem className="text-blue-600">
+                View detailed attendance
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -687,10 +769,10 @@ export default function SubjectDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <span>Attendance Records</span>
+                <span>Attendance Summary</span>
                 <div className="text-sm text-muted-foreground">
-                  {attendance.length} record{attendance.length !== 1 ? "s" : ""}{" "}
-                  found
+                  {attendanceSummary.length} student{attendanceSummary.length !== 1 ? "s" : ""}{" "}
+                  with attendance records
                 </div>
               </div>
               <Button size="sm" className="flex items-center gap-2">
@@ -700,7 +782,7 @@ export default function SubjectDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {attendance.length === 0 ? (
+            {attendanceSummary.length === 0 ? (
               <div className="text-center py-8">
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
@@ -710,9 +792,9 @@ export default function SubjectDetailPage() {
             ) : (
               <DataTable
                 columns={attendanceColumns}
-                data={attendance}
-                searchPlaceholder="Search attendance records..."
-                searchKey="enrollment.student.user.firstname"
+                data={attendanceSummary}
+                searchPlaceholder="Search students..."
+                searchKey="studentName"
               />
             )}
           </CardContent>

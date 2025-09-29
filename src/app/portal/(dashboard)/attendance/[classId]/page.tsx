@@ -19,7 +19,6 @@ import DatePicker from "@/components/general/date-picker";
 import ActionsDropdown from "@/components/ui/actions-dropdown";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react";
 
 import { toast } from "sonner";
 import { extractErrorMessage } from "@/utils/helpers";
@@ -73,13 +72,19 @@ export default function MarkAttendancePage() {
 
   const mappedStudents = students.map((student) => {
     // Get current attendance record for the selected date
-    const currentAttendanceRecord = attendanceRecords.find(
-      (record) =>
+    const currentAttendanceRecord = attendanceRecords.find((record) => {
+      const recordDate = new Date(record.date);
+      const selectedDate = new Date(attendanceDate);
+
+      // Compare dates by year, month, and day only (ignore time)
+      return (
         record.studentId === student.id &&
         record.classId === parseInt(classId) &&
-        new Date(record.date).toDateString() ===
-          new Date(attendanceDate).toDateString()
-    );
+        recordDate.getFullYear() === selectedDate.getFullYear() &&
+        recordDate.getMonth() === selectedDate.getMonth() &&
+        recordDate.getDate() === selectedDate.getDate()
+      );
+    });
 
     // Get current status for this student - check local records first, then existing records
     const localStatus = localAttendanceRecords[student.id];
@@ -100,8 +105,8 @@ export default function MarkAttendancePage() {
     };
   });
 
-  // Calculate attendance summary
-  const attendanceSummary = {
+  // Calculate today's attendance summary
+  const todayAttendanceSummary = {
     totalStudents: mappedStudents.length,
     present: mappedStudents.filter((s) => s.attendance?.status === "PRESENT")
       .length,
@@ -128,13 +133,18 @@ export default function MarkAttendancePage() {
       }));
 
       // Check if there's an existing attendance record for this student, class and date
-      const existingRecord = attendanceRecords.find(
-        (record) =>
+      const existingRecord = attendanceRecords.find((record) => {
+        const recordDate = new Date(record.date);
+        const selectedDate = new Date(attendanceDate);
+
+        return (
           record.studentId === studentId &&
           record.classId === parseInt(classId) &&
-          new Date(record.date).toDateString() ===
-            new Date(attendanceDate).toDateString()
-      );
+          recordDate.getFullYear() === selectedDate.getFullYear() &&
+          recordDate.getMonth() === selectedDate.getMonth() &&
+          recordDate.getDate() === selectedDate.getDate()
+        );
+      });
 
       if (existingRecord) {
         // Update existing attendance record
@@ -271,113 +281,97 @@ export default function MarkAttendancePage() {
   //   }
   // };
 
-  // Table Header
+  // Calculate attendance percentage for each student
+  const calculateStudentAttendancePercentage = (studentId: number) => {
+    const studentRecords = attendanceRecords.filter(
+      (record) => record.studentId === studentId
+    );
+    if (studentRecords.length === 0) return 0;
+
+    const presentDays = studentRecords.filter(
+      (record) => record.status === "PRESENT"
+    ).length;
+    return Math.round((presentDays / studentRecords.length) * 100);
+  };
+
+  // Table columns for individual student attendance
   const columns: ColumnDef<any>[] = [
     {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => <div className="capitalize">{row.getValue("id")}</div>,
+      accessorKey: "studentName",
+      header: "Student Name",
+      cell: ({ row }) => {
+        const student = row.original;
+        return (
+          <div className="font-medium">
+            {student.user?.firstname} {student.user?.lastname}
+          </div>
+        );
+      },
     },
     {
-      accessorKey: "student_id",
+      accessorKey: "studentId",
       header: "Student ID",
-      cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("student_id")}</div>
-      ),
-    },
-    {
-      id: "firstname",
-      header: "First Name",
-      accessorFn: (row) => row.user?.firstname,
       cell: ({ row }) => {
         const student = row.original;
         return (
-          <div className="capitalize">
-            {student?.user?.firstname || "Unknown"}
-          </div>
+          <div className="text-sm text-muted-foreground">{student.id}</div>
         );
       },
     },
     {
-      id: "lastName",
-      header: "Last Name",
-      accessorFn: (row) => row.user?.lastname,
+      accessorKey: "attendance.status",
+      header: "Attendance Status",
       cell: ({ row }) => {
         const student = row.original;
-        return (
-          <div className="capitalize">
-            {student?.user?.lastname || "Student"}
-          </div>
-        );
-      },
-    },
-    {
-      id: "class",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Class
-            <ArrowUpDown />
-          </Button>
-        );
-      },
-      accessorFn: (row) => row.class?.name,
-      cell: ({ row }) => {
-        const student = row.original;
-        return (
-          <div className="ml-3 uppercase">
-            {student?.class?.name || "No Class"}
-          </div>
-        );
-      },
-    },
-    {
-      id: "attendanceStatus",
-      header: () => <div className="text-center">Attendance Status</div>,
-      accessorFn: (row) => row.attendance?.status,
-      cell: ({ row }) => {
-        const student = row.original;
-        const status = student?.attendance?.status || "NOT_MARKED";
-
-        const getStatusColor = (status: string) => {
-          switch (status) {
-            case "PRESENT":
-              return "bg-green-100 text-green-800 border-green-200";
-            case "ABSENT":
-              return "bg-red-100 text-red-800 border-red-200";
-            case "LATE":
-              return "bg-yellow-100 text-yellow-800 border-yellow-200";
-            case "EXCUSED":
-              return "bg-purple-100 text-purple-800 border-purple-200";
-            default:
-              return "bg-gray-100 text-gray-800 border-gray-200";
-          }
+        const status = student.attendance?.status || "NOT_MARKED";
+        const statusColors = {
+          PRESENT: "text-green-600 bg-green-50",
+          ABSENT: "text-red-600 bg-red-50",
+          LATE: "text-yellow-600 bg-yellow-50",
+          EXCUSED: "text-blue-600 bg-blue-50",
+          NOT_MARKED: "text-gray-600 bg-gray-50",
         };
 
         return (
-          <div className="flex justify-center">
-            <div
-              className={`px-3 py-1 rounded-full text-center text-xs font-medium border ${getStatusColor(
-                status
-              )}`}
-            >
-              {status.replace("_", " ")}
-            </div>
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium ${
+              statusColors[status as keyof typeof statusColors]
+            }`}
+          >
+            {status.replace("_", " ")}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "attendance.date",
+      header: "Date",
+      cell: ({ row }) => {
+        const student = row.original;
+        const date = student.attendance?.date || attendanceDate;
+        return (
+          <div className="text-sm text-muted-foreground">
+            {new Date(date).toLocaleDateString()}
           </div>
         );
       },
     },
     {
-      id: "attendanceDate",
-      header: "Date",
-      accessorFn: (row) => row.attendance?.date,
+      accessorKey: "attendancePercentage",
+      header: "Attendance %",
       cell: ({ row }) => {
         const student = row.original;
-        const date = student?.attendance?.date;
-        return <div>{date ? new Date(date).toLocaleDateString() : "N/A"}</div>;
+        const percentage = calculateStudentAttendancePercentage(student.id);
+        const colorClass =
+          percentage >= 80
+            ? "text-green-600"
+            : percentage >= 60
+            ? "text-yellow-600"
+            : "text-red-600";
+
+        return (
+          <div className={`text-sm font-bold ${colorClass}`}>{percentage}%</div>
+        );
       },
     },
     {
@@ -449,8 +443,16 @@ export default function MarkAttendancePage() {
                 label={"Date"}
                 date={attendanceDate ? new Date(attendanceDate) : undefined}
                 setDate={(date: Date | undefined) => {
-                  const newDate = date ? date.toISOString().split("T")[0] : "";
-                  setAttendanceDate(newDate);
+                  if (date) {
+                    // Use local date formatting to avoid timezone issues
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, "0");
+                    const day = String(date.getDate()).padStart(2, "0");
+                    const newDate = `${year}-${month}-${day}`;
+                    setAttendanceDate(newDate);
+                  } else {
+                    setAttendanceDate("");
+                  }
                 }}
               />
             </div>
@@ -467,7 +469,7 @@ export default function MarkAttendancePage() {
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {attendanceSummary.totalStudents}
+                    {todayAttendanceSummary.totalStudents}
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Total Students
@@ -475,34 +477,34 @@ export default function MarkAttendancePage() {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    {attendanceSummary.present}
+                    {todayAttendanceSummary.present}
                   </div>
                   <p className="text-sm text-muted-foreground">Present</p>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-red-600">
-                    {attendanceSummary.absent}
+                    {todayAttendanceSummary.absent}
                   </div>
                   <p className="text-sm text-muted-foreground">Absent</p>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-yellow-600">
-                    {attendanceSummary.late}
+                    {todayAttendanceSummary.late}
                   </div>
                   <p className="text-sm text-muted-foreground">Late</p>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-purple-600">
-                    {attendanceSummary.excused}
+                    {todayAttendanceSummary.excused}
                   </div>
                   <p className="text-sm text-muted-foreground">Excused</p>
                 </div>
               </div>
-              {attendanceSummary.notMarked > 0 && (
+              {todayAttendanceSummary.notMarked > 0 && (
                 <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                   <p className="text-sm text-orange-800">
-                    <strong>{attendanceSummary.notMarked}</strong> students not
-                    yet marked for attendance
+                    <strong>{todayAttendanceSummary.notMarked}</strong> students
+                    not yet marked for attendance
                   </p>
                 </div>
               )}
@@ -539,7 +541,7 @@ export default function MarkAttendancePage() {
             <DataTable
               columns={columns}
               data={mappedStudents}
-              searchKey="firstname"
+              searchKey="studentName"
               searchPlaceholder="Search students..."
             />
           </CardContent>

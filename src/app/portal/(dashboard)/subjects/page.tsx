@@ -13,21 +13,32 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@radix-ui/themes";
-import { Input } from "@/components/ui/input";
 import {
   isParentAtom,
   isStudentAtom,
   isTeacherAtom,
   isAdminAtom,
 } from "@/jotai/auth/auth";
+import { DataTable } from "@/components/general/data-table";
+import { ColumnDef } from "@tanstack/react-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArrowUpDown } from "lucide-react";
+import { TooltipComp } from "@/components/ui/tooltip-comp";
 
-import { Eye, Trash2 } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { extractErrorMessage } from "@/utils/helpers";
 import { toast } from "sonner";
+import { Subject } from "@/jotai/subject/subject-types";
 
 export default function SubjectsPage() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState<string>("");
   const [retryLoading, setRetryLoading] = useState<boolean>(false);
 
   const [reload, setReload] = useState<boolean>(false);
@@ -51,15 +62,143 @@ export default function SubjectsPage() {
   const [isTeacher] = useAtom(isTeacherAtom);
   const [isAdmin] = useAtom(isAdminAtom);
 
+  // Column definitions for subjects table
+  const subjectColumns: ColumnDef<Subject>[] = [
+    {
+      accessorKey: "name",
+      header: "Subject Name",
+      cell: ({ row }) => {
+        const subject = row.original;
+        return <div className="font-medium">{subject.name}</div>;
+      },
+    },
+      {
+        id: "class",
+        header: ({ column }) => {
+          return (
+            <TooltipComp
+              trigger={
+                <div
+                  className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 px-2 py-1 rounded"
+                  onClick={() =>
+                    column.toggleSorting(column.getIsSorted() === "asc")
+                  }
+                >
+                  Class
+                  <ArrowUpDown className="h-4 w-4" />
+                </div>
+              }
+              content={"Sort By Classes"}
+            />
+          );
+        },
+      accessorFn: (row) => row.class?.name,
+      cell: ({ row }) => {
+        const subject = row.original;
+        return (
+          <div className="ml-3 uppercase">
+            {subject?.class?.name || "No Class"}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "category",
+      header: "Category",
+      cell: ({ row }) => {
+        const subject = row.original;
+        return (
+          <div className="text-sm capitalize">
+            {subject.category || "Not specified"}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "weeklyHours",
+      header: "Weekly Hours",
+      cell: ({ row }) => {
+        const subject = row.original;
+        return (
+          <div className="text-sm">
+            {subject.weeklyHours ? `${subject.weeklyHours}h` : "Not specified"}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "teachers",
+      header: "Assigned Teachers",
+      cell: ({ row }) => {
+        const subject = row.original;
+        return (
+          <div className="text-sm">
+            {subject.teachers && subject.teachers.length > 0
+              ? subject.teachers.map((teacher, index) => (
+                  <div key={index} className="text-sm">
+                    {`${teacher?.teacher?.user?.firstname} ${teacher?.teacher?.user?.lastname}`}
+                  </div>
+                ))
+              : "Not Assigned"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const subject = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="border h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigator.clipboard.writeText(subject.id.toString())
+                }
+              >
+                Copy subject ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleViewSubject(subject.id)}>
+                View subject
+              </DropdownMenuItem>
+              {isAdmin && (
+                <>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      router.push(`/portal/subjects/${subject.id}/edit`)
+                    }
+                  >
+                    Edit subject
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-red-600"
+                    onClick={() => handleDeleteSubject(subject.id)}
+                  >
+                    Delete subject
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+
   useEffect(() => {
     getAllSubjects();
   }, [getAllSubjects, reload]);
 
-  const filteredSubjects = Array.isArray(subjects)
-    ? subjects.filter((subject) =>
-        subject?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [];
+  const filteredSubjects = Array.isArray(subjects) ? subjects : [];
 
   if (loading) {
     return (
@@ -182,109 +321,43 @@ export default function SubjectsPage() {
         )}
       </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-4">
-        <Input
-          placeholder="Search subjects..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
-
-      {/* Subjects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredSubjects.map((subject) => (
-          <Card key={subject?.id} className="hover-scale">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{subject?.name}</span>
-
-                <div className="flex flex-col md:flex-row gap-2">
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleViewSubject(subject.id)}
-                  >
-                    {loadingStates.view === subject.id ? (
-                      <div>
-                        <Spinner />
-                      </div>
-                    ) : (
-                      <div className="flex flex-row gap-1">
-                        <p className="block md:hidden text-sm">View</p>
-                        <Eye size={12} />
-                      </div>
-                    )}
-                  </Button>
-                  {isAdmin && (
-                    <Button
-                      size={"sm"}
-                      variant={"destructive"}
-                      onClick={() => handleDeleteSubject(subject.id)}
-                    >
-                      {loadingStates.delete === subject.id ? (
-                        <div>
-                          <Spinner />
-                        </div>
-                      ) : (
-                        <div className="flex flex-row gap-1">
-                          <p className="block md:hidden text-sm">Delete</p>
-                          <Trash2 size={12} />
-                        </div>
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Class:</span>{" "}
-                  {subject?.class?.name || "No class assigned"}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Subject ID:</span> {subject?.id}
-                </p>
-                <div className="text-sm text-muted-foreground flex flex-col gap-1">
-                  <span className="font-medium">Teacher(s):</span>{" "}
-                  {subject?.teachers && subject.teachers.length > 0
-                    ? subject.teachers.map((teacher, index) => (
-                        <span
-                          key={index}
-                        >{`${teacher?.teacher?.user?.firstname} ${teacher?.teacher?.user?.lastname}`}</span>
-                      ))
-                    : "Not Assigned"}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Empty State */}
-      {filteredSubjects?.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            {searchTerm
-              ? "No subjects found matching your search."
-              : "No subjects created yet."}
-          </p>
-          {!searchTerm && (
-            <div>
-              {isParent || isStudent || isTeacher ? (
-                <></>
-              ) : (
-                <Button asChild className="mt-4">
-                  <Link href="/portal/subjects/new">Create First Record</Link>
-                </Button>
-              )}
+      {/* Subjects Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>All Subjects</span>
+            <div className="text-sm text-muted-foreground">
+              {filteredSubjects.length} subject
+              {filteredSubjects.length !== 1 ? "s" : ""} found
             </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredSubjects.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No subjects created yet.</p>
+              <div>
+                {isParent || isStudent || isTeacher ? (
+                  <></>
+                ) : (
+                  <Button asChild className="mt-4">
+                    <Link href="/portal/subjects/new">
+                      Create First Subject
+                    </Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <DataTable
+              columns={subjectColumns}
+              data={filteredSubjects}
+              searchPlaceholder="Search subjects..."
+              searchKey="name"
+            />
           )}
-        </div>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
