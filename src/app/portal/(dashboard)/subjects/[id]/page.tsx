@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -251,11 +252,11 @@ export default function SubjectDetailPage() {
   // Calculate attendance summary for each student
   const calculateAttendanceSummary = () => {
     const studentAttendanceMap = new Map();
-    
+
     attendance.forEach((record) => {
       const studentId = record.enrollment.student.id;
       const studentName = `${record.enrollment.student.user.firstname} ${record.enrollment.student.user.lastname}`;
-      
+
       if (!studentAttendanceMap.has(studentId)) {
         studentAttendanceMap.set(studentId, {
           studentId,
@@ -268,10 +269,10 @@ export default function SubjectDetailPage() {
           attendancePercentage: 0,
         });
       }
-      
+
       const summary = studentAttendanceMap.get(studentId);
       summary.totalDays++;
-      
+
       switch (record.status) {
         case "PRESENT":
           summary.presentDays++;
@@ -287,14 +288,15 @@ export default function SubjectDetailPage() {
           break;
       }
     });
-    
+
     // Calculate percentages
     studentAttendanceMap.forEach((summary) => {
-      summary.attendancePercentage = summary.totalDays > 0 
-        ? Math.round((summary.presentDays / summary.totalDays) * 100)
-        : 0;
+      summary.attendancePercentage =
+        summary.totalDays > 0
+          ? Math.round((summary.presentDays / summary.totalDays) * 100)
+          : 0;
     });
-    
+
     return Array.from(studentAttendanceMap.values());
   };
 
@@ -307,11 +309,7 @@ export default function SubjectDetailPage() {
       header: "Student Name",
       cell: ({ row }) => {
         const summary = row.original;
-        return (
-          <div className="font-medium">
-            {summary.studentName}
-          </div>
-        );
+        return <div className="font-medium">{summary.studentName}</div>;
       },
     },
     {
@@ -380,16 +378,15 @@ export default function SubjectDetailPage() {
       cell: ({ row }) => {
         const summary = row.original;
         const percentage = summary.attendancePercentage;
-        const colorClass = percentage >= 80 
-          ? "text-green-600" 
-          : percentage >= 60 
-          ? "text-yellow-600" 
-          : "text-red-600";
-        
+        const colorClass =
+          percentage >= 80
+            ? "text-green-600"
+            : percentage >= 60
+            ? "text-yellow-600"
+            : "text-red-600";
+
         return (
-          <div className={`text-sm font-bold ${colorClass}`}>
-            {percentage}%
-          </div>
+          <div className={`text-sm font-bold ${colorClass}`}>{percentage}%</div>
         );
       },
     },
@@ -771,8 +768,9 @@ export default function SubjectDetailPage() {
               <div className="flex items-center gap-4">
                 <span>Attendance Summary</span>
                 <div className="text-sm text-muted-foreground">
-                  {attendanceSummary.length} student{attendanceSummary.length !== 1 ? "s" : ""}{" "}
-                  with attendance records
+                  {attendanceSummary.length} student
+                  {attendanceSummary.length !== 1 ? "s" : ""} with attendance
+                  records
                 </div>
               </div>
               <Button size="sm" className="flex items-center gap-2">
