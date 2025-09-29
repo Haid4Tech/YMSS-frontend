@@ -16,9 +16,13 @@ export interface Subject {
   class?: Class;
   teachers?: Array<IStudentTeacher>;
 
+  // Database fields
+  category?: string;
+  description?: string;
+  weeklyHours?: number;
+
   // Additional fields used in the application
   code?: string; // Subject code like "MATH101"
-  description?: string;
   credits?: number;
   syllabus?: string;
   isActive?: boolean;
