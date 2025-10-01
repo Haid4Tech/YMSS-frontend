@@ -51,4 +51,15 @@ export const parentsAPI = {
     const response = await axiosInstance.delete(`/parents/${id}`);
     return response.data;
   },
+
+  getByUserId: async (userId: number): Promise<Parent | null> => {
+    try {
+      const response = await axiosInstance.get<Parent[]>("/parents");
+      const parents = Array.isArray(response.data) ? response.data : [];
+      return parents.find((parent: Parent) => parent.userId === userId) || null;
+    } catch (error) {
+      console.error("Error fetching parent by userId:", error);
+      return null;
+    }
+  },
 };

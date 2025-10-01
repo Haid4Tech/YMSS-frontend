@@ -59,5 +59,16 @@ export const studentsAPI = {
     return response.data;
   },
 
+  getByUserId: async (userId: number): Promise<Student | null> => {
+    try {
+      const response = await axiosInstance.get<StudentResponse>("/students");
+      const students = response.data.students || [];
+      return students.find((student: Student) => student.userId === userId) || null;
+    } catch (error) {
+      console.error("Error fetching student by userId:", error);
+      return null;
+    }
+  },
+
   // getBySubjects: async (subjectId: number) => {},
 };
