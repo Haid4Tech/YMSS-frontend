@@ -194,7 +194,7 @@ export default function RecordsPage() {
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex flex-row justify-between w-full">
                     <CardTitle className="flex items-center gap-2">
                       <BookOpen className="w-5 h-5" />
                       {classRecord.class.name}
