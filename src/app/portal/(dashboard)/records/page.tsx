@@ -5,7 +5,6 @@ import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { classesAPI } from "@/jotai/class/class";
 import { studentsAPI } from "@/jotai/students/student";
-import { subjectsAPI } from "@/jotai/subject/subject";
 import { parentsAPI } from "@/jotai/parent/parent";
 import {
   userAtom,
@@ -18,20 +17,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { extractErrorMessage } from "@/utils/helpers";
 import { Class } from "@/jotai/class/class-type";
-import { Student } from "@/jotai/students/student-types";
-import { Subject } from "@/jotai/subject/subject-types";
 import { BookOpen, Eye, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 
-interface ClassRecord {
-  class: Class;
-  subjects: Subject[];
-  students: Student[];
-}
-
 export default function RecordsPage() {
   const router = useRouter();
-  const [classRecords, setClassRecords] = useState<ClassRecord[]>([]);
+  const [classRecords, setClassRecords] = useState<Class[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,8 +32,6 @@ export default function RecordsPage() {
   const [isParent] = useAtom(isParentAtom);
 
   const [, getAllClasses] = useAtom(classesAPI.getAll);
-  const [, getAllStudents] = useAtom(studentsAPI.getAll);
-  const [, getAllSubjects] = useAtom(subjectsAPI.getAll);
 
   useEffect(() => {
     fetchAllData();
@@ -53,35 +42,18 @@ export default function RecordsPage() {
     setError(null);
 
     try {
-      // Fetch all data concurrently
-      const [classesData, studentsData, subjectsData] =
-        await Promise.allSettled([
-          getAllClasses(),
-          getAllStudents(),
-          getAllSubjects(),
-        ]);
-
-      const classes =
-        classesData.status === "fulfilled" && Array.isArray(classesData.value)
-          ? classesData.value
-          : [];
-      const students =
-        studentsData.status === "fulfilled" && Array.isArray(studentsData.value)
-          ? studentsData.value
-          : [];
-      const subjects =
-        subjectsData.status === "fulfilled" && Array.isArray(subjectsData.value)
-          ? subjectsData.value
-          : [];
+      // Fetch classes with their students and subjects included
+      const classes = await getAllClasses();
+      const allClasses = Array.isArray(classes) ? classes : [];
 
       // Filter classes based on user role
-      let filteredClasses = classes;
+      let filteredClasses = allClasses;
 
       if (isStudent && user) {
         // Student: Show only classes they're enrolled in
         const studentData = await studentsAPI.getByUserId(user.id);
         if (studentData && studentData.classId) {
-          filteredClasses = classes.filter(
+          filteredClasses = allClasses.filter(
             (c: Class) => c.id === studentData.classId
           );
         } else {
@@ -92,12 +64,12 @@ export default function RecordsPage() {
         const parentData = await parentsAPI.getByUserId(user.id);
         if (parentData && parentData.students) {
           const childrenClassIds = parentData.students
-            .map((student: Student) => student.classId)
+            .map((student) => student.classId)
             .filter(
               (id: number | undefined): id is number =>
                 id !== undefined && id !== null
             );
-          filteredClasses = classes.filter((c: Class) =>
+          filteredClasses = allClasses.filter((c: Class) =>
             childrenClassIds.includes(c.id)
           );
         } else {
@@ -106,31 +78,7 @@ export default function RecordsPage() {
       }
       // Admin: Show all classes (no filtering needed)
 
-      // Group data by class
-      const groupedRecords: ClassRecord[] = [];
-
-      if (Array.isArray(filteredClasses)) {
-        for (const classItem of filteredClasses) {
-          // Get subjects for this class
-          const classSubjects = subjects.filter(
-            (subject) => subject.classId === classItem.id
-          );
-
-          // Get students in this class
-          const classStudents = students.filter(
-            (student) => student.classId === classItem.id
-          );
-
-          // Add class regardless of student count
-          groupedRecords.push({
-            class: classItem,
-            subjects: classSubjects,
-            students: classStudents,
-          });
-        }
-      }
-
-      setClassRecords(groupedRecords);
+      setClassRecords(filteredClasses);
     } catch (err) {
       const errorMessage = extractErrorMessage(err);
       setError(errorMessage);
@@ -187,9 +135,9 @@ export default function RecordsPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {classRecords.map((classRecord) => (
+          {classRecords.map((classItem) => (
             <Card
-              key={classRecord.class.id}
+              key={classItem.id}
               className="hover:shadow-lg transition-shadow cursor-pointer"
             >
               <CardHeader>
@@ -197,17 +145,17 @@ export default function RecordsPage() {
                   <div className="space-y-1 flex flex-row justify-between w-full">
                     <CardTitle className="flex items-center gap-2">
                       <BookOpen className="w-5 h-5" />
-                      {classRecord.class.name}
+                      {classItem.name}
                     </CardTitle>
                     <Badge variant="outline">
-                      {classRecord.class.gradeLevel
-                        ? `Grade ${classRecord.class.gradeLevel}`
+                      {classItem.gradeLevel
+                        ? `Grade ${classItem.gradeLevel}`
                         : "Class"}
                     </Badge>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Room: {classRecord.class.roomNumber || "N/A"}
+                  Room: {classItem.roomNumber || "N/A"}
                 </p>
               </CardHeader>
               <CardContent>
@@ -218,10 +166,9 @@ export default function RecordsPage() {
                       <p className="text-sm text-gray-600">
                         Teacher:{" "}
                         {`${
-                          classRecord.class?.teacher?.user?.firstname ?? "Not"
+                          classItem?.teacher?.user?.firstname ?? "Not"
                         } ${
-                          classRecord.class?.teacher?.user?.lastname ??
-                          "Assigned"
+                          classItem?.teacher?.user?.lastname ?? "Assigned"
                         }`}
                       </p>
                     </div>
@@ -232,7 +179,7 @@ export default function RecordsPage() {
                           Students
                         </p>
                         <p className="text-lg font-semibold text-primary">
-                          {classRecord.students.length}
+                          {classItem.students?.length || 0}
                         </p>
                       </div>
                       <div>
@@ -240,14 +187,14 @@ export default function RecordsPage() {
                           Subjects
                         </p>
                         <p className="text-lg font-semibold text-primary">
-                          {classRecord.subjects.length}
+                          {classItem.subjects?.length || 0}
                         </p>
                       </div>
                     </div>
 
                     {/* Subject badges */}
                     <div className="flex flex-wrap gap-1">
-                      {classRecord.subjects.slice(0, 3).map((subject) => (
+                      {classItem.subjects?.slice(0, 3).map((subject) => (
                         <Badge
                           key={subject.id}
                           variant="secondary"
@@ -256,9 +203,9 @@ export default function RecordsPage() {
                           {subject.name}
                         </Badge>
                       ))}
-                      {classRecord.subjects.length > 3 && (
+                      {(classItem.subjects?.length || 0) > 3 && (
                         <Badge variant="outline" className="text-xs">
-                          +{classRecord.subjects.length - 3} more
+                          +{(classItem.subjects?.length || 0) - 3} more
                         </Badge>
                       )}
                     </div>
@@ -268,9 +215,7 @@ export default function RecordsPage() {
                   <Button
                     className="w-full mt-2"
                     onClick={() =>
-                      router.push(
-                        `/portal/records/class/${classRecord.class.id}`
-                      )
+                      router.push(`/portal/records/class/${classItem.id}`)
                     }
                   >
                     <Eye className="h-4 w-4 mr-2" />
