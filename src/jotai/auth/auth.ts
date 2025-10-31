@@ -138,10 +138,17 @@ export const authAPI = {
 
     // Clear auth state immediately (don't wait for anything)
     set(authPersistedAtom, null);
+    
+    try{
+      // Clear storage immediately
+      deleteCookie("token");
+      localStorage.removeItem("auth_session");
 
-    // Clear storage immediately
-    deleteCookie("token");
-    localStorage.removeItem("auth_session");
+    }catch(error){
+      const errorMessage = extractErrorMessage(error) 
+      set(authErrorAtom, reason ? `${reason}: ${errorMessage}` : "Logout failed")
+    }
+
 
     // Reset logout state
     setTimeout(() => {
