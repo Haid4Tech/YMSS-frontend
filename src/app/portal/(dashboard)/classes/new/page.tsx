@@ -159,7 +159,7 @@ export default function AddClassPage() {
         schedule: { ...formData.schedule },
       };
 
-      const response = await classesAPI.create(classData);
+      await classesAPI.create(classData);
       router.push("/portal/classes");
     } catch (error) {
       console.error("Failed to create class:", error);
