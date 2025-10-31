@@ -50,6 +50,7 @@ export default function AddClassPage() {
     fetchTeachers();
   }, [getAllTeachers]);
 
+
   // Validate date range
   const validateDates = (start: Date | undefined, end: Date | undefined) => {
     if (start && end && start > end) {
@@ -149,7 +150,7 @@ export default function AddClassPage() {
     try {
       const classData = {
         name: formData.name,
-        gradeLevel: parseInt(formData.gradeLevel) || null,
+        gradeLevel: formData.gradeLevel,
         capacity: parseInt(formData.capacity),
         roomNumber: formData.roomNumber,
         description: formData.description,
@@ -158,9 +159,7 @@ export default function AddClassPage() {
         schedule: { ...formData.schedule },
       };
 
-      console.log("CLASS DATA ", classData);
-
-      await classesAPI.create(classData);
+      const response = await classesAPI.create(classData);
       router.push("/portal/classes");
     } catch (error) {
       console.error("Failed to create class:", error);

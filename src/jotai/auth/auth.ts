@@ -47,7 +47,6 @@ export const authAPI = {
 
     try {
       const form = get(signupFormAction);
-      console.log("form data ", form);
 
       const response = await axiosInstance.post(`/auth/register`, form);
       const authData = response.data as AuthSession;
@@ -132,8 +131,6 @@ export const authAPI = {
   }),
 
   logout: atom(null, async (_get, set, reason?: string) => {
-    console.log("🚪 Starting logout process:", reason || "User initiated");
-
     // Set logout state immediately
     set(isLoggingOutAtom, true);
     set(authLoadingAtom, false);
@@ -194,19 +191,15 @@ export const autoLoginAtom = atom(null, async (get, set) => {
     const existingSession = get(authPersistedAtom);
 
     if (!token) {
-      console.log("No token found, skipping auto-login");
       set(authLoadingAtom, false);
       return null;
     }
 
     // If we already have a valid session with the same token, use it
     if (existingSession?.token === token && existingSession?.user) {
-      console.log("Valid session found, using existing auth data");
       set(authLoadingAtom, false);
       return existingSession;
     }
-
-    console.log("Verifying token with backend...");
 
     // Verify token with backend
     const response = await axiosInstance.get(`/auth/me`);
@@ -218,12 +211,8 @@ export const autoLoginAtom = atom(null, async (get, set) => {
     };
 
     set(authPersistedAtom, authData);
-    console.log("Auto-login successful");
-
     return authData;
   } catch (error: any) {
-    console.log("Auto-login failed, clearing auth state");
-
     // Token is invalid, clear everything
     set(authPersistedAtom, null);
     deleteCookie("token");

@@ -75,7 +75,7 @@ export const classesAPI = {
     return response.data;
   },
 
-  create: async (data: any) => {
+  create: async (data: Omit<Class, "id" | "students" | "subjects">) => {
     const response = await axiosInstance.post("/classes", data);
     return response.data;
   },

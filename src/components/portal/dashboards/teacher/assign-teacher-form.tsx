@@ -17,8 +17,6 @@ export const AssignteacherForm: FC<IAssignTeacherForm> = ({ setTeacherId }) => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [, getAllTeachers] = useAtom(teachersAPI.getAll);
 
-  console.log("TEACHERS ", teachers);
-
   useEffect(() => {
     const fetchData = async () => {
       const teachers = await getAllTeachers();

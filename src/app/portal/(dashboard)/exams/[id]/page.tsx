@@ -39,8 +39,6 @@ export default function ExamDetailPage() {
   const [, getByExam] = useAtom(gradesAPI.getByExam);
   const [activeTab, setActiveTab] = useState("overview");
 
-  console.log(grades);
-
   useEffect(() => {
     const fetchExamData = async () => {
       try {

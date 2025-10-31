@@ -31,8 +31,6 @@ export default function MenuBar({ view }: IMenuBar) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathName = usePathname();
 
-  console.log("path name ", pathName);
-
   const [, triggerLogout] = useAtom(authAPI.logout);
 
   const pathResult = isPathMatch(pathName, [

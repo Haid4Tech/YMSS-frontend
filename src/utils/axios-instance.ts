@@ -50,7 +50,6 @@ axiosInstance.interceptors.response.use(
   async (response) => {
     const { success, message } = response.data;
     if (success && message) {
-      console.log("API response message:", message);
     }
     return response;
   },
@@ -60,7 +59,6 @@ axiosInstance.interceptors.response.use(
 
     if (status === 401) {
       // Unauthorized - clear auth state and redirect to login
-      console.log("401 Unauthorized - clearing auth state");
 
       // Clear auth state
       store.set(authAPI.logout, "Session expired");

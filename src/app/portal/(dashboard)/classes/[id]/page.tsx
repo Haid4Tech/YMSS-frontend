@@ -44,8 +44,6 @@ export default function ClassDetailPage() {
 
   const [, getResultsByClass] = useAtom(gradesAPI.getResultsByClass);
 
-  console.log("Class Data:", classData);
-
   useEffect(() => {
     const fetchClassData = async () => {
       try {

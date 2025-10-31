@@ -29,8 +29,6 @@ export default function EditSubjectPage() {
   const [classes, setClasses] = useState<Class[]>([]);
   const [, getAllClasses] = useAtom(classesAPI.getAll);
 
-  console.log(classes);
-
   const [formData, setFormData] = useState({
     name: "",
     description: "",

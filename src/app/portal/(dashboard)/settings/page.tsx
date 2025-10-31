@@ -71,7 +71,6 @@ export default function SettingsPage() {
     const loadSettings = async () => {
       try {
         // Simulate API call
-        console.log("Loading user settings...");
 
         // For now, use default settings
         // In the future, this will load from the database
@@ -105,7 +104,6 @@ export default function SettingsPage() {
       setIsLoading(true);
 
       // TODO: Implement settings save API call
-      console.log("Saving settings:", settings);
 
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));

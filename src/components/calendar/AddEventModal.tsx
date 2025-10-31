@@ -105,7 +105,6 @@ export function AddEventModal({
       createdById: user?.id ?? 0,
     };
 
-    console.log("EVENT DATA ", eventData);
 
     onSubmit(eventData);
     handleClose();

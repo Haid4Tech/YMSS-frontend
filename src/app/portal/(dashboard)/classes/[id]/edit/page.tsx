@@ -134,8 +134,6 @@ export default function EditClassPage() {
         exams: [],
       };
 
-      console.log(classData);
-
       await classesAPI.update(parseInt(classId), classData);
       toast.success("Class updated successfully!");
 

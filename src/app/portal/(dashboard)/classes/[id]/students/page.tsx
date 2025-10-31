@@ -139,9 +139,7 @@ export default function Page() {
             subjectId,
           }));
 
-        const result = await enrollmentsAPI.create(payload);
-
-        console.log(result);
+        await enrollmentsAPI.create(payload);
         toast.success("Student enrolled to selected subjects.");
       }
 
