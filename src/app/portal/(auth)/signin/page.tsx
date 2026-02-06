@@ -5,12 +5,11 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { InputField, FormField } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
+import { InputField, PasswordField } from "@/components/ui/form-field";
 import { Spinner } from "@radix-ui/themes";
 import { SignInStatesProp } from "@/common/types";
 import { SignInStates } from "@/common/states";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import {
   userAtom,
@@ -24,7 +23,6 @@ export default function SignIn() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState<SignInStatesProp>(SignInStates);
   const [error, setError] = useState("");
 
@@ -116,33 +114,15 @@ export default function SignIn() {
         />
 
         <div className="space-y-2">
-          <FormField label="Password" required htmlFor="password">
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading.portalLoginState}
-                className="pr-10"
-              />
-              <button
-                type="button"
-                tabIndex={-1}
-                onClick={() => setShowPassword((p) => !p)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <EyeOff size={18} aria-hidden />
-                ) : (
-                  <Eye size={18} aria-hidden />
-                )}
-              </button>
-            </div>
-          </FormField>
+          <PasswordField
+            label="Password"
+            id="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={loading.portalLoginState}
+          />
         </div>
 
         <div className="flex items-center justify-between">

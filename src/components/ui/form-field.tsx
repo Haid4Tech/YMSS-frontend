@@ -8,10 +8,13 @@
  *
  * Usage:
  * <InputField Icon={User} label="Username" />
+ * <PasswordField label="Password" placeholder="Enter your password" />
  * <SelectField Icon={Mail} label="Email" />
  * <TextareaField Icon={MessageSquare} label="Bio" />
  */
 
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { LucideIcon } from "lucide-react";
+import { Eye, EyeOff, LucideIcon } from "lucide-react";
 
 // Base FormField wrapper for consistent spacing
 interface FormFieldProps {
@@ -74,6 +77,50 @@ export const InputField: React.FC<InputFieldProps> = ({
       htmlFor={inputProps.id}
     >
       <Input {...inputProps} />
+    </FormField>
+  );
+};
+
+// PasswordField - Label + Input with show/hide toggle
+interface PasswordFieldProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
+  label: string;
+  required?: boolean;
+  Icon?: LucideIcon;
+}
+
+export const PasswordField: React.FC<PasswordFieldProps> = ({
+  label,
+  required,
+  Icon,
+  id,
+  className,
+  ...inputProps
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  return (
+    <FormField Icon={Icon} label={label} required={required} htmlFor={id}>
+      <div className="relative">
+        <Input
+          id={id}
+          type={showPassword ? "text" : "password"}
+          className={cn("pr-10", className)}
+          {...inputProps}
+        />
+        <button
+          type="button"
+          tabIndex={-1}
+          onClick={() => setShowPassword((p) => !p)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none"
+          aria-label={showPassword ? "Hide password" : "Show password"}
+        >
+          {showPassword ? (
+            <EyeOff size={18} aria-hidden />
+          ) : (
+            <Eye size={18} aria-hidden />
+          )}
+        </button>
+      </div>
     </FormField>
   );
 };

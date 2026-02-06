@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { InputField, SelectField } from "@/components/ui/form-field";
+import { InputField, SelectField, PasswordField } from "@/components/ui/form-field";
 import { SelectItem } from "@/components/ui/select";
 import { useAtom } from "jotai";
 import { authAPI, signupFormAction } from "@/jotai/auth/auth";
@@ -13,11 +13,12 @@ import { Role } from "@/common/enum";
 import { ArrowLeft } from "lucide-react";
 
 export default function SignUp() {
-  const [firstname, setFirstName] = useState("");
-  const [lastname, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [firstname, setFirstName] = useState<string>("");
+  const [lastname, setLastName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+
   const [role, setRole] = useState<Role | undefined | string>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -133,10 +134,9 @@ export default function SignUp() {
         </div>
 
         <div className="space-y-2">
-          <InputField
+          <PasswordField
             label="Password"
             id="password"
-            type="password"
             placeholder="Create a password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -146,10 +146,9 @@ export default function SignUp() {
         </div>
 
         <div className="space-y-2">
-          <InputField
+          <PasswordField
             label="Confirm Password"
             id="confirmPassword"
-            type="password"
             placeholder="Confirm your password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
