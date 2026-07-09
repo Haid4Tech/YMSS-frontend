@@ -78,7 +78,7 @@ export default function ParentResultsPage() {
       getAllResults();
       getAllStudents();
     }
-  }, [canViewResults]);
+  }, [canViewResults, getAllResults, getAllStudents]);
 
   // Filter results for this parent's ward
   const wardResults =

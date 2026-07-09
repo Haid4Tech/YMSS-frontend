@@ -19,7 +19,6 @@ import { Subject } from "@/jotai/subject/subject-types";
 const TeacherResult = () => {
   const router = useRouter();
   const [user] = useAtom(userAtom);
-  const userId = user?.id;
 
   const [subjects] = useAtom(subjectListAtom);
   const [loading] = useAtom(subjectLoadingAtom);
@@ -35,7 +34,7 @@ const TeacherResult = () => {
     };
 
     fetchData();
-  }, [userId]);
+  }, [user, getAllSubjects]);
 
   // Filter subjects for this teacher
   useEffect(() => {
@@ -45,7 +44,7 @@ const TeacherResult = () => {
       );
       setTeacherSubjects(teacherSubjects);
     }
-  }, [subjects, user?.id]);
+  }, [subjects, user]);
 
   if (loading) {
     return (

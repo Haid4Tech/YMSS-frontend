@@ -78,7 +78,7 @@ export default function StudentDetailPage() {
     } else {
       setLoading(false);
     }
-  }, [studentId]);
+  }, [studentId, getByStudent]);
 
   // Calculate academic statistics - safely
   const academicStats = {

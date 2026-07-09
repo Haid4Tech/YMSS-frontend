@@ -82,7 +82,7 @@ export default function StudentResultsPage() {
       getAllResults();
       getAllStudents();
     }
-  }, [canViewResults]);
+  }, [canViewResults, getAllResults, getAllStudents]);
 
   // Filter results for this student
   const studentResults =

@@ -115,8 +115,8 @@ export default function AddTeacherPage() {
         graduationYear: formData?.graduationYear ?? 0,
       };
 
-      // await teachersAPI.create(teacherData);
-      // router.push("/portal/teachers");
+      await teachersAPI.create(teacherData);
+      router.push("/portal/teachers");
     } catch (error) {
       console.error("Failed to create teacher:", error);
       alert("Failed to create teacher. Please try again.");

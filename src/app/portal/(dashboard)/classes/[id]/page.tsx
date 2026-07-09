@@ -71,7 +71,7 @@ export default function ClassDetailPage() {
     if (classId) {
       fetchClassData();
     }
-  }, [classId]);
+  }, [classId, getResultsByClass]);
 
   // Calculate class statistics
   const classStats = {

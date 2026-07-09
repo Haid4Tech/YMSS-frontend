@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useAtom } from "jotai";
 import { classesAPI } from "@/jotai/class/class";
@@ -42,11 +42,7 @@ export default function ClassRecordsPage() {
   const [, getResultsByClass] = useAtom(gradesAPI.getResultsByClass);
   const [, getAllAttendanceAtom] = useAtom(attendanceAPI.getAll);
 
-  useEffect(() => {
-    fetchClassData();
-  }, [classId]);
-
-  const fetchClassData = async () => {
+  const fetchClassData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -157,7 +153,11 @@ export default function ClassRecordsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [classId, getResultsByClass, getAllAttendanceAtom]);
+
+  useEffect(() => {
+    fetchClassData();
+  }, [fetchClassData]);
 
   const handleExport = () => {
     toast.info("Export functionality coming soon");

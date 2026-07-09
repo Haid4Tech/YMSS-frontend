@@ -66,7 +66,7 @@ export default function EditSubjectPage() {
     };
 
     fetchData();
-  }, [subjectId]);
+  }, [subjectId, getAllClasses]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
