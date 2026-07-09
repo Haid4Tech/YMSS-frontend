@@ -84,14 +84,13 @@ export default function AddTeacherPage() {
     setLoading(true);
 
     try {
+      const password = `${formData?.firstname?.trim().toLowerCase()}${formData?.lastname}`;
+      console.log("PW ", password) 
       const teacherData = {
         firstname: formData.firstname,
         lastname: formData.lastname,
         email: formData.email,
-        password: `${formData?.firstname?.toLowerCase()}${formData?.DOB?.replace(
-          /-/g,
-          ""
-        )}`,
+        password: password,
         role: "TEACHER",
         phone: formData.phone,
         street: formData.street,
@@ -116,8 +115,8 @@ export default function AddTeacherPage() {
         graduationYear: formData?.graduationYear ?? 0,
       };
 
-      await teachersAPI.create(teacherData);
-      router.push("/portal/teachers");
+      // await teachersAPI.create(teacherData);
+      // router.push("/portal/teachers");
     } catch (error) {
       console.error("Failed to create teacher:", error);
       alert("Failed to create teacher. Please try again.");
