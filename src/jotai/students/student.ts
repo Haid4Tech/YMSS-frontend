@@ -14,20 +14,30 @@ export const studentListAtom = atom<StudentResponse | null>(null);
 export const studentLoadingAtom = atom<boolean>(false);
 export const studentErrorAtom = atom<string | null>(null);
 
-export const studentsAPI = {
-  getAll: atom(null, async (_get, set) => {
-    set(studentLoadingAtom, true);
-    set(studentErrorAtom, null);
+export interface StudentSearchParams {
+  search?: string;
+  classId?: number;
+}
 
-    try {
-      const response = await axiosInstance.get<StudentResponse>("/students");
-      set(studentListAtom, response.data);
-    } catch (error: any) {
-      set(studentErrorAtom, error.message || "Failed to fetch students");
-    } finally {
-      set(studentLoadingAtom, false);
+export const studentsAPI = {
+  getAll: atom(
+    null,
+    async (_get, set, params?: StudentSearchParams) => {
+      set(studentLoadingAtom, true);
+      set(studentErrorAtom, null);
+
+      try {
+        const response = await axiosInstance.get<StudentResponse>("/students", {
+          params,
+        });
+        set(studentListAtom, response.data);
+      } catch (error: any) {
+        set(studentErrorAtom, error.message || "Failed to fetch students");
+      } finally {
+        set(studentLoadingAtom, false);
+      }
     }
-  }),
+  ),
 
   getById: async (id: number): Promise<any> => {
     const response = await axiosInstance.get(`/students/${id}`);

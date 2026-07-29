@@ -39,6 +39,8 @@ interface IDataTable {
   searchPlaceholder?: string;
   searchKey?: string;
   enableGlobalSearch?: boolean;
+  /** Hide the built-in search input, e.g. when the parent renders its own search/filter bar (server-side search). */
+  hideSearchBar?: boolean;
 }
 
 export const DataTable: React.FC<IDataTable> = ({
@@ -47,6 +49,7 @@ export const DataTable: React.FC<IDataTable> = ({
   searchPlaceholder = "Search...",
   searchKey = "name",
   enableGlobalSearch = false,
+  hideSearchBar = false,
 }) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -82,7 +85,7 @@ export const DataTable: React.FC<IDataTable> = ({
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
-        {enableGlobalSearch ? (
+        {hideSearchBar ? null : enableGlobalSearch ? (
           <Input
             placeholder={searchPlaceholder}
             value={globalFilter ?? ""}

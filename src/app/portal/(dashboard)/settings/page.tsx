@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { SelectField } from "@/components/ui/form-field";
 import { SelectItem } from "@/components/ui/select";
 import { ErrorBoundary, safeGet } from "@/components/ui/safe-render";
+import { toast } from "sonner";
 import {
   Settings as SettingsIcon,
   Bell,
@@ -110,11 +111,10 @@ export default function SettingsPage() {
 
       setHasChanges(false);
 
-      // TODO: Show success message
-      alert("Settings saved successfully!");
+      toast.success("Settings saved successfully!");
     } catch (error) {
       console.error("Failed to save settings:", error);
-      alert("Failed to save settings. Please try again.");
+      toast.error("Failed to save settings. Please try again.");
     } finally {
       setIsLoading(false);
     }

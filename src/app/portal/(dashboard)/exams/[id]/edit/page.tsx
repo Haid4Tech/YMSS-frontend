@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAtom } from "jotai";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/general/page-header";
@@ -17,7 +18,9 @@ import { IExamFormData } from "@/common/types";
 import { ExamFormInitialData } from "@/common/form";
 import { extractErrorMessage } from "@/utils/helpers";
 
-import ExamForm from "@/components/portal/dashboards/exams/form";
+import ExamForm, {
+  ExamScheduleFormValues,
+} from "@/components/portal/dashboards/exams/form";
 
 export default function Page() {
   const params = useParams();
@@ -33,6 +36,16 @@ export default function Page() {
   const [, getAllClasses] = useAtom(classesAPI.getAll);
   const [, getAllTeachers] = useAtom(teachersAPI.getAll);
   const [formData, setFormData] = useState<IExamFormData>(ExamFormInitialData);
+
+  // Exam date/time are managed by their own react-hook-form instance
+  // (FormDate/FormTime require a react-hook-form context), scoped just to
+  // the schedule fields - the rest of the form stays on the existing
+  // useState-driven formData above. Populated once the exam data loads
+  // (see fetchData below), since it arrives asynchronously after mount.
+  const scheduleForm = useForm<ExamScheduleFormValues>({
+    defaultValues: { date: undefined, startTime: "" },
+    mode: "onChange",
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,6 +74,10 @@ export default function Page() {
           duration: examData?.duration ?? "",
           examType: examData?.examType ?? "",
         });
+        scheduleForm.reset({
+          date: examData?.date ? new Date(examData.date) : undefined,
+          startTime: examData?.startTime ?? "",
+        });
       } catch (error) {
         const errorMessage = extractErrorMessage(error);
         toast.error(errorMessage);
@@ -74,13 +91,6 @@ export default function Page() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleDateChange = (date: Date | undefined) => {
-    setFormData((prev) => ({
-      ...prev,
-      date: date ? date.toISOString() : "",
-    }));
-  };
-
   const handleNumberChange = (field: string, value: string) => {
     const numValue = value === "" ? "" : parseInt(value);
     setFormData((prev) => ({ ...prev, [field]: numValue }));
@@ -88,6 +98,14 @@ export default function Page() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const scheduleValid = await scheduleForm.trigger();
+    if (!scheduleValid) {
+      toast.error("Please fix the schedule errors before submitting the form.");
+      return;
+    }
+    const schedule = scheduleForm.getValues();
+
     setLoading(true);
 
     try {
@@ -96,8 +114,8 @@ export default function Page() {
         teacherId: parseInt(formData.teacherId),
         subjectId: parseInt(formData.subjectId),
         classId: formData.classId ? parseInt(formData.classId) : null,
-        date: formData.date,
-        startTime: formData.startTime,
+        date: schedule.date ? schedule.date.toISOString() : "",
+        startTime: schedule.startTime,
         duration:
           typeof formData.duration === "string"
             ? parseInt(formData.duration)
@@ -128,8 +146,8 @@ export default function Page() {
         loading={loading}
         handleSubmit={handleSubmit}
         handleInputChange={handleInputChange}
-        handleDateChange={handleDateChange}
         handleNumberChange={handleNumberChange}
+        scheduleForm={scheduleForm}
         classes={classes}
         subjects={subjects}
         teachers={teachers}

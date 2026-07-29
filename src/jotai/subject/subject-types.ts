@@ -8,6 +8,12 @@ interface IStudentTeacher {
   teacherId: number;
 }
 
+export const SUBJECT_CATEGORIES = [
+  { value: "SCIENCE", label: "Science" },
+  { value: "ARTS", label: "Arts" },
+  { value: "GENERAL", label: "General/Core" },
+] as const;
+
 export interface Subject {
   id: number;
   name: string;

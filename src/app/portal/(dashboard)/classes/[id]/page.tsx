@@ -73,7 +73,9 @@ export default function ClassDetailPage() {
     }
   }, [classId]);
 
-  // Calculate class statistics
+  // Calculate class statistics. Capacity is optional - a class with no
+  // capacity set has no enrollment limit, so it's tracked separately from
+  // the actual sum of students added rather than defaulting to 0.
   const classStats = {
     totalStudents: classData?.students?.length,
     averageGrade:
@@ -85,7 +87,7 @@ export default function ClassDetailPage() {
             ) / grades.length
           ).toFixed(1)
         : "N/A",
-    capacity: classData?.capacity || 0,
+    capacity: classData?.capacity ?? null,
   };
 
   // Grade distribution
@@ -202,7 +204,7 @@ export default function ClassDetailPage() {
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold text-purple-600">
-              {classStats.capacity}
+              {classStats.capacity ?? "Unlimited"}
             </div>
             <p className="text-sm text-muted-foreground">Class Capacity</p>
           </CardContent>
@@ -261,7 +263,9 @@ export default function ClassDetailPage() {
                   <label className="text-sm font-medium text-muted-foreground">
                     Capacity
                   </label>
-                  <p className="text-sm">{classData.capacity || "Not set"}</p>
+                  <p className="text-sm">
+                    {classData.capacity ?? "No limit set"}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">
@@ -276,7 +280,9 @@ export default function ClassDetailPage() {
                     Available Spots
                   </label>
                   <p className="text-sm">
-                    {(classData.capacity || 0) - students.length} remaining
+                    {classData.capacity == null
+                      ? "Unlimited"
+                      : `${classData.capacity - classData.students.length} remaining`}
                   </p>
                 </div>
               </div>

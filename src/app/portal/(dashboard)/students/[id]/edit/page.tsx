@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import { DynamicHeader } from "@/components/general/page-header";
-import StudentForm from "@/components/portal/dashboards/student/form";
+import StudentForm, {
+  IStudentDateFormValues,
+} from "@/components/portal/dashboards/student/form";
 import { GraduationCap, Users, House, ShieldPlus, User } from "lucide-react";
 import { studentsAPI } from "@/jotai/students/student";
 import { classesAPI } from "@/jotai/class/class";
@@ -39,12 +42,15 @@ export default function Page() {
   const [formData, setFormData] = useState<IStudentFormData>(
     StudentFormIntialData
   );
-  const [date, setDate] = useState<{
-    dob: Date | undefined;
-    admissionDate: Date | undefined;
-  }>({
-    dob: undefined,
-    admissionDate: undefined,
+
+  // DOB/admission date are managed by their own react-hook-form instance
+  // (FormDate requires a react-hook-form context), scoped just to those two
+  // fields - the rest of the form stays on the existing useState-driven
+  // formData above. Populated once the student data loads (see fetchData
+  // below), since it arrives asynchronously after mount.
+  const dateForm = useForm<IStudentDateFormValues>({
+    defaultValues: { dob: undefined, admissionDate: undefined },
+    mode: "onChange",
   });
 
   useEffect(() => {
@@ -79,9 +85,11 @@ export default function Page() {
           classId: student.classId?.toString() || "",
         });
 
-        setDate({
+        dateForm.reset({
           dob: student.user.DOB ? new Date(student.user.DOB) : undefined,
-          admissionDate: student.admissionDate ? new Date(student.admissionDate) : undefined,
+          admissionDate: student.admissionDate
+            ? new Date(student.admissionDate)
+            : undefined,
         });
       } catch (error) {
         console.error("Failed to fetch student data:", error);
@@ -95,16 +103,6 @@ export default function Page() {
     fetchData();
   }, [studentId]);
 
-  const handleDateChange =
-    (dateType: "dob" | "admissionDate") => (selectedDate: Date | undefined) => {
-      const dateString = selectedDate?.toISOString().split("T")[0] || "";
-      const formFieldName =
-        dateType === "dob" ? "dateOfBirth" : "admissionDate";
-
-      setDate((prev) => ({ ...prev, [dateType]: selectedDate }));
-      setFormData((prev) => ({ ...prev, [formFieldName]: dateString }));
-    };
-
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -116,9 +114,24 @@ export default function Page() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const dateValid = await dateForm.trigger();
+    if (!dateValid) {
+      toast.error("Please fix the date errors before submitting the form.");
+      return;
+    }
+    const { dob, admissionDate } = dateForm.getValues();
+
     setLoading(true);
     try {
-      await studentsAPI.update(studentId, formData);
+      const updateData = {
+        ...formData,
+        DOB: dob ? dob.toISOString().split("T")[0] : "",
+        admissionDate: admissionDate
+          ? admissionDate.toISOString().split("T")[0]
+          : "",
+      };
+      await studentsAPI.update(studentId, updateData);
       toast.success("Updated Successfully");
       router.back();
     } catch (error) {
@@ -169,12 +182,11 @@ export default function Page() {
         classes={classes}
         parents={parents}
         loading={loading}
-        date={date}
+        dateForm={dateForm}
         isParent={parents.length > 0}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         handleInputChange={handleInputChange}
-        handleDateChange={handleDateChange}
         handleFileChange={handleFileChange}
         formData={formData}
       />

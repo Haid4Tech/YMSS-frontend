@@ -2,6 +2,19 @@ import { Student } from "../students/student-types";
 import { Subject } from "../subject/subject-types";
 import { Teacher } from "../teachers/teachers-types";
 
+// Junior Secondary levels have no stream; Senior Secondary levels (SS1-SS3)
+// are split into a Science and an Arts stream, e.g. SS1A = SS1 + Science.
+export const GRADE_LEVELS = [
+  { value: "JSS1", label: "JSS1" },
+  { value: "JSS2", label: "JSS2" },
+  { value: "JSS3", label: "JSS3" },
+  { value: "SS1", label: "SS1" },
+  { value: "SS2", label: "SS2" },
+  { value: "SS3", label: "SS3" },
+] as const;
+
+export const SENIOR_SECONDARY_LEVELS: string[] = ["SS1", "SS2", "SS3"];
+
 export interface Class {
   id: number;
   name: string;
@@ -10,7 +23,8 @@ export interface Class {
   subjects: Array<Subject>;
 
   academicYear?: string;
-  capacity?: number;
+  // No capacity means the class has no enrollment limit.
+  capacity?: number | null;
   description?: string;
 
   days?: string[];
@@ -21,7 +35,10 @@ export interface Class {
   teacher?: Teacher;
 
   // Additional fields used in the application
-  gradeLevel?: string; // Grade level like "1", "2", "3", etc.
+  gradeLevel?: string; // e.g. "JSS1", "SS2"
+  // Academic stream ("SCIENCE" | "ARTS" | "GENERAL"), only meaningful for
+  // Senior Secondary classes.
+  stream?: string | null;
 }
 
 export interface ClassResponse {

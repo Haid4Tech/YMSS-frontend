@@ -31,4 +31,7 @@ export interface DeleteEnrollmentData {
 export interface BulkEnrollmentResponse {
   message: string;
   count: number;
+  // Number of student/subject pairs skipped because the subject belongs to
+  // a different class/stream than the student.
+  skipped?: number;
 }

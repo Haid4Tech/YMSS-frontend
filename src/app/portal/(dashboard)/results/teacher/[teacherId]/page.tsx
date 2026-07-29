@@ -14,7 +14,7 @@ import {
   studentListAtom,
   studentLoadingAtom,
 } from "@/jotai/students/student";
-// import { subjectsAPI } from "@/jotai/subject/subject";
+import { subjectsAPI } from "@/jotai/subject/subject";
 import {
   // isParentAtom,
   // isStudentAtom,
@@ -63,6 +63,7 @@ export default function TeacherResultsPage() {
   const [studentsData] = useAtom(studentListAtom);
   const [studentLoading] = useAtom(studentLoadingAtom);
   const [, getAllStudents] = useAtom(studentsAPI.getAll);
+  const [, getAllSubjects] = useAtom(subjectsAPI.getAll);
 
   // Access control
   const canViewResults = isTeacher || isAdmin;
@@ -71,10 +72,12 @@ export default function TeacherResultsPage() {
   useEffect(() => {
     const fetchTeacherSubjects = async () => {
       try {
-        // Get all subjects and filter by teacher assignment
-        const allSubjects = await getAllStudents();
+        const allSubjects: Subject[] = (await getAllSubjects()) || [];
+        const assignedSubjects = allSubjects.filter((subject) =>
+          subject.teachers?.some((t) => t.teacher.userId === teacherId)
+        );
 
-        setSubjects(Array.isArray(allSubjects) ? allSubjects : []);
+        setSubjects(assignedSubjects);
       } catch (error) {
         console.error("Error fetching teacher subjects:", error);
       }
@@ -83,7 +86,7 @@ export default function TeacherResultsPage() {
     if (canViewResults && user) {
       fetchTeacherSubjects();
     }
-  }, [canViewResults, user]);
+  }, [canViewResults, user, teacherId]);
 
   // Load data
   useEffect(() => {

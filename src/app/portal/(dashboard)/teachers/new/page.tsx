@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
+import { useForm } from "react-hook-form";
 import {
   GraduationCap,
   House,
@@ -10,6 +11,7 @@ import {
   User,
   BriefcaseBusiness,
 } from "lucide-react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/general/page-header";
 import { teachersAPI } from "@/jotai/teachers/teachers";
 import { subjectsAPI } from "@/jotai/subject/subject";
@@ -17,7 +19,10 @@ import { Subject } from "@/jotai/subject/subject-types";
 
 import { TeacherFormInitialData } from "@/common/form";
 import { ITeacherFormData } from "@/common/types";
-import TeacherForm from "@/components/portal/dashboards/teacher/form";
+import TeacherForm, {
+  ITeacherDateFormValues,
+} from "@/components/portal/dashboards/teacher/form";
+import { extractErrorMessage } from "@/utils/helpers";
 
 export default function AddTeacherPage() {
   const router = useRouter();
@@ -26,36 +31,17 @@ export default function AddTeacherPage() {
   const [activeTab, setActiveTab] = useState("personal");
   const [, getAllSubjects] = useAtom(subjectsAPI.getAll);
 
-  const [date, setDate] = useState<{
-    DOB: Date | undefined;
-    hireDate: Date | undefined;
-  }>({
-    DOB: undefined,
-    hireDate: undefined,
+  // DOB/hireDate are managed by their own react-hook-form instance
+  // (FormDate requires a react-hook-form context), scoped just to those two
+  // fields - the rest of the form stays on the existing useState-driven
+  // formData below.
+  const dateForm = useForm<ITeacherDateFormValues>({
+    defaultValues: { DOB: undefined, hireDate: undefined },
+    mode: "onChange",
   });
   const [formData, setFormData] = useState<ITeacherFormData>(
     TeacherFormInitialData
   );
-
-  // Handle date changes for both DOB and Join Date
-  const handleDateChange =
-    (dateType: "DOB" | "hireDate") => (selectedDate: Date | undefined) => {
-      // Update the date state
-      setDate((prev) => ({
-        ...prev,
-        [dateType]: selectedDate,
-      }));
-
-      // Update form data with string format
-      const dateString = selectedDate
-        ? selectedDate.toISOString().split("T")[0]
-        : "";
-
-      setFormData((prev) => ({
-        ...prev,
-        [dateType]: dateString,
-      }));
-    };
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -74,6 +60,10 @@ export default function AddTeacherPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleSubjectsChange = (subjectIds: number[]) => {
+    setFormData((prev) => ({ ...prev, subjectIds }));
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setFormData((prev) => ({ ...prev, photo: file }));
@@ -81,6 +71,16 @@ export default function AddTeacherPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const dateValid = await dateForm.trigger();
+    if (!dateValid) {
+      toast.error("Please fix the date errors before submitting the form.");
+      return;
+    }
+    const { DOB, hireDate } = dateForm.getValues();
+    const dobString = DOB ? DOB.toISOString().split("T")[0] : "";
+    const hireDateString = hireDate ? hireDate.toISOString().split("T")[0] : "";
+
     setLoading(true);
 
     try {
@@ -88,7 +88,7 @@ export default function AddTeacherPage() {
         firstname: formData.firstname,
         lastname: formData.lastname,
         email: formData.email,
-        password: `${formData?.firstname?.toLowerCase()}${formData?.DOB?.replace(
+        password: `${formData?.firstname?.toLowerCase()}${dobString.replace(
           /-/g,
           ""
         )}`,
@@ -99,11 +99,9 @@ export default function AddTeacherPage() {
         zipcode: formData.zipcode,
         state: formData.state,
         experience: formData.experience,
-        subjectId: formData.subjectSpecialization
-          ? parseInt(formData.subjectSpecialization)
-          : null,
-        hireDate: formData.hireDate,
-        DOB: formData.DOB,
+        subjectIds: formData.subjectIds ?? [],
+        hireDate: hireDateString,
+        DOB: dobString,
         gender: formData.gender,
         nationality: formData.nationality,
 
@@ -117,10 +115,11 @@ export default function AddTeacherPage() {
       };
 
       await teachersAPI.create(teacherData);
+      toast.success("Teacher created successfully");
       router.push("/portal/teachers");
     } catch (error) {
-      console.error("Failed to create teacher:", error);
-      alert("Failed to create teacher. Please try again.");
+      const errorMessage = extractErrorMessage(error);
+      toast.error(`Failed to create teacher. ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -150,12 +149,13 @@ export default function AddTeacherPage() {
         tabs={tabs}
         subjects={subjects}
         loading={loading}
-        date={date}
+        dateForm={dateForm}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         handleInputChange={handleInputChange}
-        handleDateChange={handleDateChange}
         handleFileChange={handleFileChange}
+        onSubjectsChange={handleSubjectsChange}
+        formData={formData}
       />
     </div>
   );

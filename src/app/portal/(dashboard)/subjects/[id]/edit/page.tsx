@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/form-field";
 import { SelectItem } from "@/components/ui/select";
 import { subjectsAPI } from "@/jotai/subject/subject";
+import { SUBJECT_CATEGORIES } from "@/jotai/subject/subject-types";
 import { classesAPI } from "@/jotai/class/class";
 import { Class } from "@/jotai/class/class-type";
 import { toast } from "sonner";
@@ -163,13 +164,13 @@ export default function EditSubjectPage() {
                 value={formData.category}
                 onValueChange={(value) => handleInputChange("category", value)}
               >
-                {["science", "art", "general"].map((category, index) => (
+                {SUBJECT_CATEGORIES.map(({ value, label }) => (
                   <SelectItem
-                    className="capitalize cursor-pointer"
-                    key={index}
-                    value={category}
+                    className="cursor-pointer"
+                    key={value}
+                    value={value}
                   >
-                    {category}
+                    {label}
                   </SelectItem>
                 ))}
               </SelectField>

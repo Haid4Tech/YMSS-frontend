@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form-field";
 import { SelectItem } from "@/components/ui/select";
 import { subjectsAPI } from "@/jotai/subject/subject";
+import { SUBJECT_CATEGORIES } from "@/jotai/subject/subject-types";
 import { teachersAPI } from "@/jotai/teachers/teachers";
 import { Teacher } from "@/jotai/teachers/teachers-types";
 import { PageHeader } from "@/components/general/page-header";
@@ -145,13 +146,13 @@ export default function AddSubjectPage() {
                     handleInputChange("category", value)
                   }
                 >
-                  {["science", "art", "general"].map((category, index) => (
+                  {SUBJECT_CATEGORIES.map(({ value, label }) => (
                     <SelectItem
-                      className="capitalize cursor-pointer"
-                      key={index}
-                      value={category}
+                      className="cursor-pointer"
+                      key={value}
+                      value={value}
                     >
-                      {category}
+                      {label}
                     </SelectItem>
                   ))}
                 </SelectField>

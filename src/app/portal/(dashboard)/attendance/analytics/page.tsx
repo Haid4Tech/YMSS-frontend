@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAtom } from "jotai";
+import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SelectField } from "@/components/ui/form-field";
 import { SelectContent, SelectItem } from "@/components/ui/select";
 import { PageHeader } from "@/components/general/page-header";
-import DatePicker from "@/components/general/date-picker";
+import { Form } from "@/components/ui/form";
+import FormDate from "@/components/general/form-date";
 import { classesAPI } from "@/jotai/class/class";
 import { subjectsAPI } from "@/jotai/subject/subject";
 import { subjectAttendanceAPI } from "@/jotai/subject-attendance/subject-attendance";
@@ -26,14 +28,26 @@ interface AttendanceStats {
   rate: number;
 }
 
+interface DateRangeFormValues {
+  startDate: Date | undefined;
+  endDate: Date | undefined;
+}
+
 export default function AttendanceAnalyticsPage() {
   const [loading, setLoading] = useState(false);
   const [classes, setClasses] = useState<Class[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>("");
   const [selectedSubject, setSelectedSubject] = useState<string>("");
-  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+
+  // The date range filter is managed by its own react-hook-form instance
+  // (FormDate requires a react-hook-form context).
+  const dateForm = useForm<DateRangeFormValues>({
+    defaultValues: { startDate: new Date(), endDate: new Date() },
+    mode: "onChange",
+  });
+  const startDate = dateForm.watch("startDate");
+  const endDate = dateForm.watch("endDate");
   const [attendanceStats, setAttendanceStats] = useState<AttendanceStats>({
     total: 0,
     present: 0,
@@ -174,13 +188,20 @@ export default function AttendanceAnalyticsPage() {
               </SelectContent>
             </SelectField>
 
-            <DatePicker
-              label="Start Date"
-              date={startDate}
-              setDate={setStartDate}
-            />
-
-            <DatePicker label="End Date" date={endDate} setDate={setEndDate} />
+            <Form {...dateForm}>
+              <FormDate
+                name="startDate"
+                label="Start Date"
+                placeholder="Select start date"
+              />
+            </Form>
+            <Form {...dateForm}>
+              <FormDate
+                name="endDate"
+                label="End Date"
+                placeholder="Select end date"
+              />
+            </Form>
           </div>
         </CardContent>
       </Card>

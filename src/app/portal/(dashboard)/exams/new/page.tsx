@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/general/page-header";
@@ -14,7 +15,9 @@ import { Subject } from "@/jotai/subject/subject-types";
 import { Class } from "@/jotai/class/class-type";
 import { Teacher } from "@/jotai/teachers/teachers-types";
 
-import ExamForm from "@/components/portal/dashboards/exams/form";
+import ExamForm, {
+  ExamScheduleFormValues,
+} from "@/components/portal/dashboards/exams/form";
 
 export default function AddExamPage() {
   const router = useRouter();
@@ -36,6 +39,15 @@ export default function AddExamPage() {
     startTime: "",
     duration: "",
     examType: "",
+  });
+
+  // Exam date/time are managed by their own react-hook-form instance
+  // (FormDate/FormTime require a react-hook-form context), scoped just to
+  // the schedule fields - the rest of the form stays on the existing
+  // useState-driven formData above.
+  const scheduleForm = useForm<ExamScheduleFormValues>({
+    defaultValues: { date: undefined, startTime: "" },
+    mode: "onChange",
   });
 
   useEffect(() => {
@@ -68,15 +80,16 @@ export default function AddExamPage() {
     setFormData((prev) => ({ ...prev, [field]: numValue }));
   };
 
-  const handleDateChange = (date: Date | undefined) => {
-    setFormData((prev) => ({
-      ...prev,
-      date: date ? date.toISOString() : "",
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const scheduleValid = await scheduleForm.trigger();
+    if (!scheduleValid) {
+      toast.error("Please fix the schedule errors before submitting the form.");
+      return;
+    }
+    const schedule = scheduleForm.getValues();
+
     setLoading(true);
 
     try {
@@ -85,8 +98,8 @@ export default function AddExamPage() {
         teacherId: parseInt(formData.teacherId),
         subjectId: parseInt(formData.subjectId),
         classId: formData.classId ? parseInt(formData.classId) : null,
-        date: formData.date,
-        startTime: formData.startTime,
+        date: schedule.date ? schedule.date.toISOString() : "",
+        startTime: schedule.startTime,
         duration: parseInt(formData.duration),
         examType: formData.examType,
       };
@@ -114,8 +127,8 @@ export default function AddExamPage() {
         loading={loading}
         handleSubmit={handleSubmit}
         handleInputChange={handleInputChange}
-        handleDateChange={handleDateChange}
         handleNumberChange={handleNumberChange}
+        scheduleForm={scheduleForm}
         classes={classes}
         subjects={subjects}
         teachers={teachers}

@@ -22,6 +22,7 @@ export interface Student {
 
   previousSchool?: string;
   relationship?: string;
+  admissionNumber?: string;
 
   // Additional fields used in the application
   dateOfBirth?: string;

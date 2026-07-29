@@ -1,9 +1,12 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import Link from "next/link";
+import { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputField, SelectField } from "@/components/ui/form-field";
-import DatePicker from "@/components/general/date-picker";
+import { Form } from "@/components/ui/form";
+import FormDate from "@/components/general/form-date";
+import FormTime from "@/components/general/form-time";
 import { formatDate, formatTime } from "@/utils/calendar";
 
 import { SelectItem } from "@/components/ui/select";
@@ -13,12 +16,17 @@ import { Subject } from "@/jotai/subject/subject-types";
 import { IExamFormData } from "@/common/types";
 import { Teacher } from "@/jotai/teachers/teachers-types";
 
+export interface ExamScheduleFormValues {
+  date: Date | undefined;
+  startTime: string;
+}
+
 interface IExamForm {
   loading: boolean;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   handleInputChange: (field: string, value: string) => void;
-  handleDateChange: (date: Date | undefined) => void;
   handleNumberChange: (field: string, value: string) => void;
+  scheduleForm: UseFormReturn<ExamScheduleFormValues>;
   classes: Array<Class>;
   subjects: Array<Subject>;
   teachers: Array<Teacher>;
@@ -34,13 +42,25 @@ const ExamForm: FC<IExamForm> = ({
   subjects,
   handleSubmit,
   handleInputChange,
-  handleDateChange,
   handleNumberChange,
+  scheduleForm,
   formData,
   mode,
   cancelHref = "/portal/exams",
 }) => {
   const isEditMode = mode === "edit";
+  const todayStart = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+  const watchedDate = scheduleForm.watch("date");
+  const watchedStartTime = scheduleForm.watch("startTime");
+  // Only offer subjects that belong to the selected class, since each
+  // subject is tied to exactly one class/stream.
+  const subjectsForClass = formData.classId
+    ? subjects.filter((subject) => subject.classId?.toString() === formData.classId)
+    : subjects;
   const submitButtonText = loading
     ? isEditMode
       ? "Updating Exam..."
@@ -70,28 +90,35 @@ const ExamForm: FC<IExamForm> = ({
             </div>
             <div>
               <SelectField
-                label={"Subject"}
-                placeholder="Select subject"
-                value={formData.subjectId}
-                onValueChange={(value) => handleInputChange("subjectId", value)}
+                label="Class"
+                placeholder="Select class"
+                value={formData.classId}
+                onValueChange={(value) => {
+                  handleInputChange("classId", value);
+                  // The previously selected subject may not belong to the
+                  // newly selected class, so clear it.
+                  handleInputChange("subjectId", "");
+                }}
               >
-                {subjects.map((subject) => (
-                  <SelectItem key={subject.id} value={subject.id.toString()}>
-                    {subject.name}
+                {classes.map((cls) => (
+                  <SelectItem key={cls.id} value={cls.id.toString()}>
+                    {cls.name}
                   </SelectItem>
                 ))}
               </SelectField>
             </div>
             <div>
               <SelectField
-                label="Class"
-                placeholder="Select class"
-                value={formData.classId}
-                onValueChange={(value) => handleInputChange("classId", value)}
+                label={"Subject"}
+                placeholder={
+                  formData.classId ? "Select subject" : "Select a class first"
+                }
+                value={formData.subjectId}
+                onValueChange={(value) => handleInputChange("subjectId", value)}
               >
-                {classes.map((cls) => (
-                  <SelectItem key={cls.id} value={cls.id.toString()}>
-                    {cls.name}
+                {subjectsForClass.map((subject) => (
+                  <SelectItem key={subject.id} value={subject.id.toString()}>
+                    {subject.name}
                   </SelectItem>
                 ))}
               </SelectField>
@@ -116,26 +143,28 @@ const ExamForm: FC<IExamForm> = ({
                 ))}
               </SelectField>
             </div>
-            <div>
-              <DatePicker
-                required
-                label={"Exam Date"}
-                date={formData.date ? new Date(formData.date) : undefined}
-                setDate={handleDateChange}
-                minDate={isEditMode ? undefined : new Date()}
-              />
-            </div>
-            <div>
-              <InputField
-                label={"Start Time"}
-                id="startTime"
-                type="time"
-                value={formData.startTime || "10:30:00"}
-                onChange={(e) => handleInputChange("startTime", e.target.value)}
-                required
-                className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-              />
-            </div>
+            <Form {...scheduleForm}>
+              <div>
+                <FormDate
+                  name="date"
+                  label="Exam Date"
+                  placeholder="Select exam date"
+                  disableRule={
+                    isEditMode ? undefined : (date) => date < todayStart
+                  }
+                  rules={{ required: "Exam date is required" }}
+                />
+              </div>
+              <div>
+                <FormTime
+                  name="startTime"
+                  label="Start Time"
+                  placeholder="Select start time"
+                  interval={15}
+                  rules={{ required: "Start time is required" }}
+                />
+              </div>
+            </Form>
             <div>
               <InputField
                 label="Duration (minutes)"
@@ -184,9 +213,8 @@ const ExamForm: FC<IExamForm> = ({
               </p>
               <p>
                 <span className="font-medium">Date & Time:</span>{" "}
-                {formData.date ? formatDate(new Date(formData.date)) : "-- --"}{" "}
-                at{" "}
-                {formData.startTime ? formatTime(formData.startTime) : "-- --"}
+                {watchedDate ? formatDate(watchedDate) : "-- --"} at{" "}
+                {watchedStartTime ? formatTime(watchedStartTime) : "-- --"}
               </p>
               <p>
                 <span className="font-medium">Duration:</span>{" "}

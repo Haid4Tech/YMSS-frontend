@@ -170,6 +170,11 @@ export default function Page() {
         const result = await enrollmentsAPI.create(payload);
         if ("count" in result) {
           toast.success(`${result.count} enrollment(s) created successfully.`);
+          if (result.skipped) {
+            toast.error(
+              `${result.skipped} enrollment(s) skipped: subject and student are in different classes/streams.`
+            );
+          }
         }
       }
     } catch (error) {

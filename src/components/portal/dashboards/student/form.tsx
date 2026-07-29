@@ -1,4 +1,5 @@
 import { Dispatch, FC, SetStateAction, ChangeEvent } from "react";
+import { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   InputField,
@@ -7,7 +8,8 @@ import {
 } from "@/components/ui/form-field";
 import { Card, CardContent } from "@/components/ui/card";
 import { SelectItem } from "@/components/ui/select";
-import DatePicker from "@/components/general/date-picker";
+import { Form } from "@/components/ui/form";
+import FormDate from "@/components/general/form-date";
 import Link from "next/link";
 import { LucideIcon } from "lucide-react";
 
@@ -22,7 +24,7 @@ interface ITabs {
   Icon?: LucideIcon;
 }
 
-interface IDate {
+export interface IStudentDateFormValues {
   dob: Date | undefined;
   admissionDate: Date | undefined;
 }
@@ -35,13 +37,10 @@ interface IStudentForm {
   parents?: ParentStudentResponse[];
   isParent: boolean;
   loading: boolean;
-  date: IDate;
+  dateForm: UseFormReturn<IStudentDateFormValues>;
   activeTab: string;
   setActiveTab: Dispatch<SetStateAction<string>>;
   handleInputChange: (field: string, value: string) => void;
-  handleDateChange: (
-    dateType: "dob" | "admissionDate"
-  ) => (selectedDate: Date | undefined) => void;
   handleFileChange: (file: ChangeEvent<HTMLInputElement>) => void;
   formData?: IStudentFormData | null;
 }
@@ -50,7 +49,7 @@ const StudentForm: FC<IStudentForm> = ({
   type,
   onSubmit,
   tabs,
-  date,
+  dateForm,
   classes,
   parents,
   loading,
@@ -58,11 +57,11 @@ const StudentForm: FC<IStudentForm> = ({
   activeTab,
   setActiveTab,
   handleInputChange,
-  handleDateChange,
   handleFileChange,
   formData,
 }) => {
   return (
+    <Form {...dateForm}>
     <form onSubmit={onSubmit} className="space-y-6">
       {/* Tab Navigation */}
       <Card>
@@ -130,11 +129,11 @@ const StudentForm: FC<IStudentForm> = ({
                   />
                 </div>
                 <div>
-                  <DatePicker
-                    label={"Date of Birth"}
-                    required
-                    date={date.dob}
-                    setDate={handleDateChange("dob")}
+                  <FormDate
+                    name="dob"
+                    label="Date of Birth"
+                    placeholder="Select date of birth"
+                    rules={{ required: "Date of birth is required" }}
                   />
                 </div>
                 <div>
@@ -258,6 +257,7 @@ const StudentForm: FC<IStudentForm> = ({
                     onChange={(e) =>
                       handleInputChange("zipcode", e.target.value)
                     }
+                    required
                   />
                 </div>
                 <div>
@@ -297,11 +297,12 @@ const StudentForm: FC<IStudentForm> = ({
                   </SelectField>
                 </div>
 
-                <DatePicker
-                  label={"Admission Date"}
-                  required
-                  date={date.admissionDate}
-                  setDate={handleDateChange("admissionDate")}
+                <FormDate
+                  name="admissionDate"
+                  label="Admission Date"
+                  placeholder="Select admission date"
+                  disableRule={() => false}
+                  rules={{ required: "Admission date is required" }}
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -570,6 +571,7 @@ const StudentForm: FC<IStudentForm> = ({
         </div>
       </div>
     </form>
+    </Form>
   );
 };
 

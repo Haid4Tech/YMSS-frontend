@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
+import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,14 +13,20 @@ import {
   SelectField,
   TextareaField,
 } from "@/components/ui/form-field";
+import { Form } from "@/components/ui/form";
 import { PageHeader } from "@/components/general/page-header";
 import { SelectItem } from "@/components/ui/select";
-import DatePicker from "@/components/general/date-picker";
+import FormDate from "@/components/general/form-date";
 import { announcementsAPI } from "@/jotai/announcement/announcement";
 import { classesAPI } from "@/jotai/class/class";
 import { Class } from "@/jotai/class/class-type";
 import { toast } from "sonner";
 import { extractErrorMessage } from "@/utils/helpers";
+
+interface ScheduleFormValues {
+  publishDate: Date | undefined;
+  expiryDate: Date | undefined;
+}
 
 export default function AddAnnouncementPage() {
   const router = useRouter();
@@ -33,8 +40,6 @@ export default function AddAnnouncementPage() {
     priority: "",
     targetAudience: "",
     classId: "",
-    publishDate: new Date().toISOString(),
-    expiryDate: "",
     category: "",
     attachments: [] as File[],
     isPublished: true,
@@ -42,6 +47,16 @@ export default function AddAnnouncementPage() {
     emailNotification: false,
     smsNotification: false,
   });
+
+  // Publish/expiry date are managed by their own react-hook-form instance
+  // (FormDate requires a react-hook-form context), scoped just to the
+  // scheduling fields - the rest of the form stays on the existing
+  // useState-driven formData above.
+  const scheduleForm = useForm<ScheduleFormValues>({
+    defaultValues: { publishDate: new Date(), expiryDate: undefined },
+    mode: "onChange",
+  });
+  const publishDate = scheduleForm.watch("publishDate");
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -66,6 +81,14 @@ export default function AddAnnouncementPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const scheduleValid = await scheduleForm.trigger();
+    if (!scheduleValid) {
+      toast.error("Please fix the schedule errors before submitting the form.");
+      return;
+    }
+    const schedule = scheduleForm.getValues();
+
     setLoading(true);
 
     try {
@@ -75,8 +98,8 @@ export default function AddAnnouncementPage() {
         priority: formData.priority,
         targetAudience: formData.targetAudience,
         classId: formData.classId ? parseInt(formData.classId) : null,
-        date: formData.publishDate,
-        expiryDate: formData.expiryDate || null,
+        date: schedule.publishDate ? schedule.publishDate.toISOString() : "",
+        expiryDate: schedule.expiryDate ? schedule.expiryDate.toISOString() : null,
         category: formData.category,
         isPublished: formData.isPublished,
         notificationSettings: {
@@ -234,39 +257,33 @@ export default function AddAnnouncementPage() {
             <CardTitle>Publishing Schedule</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <DatePicker
-                required
-                label={"Publish Date"}
-                date={formData ? new Date(formData?.publishDate) : undefined}
-                setDate={(date: Date | undefined) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    publishDate: date ? date.toISOString() : "",
-                  }))
-                }
-              />
+            <Form {...scheduleForm}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormDate
+                  name="publishDate"
+                  label="Publish Date"
+                  placeholder="Select publish date"
+                  rules={{ required: "Publish date is required" }}
+                />
 
-              <DatePicker
-                label={"Expiry Date (Optional)"}
-                date={
-                  formData.expiryDate
-                    ? new Date(formData?.expiryDate)
-                    : undefined
-                }
-                setDate={(date: Date | undefined) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    expiryDate: date ? date.toISOString() : "",
-                  }))
-                }
-                minDate={
-                  formData.publishDate
-                    ? new Date(formData.publishDate)
-                    : undefined
-                }
-              />
-            </div>
+                <FormDate
+                  name="expiryDate"
+                  label="Expiry Date (Optional)"
+                  placeholder="Select expiry date"
+                  disableRule={
+                    publishDate ? (date) => date < publishDate : undefined
+                  }
+                  rules={{
+                    validate: (value: Date | undefined) => {
+                      if (value && publishDate && value < publishDate) {
+                        return "Expiry date cannot be before publish date";
+                      }
+                      return true;
+                    },
+                  }}
+                />
+              </div>
+            </Form>
 
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
@@ -397,7 +414,9 @@ export default function AddAnnouncementPage() {
                 {formData.content || "Announcement content will appear here..."}
               </p>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <span>📅 {formData.publishDate}</span>
+                <span>
+                  📅 {publishDate ? publishDate.toLocaleDateString() : ""}
+                </span>
                 <span>👥 {formData.targetAudience || "Not selected"}</span>
                 {formData.category && <span>🏷️ {formData.category}</span>}
               </div>
