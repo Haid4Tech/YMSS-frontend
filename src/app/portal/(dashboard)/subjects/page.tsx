@@ -12,6 +12,7 @@ import {
 } from "@/jotai/subject/subject";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Spinner } from "@radix-ui/themes";
 import {
   isParentAtom,
@@ -35,7 +36,7 @@ import { TooltipComp } from "@/components/ui/tooltip-comp";
 import { MoreHorizontal } from "lucide-react";
 import { extractErrorMessage } from "@/utils/helpers";
 import { toast } from "sonner";
-import { Subject } from "@/jotai/subject/subject-types";
+import { Subject, SUBJECT_CATEGORIES } from "@/jotai/subject/subject-types";
 
 export default function SubjectsPage() {
   const router = useRouter();
@@ -98,18 +99,6 @@ export default function SubjectsPage() {
         return (
           <div className="ml-3 uppercase">
             {subject?.class?.name || "No Class"}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "category",
-      header: "Category",
-      cell: ({ row }) => {
-        const subject = row.original;
-        return (
-          <div className="text-sm capitalize">
-            {subject.category || "Not specified"}
           </div>
         );
       },
@@ -194,11 +183,33 @@ export default function SubjectsPage() {
     },
   ];
 
+  const [searchTerm, setSearchTerm] = useState("");
+
   useEffect(() => {
     getAllSubjects();
   }, [getAllSubjects, reload]);
 
-  const filteredSubjects = Array.isArray(subjects) ? subjects : [];
+  const allSubjects = Array.isArray(subjects) ? subjects : [];
+  const filteredSubjects = searchTerm
+    ? allSubjects.filter(
+        (subject) =>
+          subject.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          subject.class?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : allSubjects;
+
+  const subjectGroups = [
+    ...SUBJECT_CATEGORIES.map(({ value, label }) => ({
+      key: value,
+      label: `${label} Subjects`,
+      subjects: filteredSubjects.filter((s) => s.category === value),
+    })),
+    {
+      key: "UNCATEGORIZED",
+      label: "Uncategorized Subjects",
+      subjects: filteredSubjects.filter((s) => !s.category),
+    },
+  ].filter((group) => group.subjects.length > 0);
 
   if (loading) {
     return (
@@ -321,43 +332,56 @@ export default function SubjectsPage() {
         )}
       </div>
 
-      {/* Subjects Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>All Subjects</span>
-            <div className="text-sm text-muted-foreground">
-              {filteredSubjects.length} subject
-              {filteredSubjects.length !== 1 ? "s" : ""} found
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {filteredSubjects.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No subjects created yet.</p>
-              <div>
-                {isParent || isStudent || isTeacher ? (
-                  <></>
-                ) : (
-                  <Button asChild className="mt-4">
-                    <Link href="/portal/subjects/new">
-                      Create First Subject
-                    </Link>
-                  </Button>
-                )}
-              </div>
-            </div>
-          ) : (
-            <DataTable
-              columns={subjectColumns}
-              data={filteredSubjects}
-              searchPlaceholder="Search subjects..."
-              searchKey="name"
-            />
-          )}
-        </CardContent>
-      </Card>
+      {/* Search across all streams */}
+      <Input
+        placeholder="Search subjects by name or class..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="max-w-sm"
+      />
+
+      {/* Subjects grouped by academic stream */}
+      {allSubjects.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">No subjects created yet.</p>
+          <div>
+            {isParent || isStudent || isTeacher ? (
+              <></>
+            ) : (
+              <Button asChild className="mt-4">
+                <Link href="/portal/subjects/new">Create First Subject</Link>
+              </Button>
+            )}
+          </div>
+        </div>
+      ) : subjectGroups.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">
+            No subjects found matching your search.
+          </p>
+        </div>
+      ) : (
+        subjectGroups.map((group) => (
+          <Card key={group.key}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>{group.label}</span>
+                <div className="text-sm text-muted-foreground">
+                  {group.subjects.length} subject
+                  {group.subjects.length !== 1 ? "s" : ""}
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DataTable
+                columns={subjectColumns}
+                data={group.subjects}
+                hideSearchBar
+              />
+            </CardContent>
+          </Card>
+        ))
+      )}
     </div>
   );
 }

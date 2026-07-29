@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
+import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { SelectItem } from "@/components/ui/select";
+import { Form } from "@/components/ui/form";
 import { PageHeader } from "@/components/general/page-header";
 
 import {
@@ -15,13 +17,25 @@ import {
   SelectField,
   TextareaField,
 } from "@/components/ui/form-field";
-import DatePicker from "@/components/general/date-picker";
+import FormDate from "@/components/general/form-date";
+import FormTime from "@/components/general/form-time";
 import { ClassFormInitialData } from "@/common/form";
 import { IClassFormData } from "@/common/types";
+import { toast } from "sonner";
+import { extractErrorMessage } from "@/utils/helpers";
 
 import { classesAPI } from "@/jotai/class/class";
 import { teachersAPI } from "@/jotai/teachers/teachers";
 import { Teacher } from "@/jotai/teachers/teachers-types";
+import { GRADE_LEVELS, SENIOR_SECONDARY_LEVELS } from "@/jotai/class/class-type";
+import { SUBJECT_CATEGORIES } from "@/jotai/subject/subject-types";
+
+interface ScheduleFormValues {
+  startDate: Date | undefined;
+  endDate: Date | undefined;
+  startTime: string;
+  endTime: string;
+}
 
 export default function AddClassPage() {
   const router = useRouter();
@@ -29,14 +43,31 @@ export default function AddClassPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [, getAllTeachers] = useAtom(teachersAPI.getAll);
 
-  // form states and dates states
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [formData, setFormData] =
     useState<IClassFormData>(ClassFormInitialData);
 
-  // Validation state for dates
-  const [dateError, setDateError] = useState<string>("");
+  // Start/end date and time are managed by their own react-hook-form
+  // instance (FormDate/FormTime require a react-hook-form context), scoped
+  // just to the schedule fields - the rest of the form stays on the
+  // existing useState-driven formData above.
+  const scheduleForm = useForm<ScheduleFormValues>({
+    defaultValues: {
+      startDate: undefined,
+      endDate: undefined,
+      startTime: "",
+      endTime: "",
+    },
+    mode: "onChange",
+  });
+
+  // Start/end date must be today or later - a class can't be scheduled to
+  // start in the past. Recomputed per render is fine (cheap), but memoized
+  // to keep a stable reference for the disableRule/validate callbacks below.
+  const todayStart = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
   useEffect(() => {
     const fetchTeachers = async () => {
@@ -49,57 +80,6 @@ export default function AddClassPage() {
     };
     fetchTeachers();
   }, [getAllTeachers]);
-
-
-  // Validate date range
-  const validateDates = (start: Date | undefined, end: Date | undefined) => {
-    if (start && end && start > end) {
-      setDateError("Start date cannot be later than end date");
-      return false;
-    }
-    setDateError("");
-    return true;
-  };
-
-  // Handle start date changes and sync with form data
-  const handleStartDateChange = (date: Date | undefined) => {
-    setStartDate(date);
-
-    // Always validate and set error state
-    const isValid = validateDates(date, endDate);
-
-    // Only update form data if dates are valid
-    if (isValid) {
-      const dateString = date ? date.toISOString().split("T")[0] : "";
-      setFormData((prev) => ({
-        ...prev,
-        schedule: {
-          ...prev.schedule,
-          startDate: dateString,
-        },
-      }));
-    }
-  };
-
-  // Handle end date changes and sync with form data
-  const handleEndDateChange = (date: Date | undefined) => {
-    setEndDate(date);
-
-    // Always validate and set error state
-    const isValid = validateDates(startDate, date);
-
-    // Only update form data if dates are valid
-    if (isValid) {
-      const dateString = date ? date.toISOString().split("T")[0] : "";
-      setFormData((prev) => ({
-        ...prev,
-        schedule: {
-          ...prev.schedule,
-          endDate: dateString,
-        },
-      }));
-    }
-  };
 
   const handleInputChange = (field: string, value: string) => {
     if (field.includes(".")) {
@@ -131,19 +111,17 @@ export default function AddClassPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate dates before submission
-    if (dateError) {
-      alert("Please fix the date errors before submitting the form.");
+    // Validate the schedule fields (required dates, end >= start) before
+    // submitting - errors render inline under each FormDate/FormTime field.
+    const scheduleValid = await scheduleForm.trigger();
+    if (!scheduleValid) {
+      toast.error("Please fix the schedule errors before submitting the form.");
       return;
     }
 
-    // Validate that both dates are provided if one is provided
-    if ((startDate && !endDate) || (!startDate && endDate)) {
-      setDateError(
-        "Both start date and end date are required if using date range."
-      );
-      return;
-    }
+    const schedule = scheduleForm.getValues();
+    const toDateString = (date: Date | undefined) =>
+      date ? date.toISOString().split("T")[0] : "";
 
     setLoading(true);
 
@@ -151,19 +129,30 @@ export default function AddClassPage() {
       const classData = {
         name: formData.name,
         gradeLevel: formData.gradeLevel,
-        capacity: parseInt(formData.capacity),
+        stream: formData.stream || null,
+        capacity: formData.capacity ? parseInt(formData.capacity) : null,
         roomNumber: formData.roomNumber,
         description: formData.description,
         teacherId: formData.teacherId ? parseInt(formData.teacherId) : null,
         academicYear: formData.academicYear,
-        schedule: { ...formData.schedule },
+        schedule: {
+          startDate: toDateString(schedule.startDate),
+          endDate: toDateString(schedule.endDate),
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+          days: formData.schedule.days,
+        },
       };
 
       await classesAPI.create(classData);
+      toast.success("Class created successfully");
       router.push("/portal/classes");
     } catch (error) {
       console.error("Failed to create class:", error);
-      alert("Failed to create class. Please try again.");
+      const errorMessage = extractErrorMessage(error);
+      toast.error("Failed to create class", {
+        description: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
@@ -207,43 +196,47 @@ export default function AddClassPage() {
                 label="Grade Level"
                 required
                 value={formData.gradeLevel}
-                onValueChange={(value) =>
-                  handleInputChange("gradeLevel", value)
-                }
+                onValueChange={(value) => {
+                  handleInputChange("gradeLevel", value);
+                  // Stream only applies to Senior Secondary levels.
+                  if (!SENIOR_SECONDARY_LEVELS.includes(value)) {
+                    handleInputChange("stream", "");
+                  }
+                }}
                 placeholder="Select grade"
               >
-                {Array.from({ length: 6 }, (_, i) => (
-                  <SelectItem key={i + 1} value={(i + 1).toString()}>
-                    Grade {i + 1}
+                {GRADE_LEVELS.map(({ value, label }) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
                   </SelectItem>
                 ))}
               </SelectField>
 
-              {/* <SelectField
-                label="Section"
-                value={formData.section}
-                onValueChange={(value) => handleInputChange("section", value)}
-                placeholder="Select section"
-              >
-                {Array.from({ length: 8 }, (_, i) => (
-                  <SelectItem
-                    key={String.fromCharCode(65 + i)}
-                    value={String.fromCharCode(65 + i)}
-                  >
-                    Section {String.fromCharCode(65 + i)}
-                  </SelectItem>
-                ))}
-              </SelectField> */}
+              {SENIOR_SECONDARY_LEVELS.includes(formData.gradeLevel) && (
+                <SelectField
+                  label="Stream"
+                  required
+                  value={formData.stream}
+                  onValueChange={(value) => handleInputChange("stream", value)}
+                  placeholder="Select stream"
+                >
+                  {SUBJECT_CATEGORIES.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectField>
+              )}
 
               <InputField
                 label="Student Capacity"
-                required
                 id="capacity"
                 type="number"
                 value={formData.capacity}
                 onChange={(e) => handleInputChange("capacity", e.target.value)}
                 min="1"
                 max="100"
+                placeholder="Leave blank for no limit"
               />
 
               <InputField
@@ -316,62 +309,58 @@ export default function AddClassPage() {
             <CardTitle>Schedule Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <DatePicker
-                label="Start Date"
-                date={startDate}
-                setDate={handleStartDateChange}
-                maxDate={endDate}
-              />
+            <Form {...scheduleForm}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormDate
+                  name="startDate"
+                  label="Start Date"
+                  placeholder="Select start date"
+                  disableRule={(date) => date < todayStart}
+                  rules={{
+                    required: "Start date is required",
+                    validate: (value: Date) => {
+                      if (value && value < todayStart) {
+                        return "Start date must be today or later";
+                      }
+                      return true;
+                    },
+                  }}
+                />
 
-              <DatePicker
-                label="End Date"
-                date={endDate}
-                setDate={handleEndDateChange}
-                minDate={startDate}
-              />
-            </div>
-
-            {/* Date validation error */}
-            {dateError && (
-              <div className="text-red-500 text-sm mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800">
-                {dateError}
+                <FormDate
+                  name="endDate"
+                  label="End Date"
+                  placeholder="Select end date"
+                  disableRule={(date) => date < todayStart}
+                  rules={{
+                    required: "End date is required",
+                    validate: (value: Date) => {
+                      const start = scheduleForm.getValues("startDate");
+                      if (start && value && value < start) {
+                        return "End date cannot be before start date";
+                      }
+                      return true;
+                    },
+                  }}
+                />
               </div>
-            )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField
-                label="Class Start Time"
-                id="startTime"
-                type={"time"}
-                value={formData.schedule.startTime}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    schedule: {
-                      ...prev.schedule,
-                      startTime: e.target.value,
-                    },
-                  }))
-                }
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormTime
+                  name="startTime"
+                  label="Class Start Time"
+                  placeholder="Select start time"
+                  interval={30}
+                />
 
-              <InputField
-                label="Class End Time"
-                id={"endTime"}
-                type={"time"}
-                value={formData.schedule.endTime}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    schedule: {
-                      ...prev.schedule,
-                      endTime: e.target.value,
-                    },
-                  }))
-                }
-              />
-            </div>
+                <FormTime
+                  name="endTime"
+                  label="Class End Time"
+                  placeholder="Select end time"
+                  interval={30}
+                />
+              </div>
+            </Form>
 
             <div>
               <Label>Class Days</Label>

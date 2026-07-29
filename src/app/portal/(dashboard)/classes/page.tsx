@@ -14,6 +14,7 @@ import { authPersistedAtom } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ConfirmDialog } from "@/components/general/confirm-dialog";
 import {
   isParentAtom,
   isStudentAtom,
@@ -40,6 +41,8 @@ export default function ClassesPage() {
     view: null,
     delete: null,
   });
+
+  const [classToDelete, setClassToDelete] = useState<Class | null>(null);
 
   const [auth] = useAtom(authPersistedAtom);
   const [loading] = useAtom(classLoadingAtom);
@@ -110,12 +113,15 @@ export default function ClassesPage() {
     }, 3000);
   };
 
-  const handleDeleteClass = async (classId: number) => {
+  const handleDeleteClass = async () => {
+    if (!classToDelete) return;
+    const classId = classToDelete.id;
     setLoadingStates((prev) => ({ ...prev, delete: classId }));
     try {
       await classesAPI.delete(classId);
       toast.success("Class deleted successfully");
       setReload(true);
+      setClassToDelete(null);
     } catch (error) {
       const errorMessage = extractErrorMessage(error);
       toast.error("Failed to delete class record. Please try again.", {
@@ -180,7 +186,7 @@ export default function ClassesPage() {
               <CardTitle className="flex items-center justify-between">
                 <span>{classItem?.name}</span>
 
-                <div className="flex md:flex-row flex-col gap-2">
+                <div className="flex md:flex-row flex-col gap-2 md:gap-4">
                   <Button
                     variant="outline"
                     size="sm"
@@ -201,7 +207,7 @@ export default function ClassesPage() {
                     <Button
                       size={"sm"}
                       variant={"destructive"}
-                      onClick={() => handleDeleteClass(classItem.id)}
+                      onClick={() => setClassToDelete(classItem)}
                     >
                       {loadingStates.delete === classItem.id ? (
                         <div>
@@ -220,6 +226,13 @@ export default function ClassesPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
+                {(classItem?.gradeLevel || classItem?.stream) && (
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-medium">Grade/Stream:</span>{" "}
+                    {classItem?.gradeLevel || "—"}
+                    {classItem?.stream ? ` (${classItem.stream})` : ""}
+                  </p>
+                )}
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Students:</span>{" "}
                   {classItem?.students?.length || 0}
@@ -257,6 +270,17 @@ export default function ClassesPage() {
           )}
         </div>
       )}
+      <ConfirmDialog
+        open={classToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setClassToDelete(null);
+        }}
+        title="Delete class"
+        description={`Are you sure you want to delete "${classToDelete?.name}"? This will remove the class and cannot be undone.`}
+        confirmLabel="Delete"
+        loading={loadingStates.delete === classToDelete?.id}
+        onConfirm={handleDeleteClass}
+      />
     </div>
   );
 }

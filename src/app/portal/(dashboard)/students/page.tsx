@@ -8,7 +8,16 @@ import {
   studentListAtom,
   studentLoadingAtom,
 } from "@/jotai/students/student";
+import { getAllClassAtom } from "@/jotai/class/class";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PersonAvatar } from "@/components/ui/person-avatar";
 import {
   isAdminAtom,
@@ -19,11 +28,13 @@ import {
 import { extractErrorMessage } from "@/utils/helpers";
 import { toast } from "sonner";
 import { TooltipComp } from "@/components/ui/tooltip-comp";
+import { useDebounce } from "@/hooks/useDebounce";
 
 import { Spinner } from "@radix-ui/themes";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 
 import { Student } from "@/jotai/students/student-types";
+import { Class } from "@/jotai/class/class-type";
 import { DataTable } from "@/components/general/data-table";
 import {
   DropdownMenu,
@@ -41,6 +52,7 @@ export default function StudentsPage() {
   const [students] = useAtom(studentListAtom);
   const [loading] = useAtom(studentLoadingAtom);
   const [, getAllStudents] = useAtom(studentsAPI.getAll);
+  const [classes] = useAtom(getAllClassAtom);
   const [loadingStates, setLoadingStates] = useState<{
     add: boolean;
     view: number | null;
@@ -56,11 +68,16 @@ export default function StudentsPage() {
   const [isTeacher] = useAtom(isTeacherAtom);
   const [isAdmin] = useAtom(isAdminAtom);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [classFilter, setClassFilter] = useState<string>("all");
+  const debouncedSearch = useDebounce(searchTerm, 300);
+
   useEffect(() => {
-    (() => {
-      getAllStudents();
-    })();
-  }, [getAllStudents, reload]);
+    getAllStudents({
+      search: debouncedSearch || undefined,
+      classId: classFilter !== "all" ? Number(classFilter) : undefined,
+    });
+  }, [getAllStudents, reload, debouncedSearch, classFilter]);
 
   const filteredStudents = Array.isArray(students?.students)
     ? students.students
@@ -120,6 +137,15 @@ export default function StudentsPage() {
       accessorKey: "id",
       header: "Student ID",
       cell: ({ row }) => <div className="capitalize">{row.getValue("id")}</div>,
+    },
+    {
+      id: "admissionNumber",
+      header: "Admission Number",
+      accessorFn: (row) => row.admissionNumber,
+      cell: ({ row }) => {
+        const student = row.original;
+        return <div>{student?.admissionNumber || "Not set"}</div>;
+      },
     },
     {
       id: "firstName",
@@ -350,11 +376,32 @@ export default function StudentsPage() {
         )}
       </div>
 
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <Input
+          placeholder="Search by name, admission number, or student ID..."
+          value={searchTerm}
+          onChange={(event) => setSearchTerm(event.target.value)}
+          className="max-w-sm"
+        />
+        <Select value={classFilter} onValueChange={setClassFilter}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue placeholder="Filter by class" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Classes</SelectItem>
+            {(Array.isArray(classes) ? classes : []).map((classItem: Class) => (
+              <SelectItem key={classItem.id} value={String(classItem.id)}>
+                {classItem.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <DataTable
         columns={columns}
         data={filteredStudents}
-        searchPlaceholder="Search students by name, email, or class..."
-        enableGlobalSearch={true}
+        hideSearchBar
       />
     </div>
   );

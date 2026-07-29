@@ -43,6 +43,9 @@ export interface GradeSummary {
   marksObtainable: number;
   totalMarksObtained: number;
   average: number;
+  gradeSummary?: { A: number; B: number; C: number; D: number; F: number };
+  classPosition?: number | null;
+  classSize?: number;
 }
 
 export interface ReportCard {

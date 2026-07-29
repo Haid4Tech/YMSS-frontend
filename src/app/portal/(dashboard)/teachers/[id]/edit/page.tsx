@@ -2,9 +2,12 @@
 
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { useRouter, useParams } from "next/navigation";
 import { DynamicHeader } from "@/components/general/page-header";
-import TeacherForm from "@/components/portal/dashboards/teacher/form";
+import TeacherForm, {
+  ITeacherDateFormValues,
+} from "@/components/portal/dashboards/teacher/form";
 import { ITeacherFormData } from "@/common/types";
 import { TeacherFormInitialData } from "@/common/form";
 import {
@@ -43,12 +46,15 @@ export default function Page() {
   const [formData, setFormData] = useState<ITeacherFormData>(
     TeacherFormInitialData
   );
-  const [date, setDate] = useState<{
-    DOB: Date | undefined;
-    hireDate: Date | undefined;
-  }>({
-    DOB: undefined,
-    hireDate: undefined,
+
+  // DOB/hireDate are managed by their own react-hook-form instance
+  // (FormDate requires a react-hook-form context), scoped just to those two
+  // fields - the rest of the form stays on the existing useState-driven
+  // formData above. Populated once the teacher data loads (see fetchData
+  // below), since it arrives asynchronously after mount.
+  const dateForm = useForm<ITeacherDateFormValues>({
+    defaultValues: { DOB: undefined, hireDate: undefined },
+    mode: "onChange",
   });
 
   useEffect(() => {
@@ -58,16 +64,13 @@ export default function Page() {
         getAllSubjects(),
       ]);
 
-      // Check if subjects exists and set
-      if (teacher.subjects.length > 0) {
-        setSubjects(teacher.subjects);
-      } else {
-        setSubjects(subjects);
-      }
+      // Always show every subject so the teacher can be assigned to more
+      // than one, not just the one(s) they're already teaching.
+      setSubjects(Array.isArray(subjects) ? subjects : []);
 
-      setDate({
-        DOB: new Date(teacher.user.DOB),
-        hireDate: new Date(teacher?.hireDate ?? ""),
+      dateForm.reset({
+        DOB: teacher.user.DOB ? new Date(teacher.user.DOB) : undefined,
+        hireDate: teacher?.hireDate ? new Date(teacher.hireDate) : undefined,
       });
 
       setFormData({
@@ -85,35 +88,25 @@ export default function Page() {
         degree: teacher.degree,
         university: teacher?.university ?? "",
         graduationYear: teacher?.graduationYear || 0,
-        subjectSpecialization: teacher?.subjects?.[0]?.id?.toString() ?? "",
+        // teacher.subjects comes back as SubjectTeacher join rows
+        // ({ id, subjectId, teacherId }), not Subject records - the
+        // subject's own id lives in subjectId, not id.
+        subjectIds:
+          teacher?.subjects?.map(
+            (subject) => (subject as unknown as { subjectId: number }).subjectId
+          ) ?? [],
       });
     };
 
     fetchData();
   }, [getAllSubjects, teacherId]);
 
-  // Handle date changes for both DOB and Join Date
-  const handleDateChange =
-    (dateType: "DOB" | "hireDate") => (selectedDate: Date | undefined) => {
-      // Update the date state
-      setDate((prev) => ({
-        ...prev,
-        [dateType]: selectedDate,
-      }));
-
-      // Update form data with string format
-      const dateString = selectedDate
-        ? selectedDate.toISOString().split("T")[0]
-        : "";
-
-      setFormData((prev) => ({
-        ...prev,
-        [dateType]: dateString,
-      }));
-    };
-
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubjectsChange = (subjectIds: number[]) => {
+    setFormData((prev) => ({ ...prev, subjectIds }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,10 +116,23 @@ export default function Page() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const dateValid = await dateForm.trigger();
+    if (!dateValid) {
+      toast.error("Please fix the date errors before submitting the form.");
+      return;
+    }
+    const { DOB, hireDate } = dateForm.getValues();
+
     setLoading(true);
 
     try {
-      await teachersAPI.update(teacherId, formData);
+      const updateData = {
+        ...formData,
+        DOB: DOB ? DOB.toISOString().split("T")[0] : "",
+        hireDate: hireDate ? hireDate.toISOString().split("T")[0] : "",
+      };
+      await teachersAPI.update(teacherId, updateData);
       toast.success("Updated teachers successfully");
       router.back();
     } catch (error) {
@@ -153,12 +159,12 @@ export default function Page() {
         tabs={tabs}
         subjects={subjects}
         loading={loading}
-        date={date}
+        dateForm={dateForm}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         handleInputChange={handleInputChange}
-        handleDateChange={handleDateChange}
         handleFileChange={handleFileChange}
+        onSubjectsChange={handleSubjectsChange}
         formData={formData}
       />
     </div>

@@ -3,11 +3,14 @@
 import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 
 import { toast } from "sonner";
 import { PageHeader } from "@/components/general/page-header";
 import { StudentFormIntialData } from "@/common/form";
-import StudentForm from "@/components/portal/dashboards/student/form";
+import StudentForm, {
+  IStudentDateFormValues,
+} from "@/components/portal/dashboards/student/form";
 import { GraduationCap, Users, House, ShieldPlus, User } from "lucide-react";
 
 import { parentsAPI } from "@/jotai/parent/parent";
@@ -28,12 +31,14 @@ export default function AddStudentPage() {
   const [, getAllParents] = useAtom(parentsAPI.getAll);
 
   const [formData, setFormData] = useState(StudentFormIntialData);
-  const [date, setDate] = useState<{
-    dob: Date | undefined;
-    admissionDate: Date | undefined;
-  }>({
-    dob: undefined,
-    admissionDate: undefined,
+
+  // DOB/admission date are managed by their own react-hook-form instance
+  // (FormDate requires a react-hook-form context), scoped just to those two
+  // fields - the rest of the form stays on the existing useState-driven
+  // formData above.
+  const dateForm = useForm<IStudentDateFormValues>({
+    defaultValues: { dob: undefined, admissionDate: undefined },
+    mode: "onChange",
   });
 
   useEffect(() => {
@@ -51,28 +56,6 @@ export default function AddStudentPage() {
     fetchData();
   }, [getAllClasses, getAllParents]);
 
-  // Handle date changes for both DOB and Join Date
-  const handleDateChange =
-    (dateType: "dob" | "admissionDate") => (selectedDate: Date | undefined) => {
-      // Update the date state
-      setDate((prev) => ({
-        ...prev,
-        [dateType]: selectedDate,
-      }));
-
-      // Update form data with string format
-      const dateString = selectedDate
-        ? selectedDate.toISOString().split("T")[0]
-        : "";
-      const formFieldName =
-        dateType === "dob" ? "dateOfBirth" : "admissionDate";
-
-      setFormData((prev) => ({
-        ...prev,
-        [formFieldName]: dateString,
-      }));
-    };
-
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -87,19 +70,19 @@ export default function AddStudentPage() {
     await handleCreateStudent();
   };
 
-  const validateForm = () => {
+  const validateForm = (dobString: string, admissionDateString: string) => {
     const requiredFields = [
       formData.firstname,
       formData.lastname,
       formData.email,
-      formData.dateOfBirth,
+      dobString,
       formData.gender,
       formData.street,
       formData.city,
       formData.state,
       formData.zipcode,
       formData.country,
-      formData.admissionDate,
+      admissionDateString,
       formData.parentemail,
       formData.parentphone,
       formData.relationship,
@@ -108,10 +91,21 @@ export default function AddStudentPage() {
   };
 
   const handleCreateStudent = async () => {
+    const dateValid = await dateForm.trigger();
+    if (!dateValid) {
+      toast.error("Please fix the date errors before submitting the form.");
+      return;
+    }
+    const { dob, admissionDate } = dateForm.getValues();
+    const dobString = dob ? dob.toISOString().split("T")[0] : "";
+    const admissionDateString = admissionDate
+      ? admissionDate.toISOString().split("T")[0]
+      : "";
+
     setLoading(true);
 
     try {
-      if (!validateForm()) {
+      if (!validateForm(dobString, admissionDateString)) {
         toast.error("Please fill out all required fields before submitting.");
         setLoading(false);
         return;
@@ -124,8 +118,8 @@ export default function AddStudentPage() {
         email: formData.email.trim(),
         password: `${formData.firstname
           .trim()
-          .toLowerCase()}${formData.dateOfBirth.replace(/-/g, "")}`, // Temporary password dateformat - yyyymmmmdd
-        DOB: formData.dateOfBirth,
+          .toLowerCase()}${dobString.replace(/-/g, "")}`, // Temporary password dateformat - yyyymmmmdd
+        DOB: dobString,
         gender: formData.gender,
         street: formData.street,
         city: formData.city,
@@ -145,7 +139,7 @@ export default function AddStudentPage() {
           formData.parentId && formData.parentId !== "N/A"
             ? parseInt(formData.parentId)
             : null,
-        admissionDate: formData.admissionDate,
+        admissionDate: admissionDateString,
         previousSchool: formData.previousSchool || null,
 
         // Medical information
@@ -202,12 +196,11 @@ export default function AddStudentPage() {
         tabs={tabs}
         classes={classes}
         loading={loading}
-        date={date}
+        dateForm={dateForm}
         isParent={false}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         handleInputChange={handleInputChange}
-        handleDateChange={handleDateChange}
         handleFileChange={handleFileChange}
         formData={formData}
       />

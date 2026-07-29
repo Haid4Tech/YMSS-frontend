@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-// import Link from "next/link";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AttendanceStatus } from "@/jotai/subject-attendance/subject-attendance-type";
@@ -15,13 +16,19 @@ import { attendanceAPI } from "@/jotai/attendance/attendance";
 import { Attendance } from "@/jotai/attendance/attendance-types";
 
 import { PageHeader } from "@/components/general/page-header";
-import DatePicker from "@/components/general/date-picker";
+import { Form } from "@/components/ui/form";
+import FormDate from "@/components/general/form-date";
 import ActionsDropdown from "@/components/ui/actions-dropdown";
+import { AttendanceStatusPicker } from "@/components/general/attendance-status-picker";
 
 import { ColumnDef } from "@tanstack/react-table";
 
 import { toast } from "sonner";
 import { extractErrorMessage } from "@/utils/helpers";
+
+interface DateFormValues {
+  date: Date | undefined;
+}
 
 export default function MarkAttendancePage() {
   const params = useParams<{ classId: string }>();
@@ -31,11 +38,33 @@ export default function MarkAttendancePage() {
     new Date()
   );
 
+  // The date filter is managed by its own react-hook-form instance
+  // (FormDate requires a react-hook-form context), synced into
+  // attendanceDate below - kept as a local YYYY-MM-DD string (not
+  // toISOString()) to avoid a timezone-driven off-by-one-day shift.
+  const dateForm = useForm<DateFormValues>({
+    defaultValues: { date: new Date() },
+    mode: "onChange",
+  });
+  const watchedDate = dateForm.watch("date");
+
+  useEffect(() => {
+    if (watchedDate) {
+      const year = watchedDate.getFullYear();
+      const month = String(watchedDate.getMonth() + 1).padStart(2, "0");
+      const day = String(watchedDate.getDate()).padStart(2, "0");
+      setAttendanceDate(`${year}-${month}-${day}`);
+    } else {
+      setAttendanceDate("");
+    }
+  }, [watchedDate]);
+
   const [students, setStudents] = useState<Student[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<Attendance[]>([]);
   const [localAttendanceRecords, setLocalAttendanceRecords] = useState<
     Record<number, { status: string; notes?: string }>
   >({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,73 +149,19 @@ export default function MarkAttendancePage() {
     ).length,
   };
 
-  const handleAttendanceChange = async (
+  // Marking a student's status only stages the change locally - nothing is
+  // persisted until "Save Attendance" is clicked. This lets a teacher use
+  // "Mark All Present" and then adjust individual students before saving,
+  // instead of every click firing its own save.
+  const handleAttendanceChange = (
     studentId: number,
     status: AttendanceStatus,
     notes?: string
   ) => {
-    try {
-      // Update local state immediately for UI responsiveness
-      setLocalAttendanceRecords((prev) => ({
-        ...prev,
-        [studentId]: { status, notes: notes || "" },
-      }));
-
-      // Check if there's an existing attendance record for this student, class and date
-      const existingRecord = attendanceRecords.find((record) => {
-        const recordDate = new Date(record.date);
-        const selectedDate = new Date(attendanceDate);
-
-        return (
-          record.studentId === studentId &&
-          record.classId === parseInt(classId) &&
-          recordDate.getFullYear() === selectedDate.getFullYear() &&
-          recordDate.getMonth() === selectedDate.getMonth() &&
-          recordDate.getDate() === selectedDate.getDate()
-        );
-      });
-
-      if (existingRecord) {
-        // Update existing attendance record
-        const updatedAttendance = await attendanceAPI.updateAttendance(
-          existingRecord.id,
-          { status, notes }
-        );
-
-        // Update local attendance records
-        setAttendanceRecords((prev) =>
-          prev.map((record) =>
-            record.id === existingRecord.id ? updatedAttendance : record
-          )
-        );
-      } else {
-        // Create new attendance record
-        const newAttendance = await attendanceAPI.createAttendance({
-          studentId,
-          classId: parseInt(classId),
-          date: attendanceDate,
-          status,
-          notes,
-        });
-
-        // Add to local attendance records
-        setAttendanceRecords((prev) => [...prev, newAttendance]);
-      }
-
-      toast.success(`Student ${studentId} marked as ${status}`);
-    } catch (error: any) {
-      console.error("Failed to update attendance:", error);
-      const errorMessage =
-        error.response?.data?.error || "Failed to update attendance";
-      toast.error(errorMessage);
-
-      // Revert local state on error
-      setLocalAttendanceRecords((prev) => {
-        const updated = { ...prev };
-        delete updated[studentId];
-        return updated;
-      });
-    }
+    setLocalAttendanceRecords((prev) => ({
+      ...prev,
+      [studentId]: { status, notes: notes ?? prev[studentId]?.notes },
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -197,10 +172,12 @@ export default function MarkAttendancePage() {
       return;
     }
 
-    // setLoading(true);
+    setSaving(true);
 
     try {
-      // Create attendance records for all students with local changes
+      // Create/update attendance records for all students with local changes.
+      // The bulk endpoint upserts, so re-saving after an earlier save (e.g.
+      // to adjust one student) works too.
       const attendanceRecordsArray = Object.entries(localAttendanceRecords).map(
         ([studentId, data]) => ({
           studentId: parseInt(studentId),
@@ -209,14 +186,14 @@ export default function MarkAttendancePage() {
         })
       );
 
-      const result = await attendanceAPI.createBulkAttendance({
+      await attendanceAPI.createBulkAttendance({
         classId: parseInt(classId),
         date: attendanceDate,
         attendanceRecords: attendanceRecordsArray,
       });
 
-      // Add to local attendance records
-      setAttendanceRecords((prev) => [...prev, ...result.attendance]);
+      // Refetch from the server so attendanceRecords reflects saved state.
+      await refreshAttendanceData();
 
       // Clear local records after successful save
       setLocalAttendanceRecords({});
@@ -226,6 +203,8 @@ export default function MarkAttendancePage() {
         error.response?.data?.error || extractErrorMessage(error);
       console.error("Failed to save attendance:", errorMessage);
       toast.error(errorMessage);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -324,22 +303,21 @@ export default function MarkAttendancePage() {
       cell: ({ row }) => {
         const student = row.original;
         const status = student.attendance?.status || "NOT_MARKED";
-        const statusColors = {
-          PRESENT: "text-green-600 bg-green-50",
-          ABSENT: "text-red-600 bg-red-50",
-          LATE: "text-yellow-600 bg-yellow-50",
-          EXCUSED: "text-blue-600 bg-blue-50",
-          NOT_MARKED: "text-gray-600 bg-gray-50",
-        };
 
         return (
-          <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
-              statusColors[status as keyof typeof statusColors]
-            }`}
-          >
-            {status.replace("_", " ")}
-          </span>
+          <div className="flex items-center gap-2">
+            <AttendanceStatusPicker
+              value={status}
+              onChange={(newStatus) =>
+                handleAttendanceChange(student.id, newStatus)
+              }
+            />
+            {status === "NOT_MARKED" && (
+              <span className="text-xs text-muted-foreground">
+                Not marked
+              </span>
+            )}
+          </div>
         );
       },
     },
@@ -389,30 +367,6 @@ export default function MarkAttendancePage() {
                   navigator.clipboard.writeText(String(student.id)),
               },
               {
-                label: "View student",
-                onClick: () => {},
-              },
-              {
-                label: "Mark Present",
-                onClick: () =>
-                  handleAttendanceChange(student.id, AttendanceStatus.PRESENT),
-              },
-              {
-                label: "Mark Absent",
-                onClick: () =>
-                  handleAttendanceChange(student.id, AttendanceStatus.ABSENT),
-              },
-              {
-                label: "Mark Late",
-                onClick: () =>
-                  handleAttendanceChange(student.id, AttendanceStatus.LATE),
-              },
-              {
-                label: "Mark Excused",
-                onClick: () =>
-                  handleAttendanceChange(student.id, AttendanceStatus.EXCUSED),
-              },
-              {
                 label: "Refresh Data",
                 onClick: refreshAttendanceData,
               },
@@ -439,22 +393,9 @@ export default function MarkAttendancePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <DatePicker
-                label={"Date"}
-                date={attendanceDate ? new Date(attendanceDate) : undefined}
-                setDate={(date: Date | undefined) => {
-                  if (date) {
-                    // Use local date formatting to avoid timezone issues
-                    const year = date.getFullYear();
-                    const month = String(date.getMonth() + 1).padStart(2, "0");
-                    const day = String(date.getDate()).padStart(2, "0");
-                    const newDate = `${year}-${month}-${day}`;
-                    setAttendanceDate(newDate);
-                  } else {
-                    setAttendanceDate("");
-                  }
-                }}
-              />
+              <Form {...dateForm}>
+                <FormDate name="date" label="Date" placeholder="Select date" />
+              </Form>
             </div>
           </CardContent>
         </Card>
@@ -548,7 +489,7 @@ export default function MarkAttendancePage() {
         </Card>
 
         {/* Form Actions */}
-        {/* {mappedStudents.length > 0 && (
+        {mappedStudents.length > 0 && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button type="button" variant="outline" asChild>
@@ -556,20 +497,21 @@ export default function MarkAttendancePage() {
               </Button>
               {Object.keys(localAttendanceRecords).length > 0 && (
                 <span className="text-sm text-orange-600 font-medium">
-                  {Object.keys(localAttendanceRecords).length} unsaved changes
+                  {Object.keys(localAttendanceRecords).length} unsaved change
+                  {Object.keys(localAttendanceRecords).length !== 1 ? "s" : ""}
                 </span>
               )}
             </div>
             <Button
               type="submit"
               disabled={
-                loading || Object.keys(localAttendanceRecords).length === 0
+                saving || Object.keys(localAttendanceRecords).length === 0
               }
             >
-              {loading ? "Saving Attendance..." : "Save Attendance"}
+              {saving ? "Saving Attendance..." : "Save Attendance"}
             </Button>
           </div>
-        )} */}
+        )}
       </form>
     </div>
   );

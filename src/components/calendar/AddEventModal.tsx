@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useAtom } from "jotai";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Form } from "@/components/ui/form";
+import FormTime from "@/components/general/form-time";
 import { EventFormData, CalendarEvent } from "@/types/calendar";
 import {
   formatDate,
@@ -36,6 +39,11 @@ interface AddEventModalProps {
   onSubmit: (event: Omit<CalendarEvent, "id">) => void;
   selectedDate: Date;
   initialData?: CalendarEvent; // For editing existing events
+}
+
+interface EventTimeFormValues {
+  startTime: string;
+  endTime: string;
 }
 
 export function AddEventModal({
@@ -61,6 +69,19 @@ export function AddEventModal({
     createdById: initialData?.createdById ?? user?.id ?? 0,
   });
 
+  // Start/end time are managed by their own react-hook-form instance
+  // (FormTime requires a react-hook-form context), scoped just to those two
+  // fields - the rest of the form stays on the existing useState-driven
+  // formData above. "End time after start time" is enforced via the
+  // endTime field's validate rule below instead of validateForm().
+  const timeForm = useForm<EventTimeFormValues>({
+    defaultValues: {
+      startTime: initialData?.startTime || "09:00",
+      endTime: initialData?.endTime || "10:00",
+    },
+    mode: "onChange",
+  });
+
   // Form validation
   const [errors, setErrors] = useState<
     Partial<Record<keyof EventFormData, string>>
@@ -74,32 +95,25 @@ export function AddEventModal({
       newErrors.title = "Event title is required";
     }
 
-    // Validate time format and logic
-    if (formData.startTime && formData.endTime) {
-      const start = new Date(`2000-01-01T${formData.startTime}`);
-      const end = new Date(`2000-01-01T${formData.endTime}`);
-
-      if (start >= end) {
-        newErrors.endTime = "End time must be after start time";
-      }
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    const timeValid = await timeForm.trigger();
+    if (!validateForm() || !timeValid) return;
+
+    const { startTime, endTime } = timeForm.getValues();
 
     // Create the event object
     const eventData: Omit<CalendarEvent, "id"> = {
       title: formData.title.trim(),
       description: formData.description?.trim() || undefined,
       date: formData.date,
-      startTime: formData.startTime || undefined,
-      endTime: formData.endTime || undefined,
+      startTime: startTime || undefined,
+      endTime: endTime || undefined,
       category: formData.category,
       color: formData.color,
       createdById: user?.id ?? 0,
@@ -122,6 +136,7 @@ export function AddEventModal({
       color: findCategoryByLabel("Other")?.color || "#6b7280",
       createdById: 0,
     });
+    timeForm.reset({ startTime: "09:00", endTime: "10:00" });
     setErrors({});
     onClose();
   };
@@ -180,30 +195,31 @@ export function AddEventModal({
           </div>
 
           {/* Time Inputs */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="startTime">Start Time</Label>
-              <Input
-                id="startTime"
-                type="time"
-                value={formData.startTime}
-                onChange={(e) => handleInputChange("startTime", e.target.value)}
+          <Form {...timeForm}>
+            <div className="grid grid-cols-2 gap-4">
+              <FormTime
+                name="startTime"
+                label="Start Time"
+                placeholder="Select start time"
+                interval={15}
+              />
+              <FormTime
+                name="endTime"
+                label="End Time"
+                placeholder="Select end time"
+                interval={15}
+                rules={{
+                  validate: (value: string) => {
+                    const start = timeForm.getValues("startTime");
+                    if (start && value && start >= value) {
+                      return "End time must be after start time";
+                    }
+                    return true;
+                  },
+                }}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="endTime">End Time</Label>
-              <Input
-                id="endTime"
-                type="time"
-                value={formData.endTime}
-                onChange={(e) => handleInputChange("endTime", e.target.value)}
-                className={errors.endTime ? "border-destructive" : ""}
-              />
-              {errors.endTime && (
-                <p className="text-sm text-destructive">{errors.endTime}</p>
-              )}
-            </div>
-          </div>
+          </Form>
 
           {/* Category Selection */}
           <div className="space-y-2">

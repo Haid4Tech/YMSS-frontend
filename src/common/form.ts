@@ -22,7 +22,7 @@ export const TeacherFormInitialData = {
   previousInstitution: "",
   salary: 0,
   employmentType: "",
-  subjectSpecialization: "",
+  subjectIds: [] as number[],
 
   degree: "",
   university: "",
@@ -72,6 +72,7 @@ export const StudentFormIntialData = {
 export const ClassFormInitialData = {
   name: "",
   gradeLevel: "",
+  stream: "",
   capacity: "",
   roomNumber: "",
   description: "",

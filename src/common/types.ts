@@ -75,7 +75,6 @@ export interface ITeacherFormData {
   street?: string;
   country?: string;
   zipcode?: string;
-  subjectId?: number;
   university: string;
   photo?: File | null | string;
 
@@ -84,8 +83,9 @@ export interface ITeacherFormData {
   preferredGrades?: string;
   qualification?: string;
 
-  // Not added - should be added
-  subjectSpecialization?: string;
+  // Subjects this teacher is assigned to teach. A teacher can be assigned
+  // to more than one subject.
+  subjectIds?: number[];
 }
 
 export interface IExamFormData {
@@ -102,6 +102,7 @@ export interface IExamFormData {
 export interface IClassFormData {
   name: string;
   gradeLevel: string;
+  stream: string;
   capacity: string;
   roomNumber: string;
   description: string;

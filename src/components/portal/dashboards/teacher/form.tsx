@@ -2,10 +2,13 @@
 
 import { Dispatch, FC, SetStateAction, ChangeEvent } from "react";
 import Link from "next/link";
+import { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SelectContent, SelectItem } from "@/components/ui/select";
-import DatePicker from "@/components/general/date-picker";
+import { Form } from "@/components/ui/form";
+import FormDate from "@/components/general/form-date";
 import {
   InputField,
   SelectField,
@@ -17,7 +20,7 @@ import { ITeacherFormData } from "@/common/types";
 import { Subject } from "@/jotai/subject/subject-types";
 import { CountrySelector, ReligionSelector } from "@/components/ui/selectors";
 
-interface IDate {
+export interface ITeacherDateFormValues {
   DOB: Date | undefined;
   hireDate: Date | undefined;
 }
@@ -34,14 +37,12 @@ interface ITeacherForm {
   tabs: ITabs[];
   subjects: Subject[];
   loading: boolean;
-  date: IDate;
+  dateForm: UseFormReturn<ITeacherDateFormValues>;
   activeTab: string;
   setActiveTab: Dispatch<SetStateAction<string>>;
   handleInputChange: (field: string, value: string) => void;
-  handleDateChange: (
-    dateType: "hireDate" | "DOB"
-  ) => (selectedDate: Date | undefined) => void;
   handleFileChange: (file: ChangeEvent<HTMLInputElement>) => void;
+  onSubjectsChange: (subjectIds: number[]) => void;
   formData?: ITeacherFormData | null;
 }
 
@@ -49,17 +50,28 @@ const TeacherForm: FC<ITeacherForm> = ({
   type,
   onSubmit,
   tabs,
-  date,
+  dateForm,
   subjects,
   loading,
   activeTab,
   setActiveTab,
   handleInputChange,
-  handleDateChange,
   handleFileChange,
+  onSubjectsChange,
   formData,
 }) => {
+  const selectedSubjectIds = formData?.subjectIds ?? [];
+
+  const toggleSubject = (subjectId: number, checked: boolean) => {
+    if (checked) {
+      onSubjectsChange([...selectedSubjectIds, subjectId]);
+    } else {
+      onSubjectsChange(selectedSubjectIds.filter((id) => id !== subjectId));
+    }
+  };
+
   return (
+    <Form {...dateForm}>
     <form onSubmit={onSubmit} className="space-y-6">
       {/* Tab Navigation */}
       <Card>
@@ -132,10 +144,11 @@ const TeacherForm: FC<ITeacherForm> = ({
                   onChange={(e) => handleInputChange("phone", e.target.value)}
                 />
                 <div>
-                  <DatePicker
-                    label={"Date of Birth"}
-                    date={date.DOB}
-                    setDate={handleDateChange("DOB")}
+                  <FormDate
+                    name="DOB"
+                    label="Date of Birth"
+                    placeholder="Select date of birth"
+                    rules={{ required: "Date of birth is required" }}
                   />
                 </div>
                 <div>
@@ -245,26 +258,44 @@ const TeacherForm: FC<ITeacherForm> = ({
                 Professional Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <DatePicker
+                <FormDate
+                  name="hireDate"
                   label="Hire Date"
-                  date={date.hireDate}
-                  setDate={handleDateChange("hireDate")}
+                  placeholder="Select hire date"
+                  disableRule={() => false}
                 />
 
-                <SelectField
-                  label="Subject Specialization"
-                  value={formData?.subjectSpecialization}
-                  onValueChange={(value) =>
-                    handleInputChange("subjectSpecialization", value)
-                  }
-                  placeholder="Select subject"
-                >
-                  {subjects.map((subject) => (
-                    <SelectItem key={subject.id} value={subject.id.toString()}>
-                      {subject.name}
-                    </SelectItem>
-                  ))}
-                </SelectField>
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium mb-2 block">
+                    Subjects Taught
+                  </label>
+                  <div className="border rounded-md p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                    {subjects.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        No subjects available
+                      </p>
+                    ) : (
+                      subjects.map((subject) => (
+                        <label
+                          key={subject.id}
+                          className="flex items-center gap-2 text-sm cursor-pointer"
+                        >
+                          <Checkbox
+                            checked={selectedSubjectIds.includes(subject.id)}
+                            onCheckedChange={(checked) =>
+                              toggleSubject(subject.id, checked === true)
+                            }
+                          />
+                          {subject.name}
+                        </label>
+                      ))
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Select all subjects this teacher will teach. A teacher can
+                    be assigned to more than one subject.
+                  </p>
+                </div>
 
                 <InputField
                   label="Years of Experience"
@@ -485,6 +516,7 @@ const TeacherForm: FC<ITeacherForm> = ({
         </div>
       </div>
     </form>
+    </Form>
   );
 };
 

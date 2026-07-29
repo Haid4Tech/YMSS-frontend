@@ -52,7 +52,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-background border-r border-border shadow-lg transform transition-transform duration-300 ease-in-out
+        className={`print:hidden fixed inset-y-0 left-0 z-30 w-64 bg-background border-r border-border shadow-lg transform transition-transform duration-300 ease-in-out
         ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 lg:static lg:inset-0`}
@@ -64,10 +64,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       <div className="flex-1 flex flex-col overflow-hidden w-fit">
         {user && (
-          <PortalNavbar
-            user={user}
-            onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-          />
+          <div className="print:hidden">
+            <PortalNavbar
+              user={user}
+              onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+            />
+          </div>
         )}
 
         <main className="flex-1 overflow-y-auto p-6 scrollbar-width">
