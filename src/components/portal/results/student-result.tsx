@@ -46,7 +46,7 @@ const StudentResult = () => {
         setResults(Array.isArray(resultsData) ? resultsData : []);
       }
     });
-  }, [userId]);
+  }, [userId, getUserById, getAllResults]);
 
   // Filter results for this student
   useEffect(() => {

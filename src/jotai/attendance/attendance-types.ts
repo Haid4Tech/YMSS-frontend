@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Class } from "../class/class-type";
 import { Student } from "../students/student-types";
 import { Teacher } from "../teachers/teachers-types";

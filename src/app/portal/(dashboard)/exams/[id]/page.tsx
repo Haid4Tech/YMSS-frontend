@@ -68,7 +68,7 @@ export default function ExamDetailPage() {
     if (examId) {
       fetchExamData();
     }
-  }, [examId]);
+  }, [examId, getByExam]);
 
   // Calculate exam statistics
   const examStats = {

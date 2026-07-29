@@ -128,7 +128,7 @@ export default function StudentDetailPage() {
     } else {
       setLoading(false);
     }
-  }, [studentId]);
+  }, [studentId, getByStudent]);
 
   // Compiled result / report card for the selected term.
   useEffect(() => {

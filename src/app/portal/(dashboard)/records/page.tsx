@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { classesAPI } from "@/jotai/class/class";
@@ -33,11 +33,7 @@ export default function RecordsPage() {
 
   const [, getAllClasses] = useAtom(classesAPI.getAll);
 
-  useEffect(() => {
-    fetchAllData();
-  }, []);
-
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -86,7 +82,11 @@ export default function RecordsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getAllClasses, isStudent, isParent, user]);
+
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   if (loading) {
     return (

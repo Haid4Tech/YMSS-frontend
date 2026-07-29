@@ -86,7 +86,7 @@ export default function TeacherResultsPage() {
     if (canViewResults && user) {
       fetchTeacherSubjects();
     }
-  }, [canViewResults, user, teacherId]);
+  }, [canViewResults, user, getAllStudents]);
 
   // Load data
   useEffect(() => {
@@ -94,7 +94,7 @@ export default function TeacherResultsPage() {
       getAllResults();
       getAllStudents();
     }
-  }, [canViewResults]);
+  }, [canViewResults, getAllResults, getAllStudents]);
 
   // Set students data
   useEffect(() => {

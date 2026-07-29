@@ -71,7 +71,7 @@ export default function ClassDetailPage() {
     if (classId) {
       fetchClassData();
     }
-  }, [classId]);
+  }, [classId, getResultsByClass]);
 
   // Calculate class statistics. Capacity is optional - a class with no
   // capacity set has no enrollment limit, so it's tracked separately from

@@ -44,7 +44,7 @@ const ParentResult = () => {
     };
 
     fetchData();
-  }, [user?.id]);
+  }, [user, getAllStudents, getAllResults]);
 
   // Filter wards for this parent
   useEffect(() => {
@@ -54,7 +54,7 @@ const ParentResult = () => {
       );
       setWards(parentWards);
     }
-  }, [students, user?.id]);
+  }, [students, user]);
 
   if (studentLoading || gradeLoading) {
     return (
