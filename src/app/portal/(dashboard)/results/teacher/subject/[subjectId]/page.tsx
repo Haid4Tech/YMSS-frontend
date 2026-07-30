@@ -51,8 +51,8 @@ export default function TeacherSubjectResultsPage() {
   const [isAdmin] = useAtom(isAdminAtom);
   const [user] = useAtom(userAtom);
 
-  const [academicYear] = useState<string>("2024/2025");
-  const [term] = useState<string>("FIRST");
+  const [academicYear] = useState<string>("2025/2026");
+  const [term] = useState<string>("THIRD");
 
   const [results] = useAtom(gradeListAtom);
   const [loading] = useAtom(gradeLoadingAtom);

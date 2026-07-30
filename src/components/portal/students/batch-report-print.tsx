@@ -70,8 +70,8 @@ export function BatchReportPrint({
   const [preparing, setPreparing] = useState(false);
   const [reports, setReports] = useState<ReportCard[] | null>(null);
 
-  const [academicYear, setAcademicYear] = useState<string>("2024/2025");
-  const [term, setTerm] = useState<Term>("FIRST");
+  const [academicYear, setAcademicYear] = useState<string>("2025/2026");
+  const [term, setTerm] = useState<Term>("THIRD");
   const [nextTermFee, setNextTermFee] = useState<string>("");
   const [nextTermDate, setNextTermDate] = useState<string>("");
 
@@ -152,7 +152,7 @@ export function BatchReportPrint({
               value={academicYear}
               onValueChange={setAcademicYear}
             >
-              {generateAcademicYears(2023, 5).map((year) => (
+              {generateAcademicYears(2024, 5).map((year) => (
                 <SelectItem key={year} value={year}>
                   {year}
                 </SelectItem>

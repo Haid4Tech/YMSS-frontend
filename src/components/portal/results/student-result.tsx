@@ -26,8 +26,8 @@ const StudentResult = () => {
   const [studentData, setStudentData] = useState<UserManagement | null>(null);
   const [results, setResults] = useState<Grade[]>([]);
   const [studentResults, setStudentResults] = useState<Grade[]>([]);
-  const [academicYear, setAcademicYear] = useState<string>("2024/2025");
-  const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("FIRST");
+  const [academicYear, setAcademicYear] = useState<string>("2025/2026");
+  const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("THIRD");
 
   const [, getUserById] = useAtom(usersAPI.getById);
   const [, getAllResults] = useAtom(gradesAPI.getAllResults);
@@ -265,7 +265,7 @@ const StudentResult = () => {
                 value={academicYear}
                 onValueChange={(value: string) => setAcademicYear(value)}
               >
-                {generateAcademicYears(2023, 5).map((year, index) => (
+                {generateAcademicYears(2024, 5).map((year, index) => (
                   <SelectItem key={index} value={year}>
                     {year}
                   </SelectItem>

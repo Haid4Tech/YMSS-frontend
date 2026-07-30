@@ -48,8 +48,8 @@ export default function StudentResultsPage() {
   const studentId = Number(params.studentId);
 
   const [student, setStudent] = useState<Student | null>(null);
-  const [academicYear, setAcademicYear] = useState<string>("2024/2025");
-  const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("FIRST");
+  const [academicYear, setAcademicYear] = useState<string>("2025/2026");
+  const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("THIRD");
 
   // Role-based access control
   const [isStudent] = useAtom(isStudentAtom);
