@@ -93,6 +93,10 @@ interface ReportCardSheetProps {
   reportCard: ReportCard;
   academicYear: string;
   term: "FIRST" | "SECOND" | "THIRD";
+  /** Next term's fee, e.g. "N33,000.00". Filled into the FEES section. */
+  nextTermFee?: string;
+  /** Date the next term commences, e.g. "4th May, 2026". */
+  nextTermBegins?: string;
 }
 
 export function ReportCardSheet({
@@ -100,6 +104,8 @@ export function ReportCardSheet({
   reportCard,
   academicYear,
   term,
+  nextTermFee,
+  nextTermBegins,
 }: ReportCardSheetProps) {
   const { summary, results } = reportCard;
 
@@ -123,7 +129,7 @@ export function ReportCardSheet({
           </h2>
           <div className="absolute right-0 top-0 h-16 w-16 sm:h-20 sm:w-20">
             <Image
-              src="/YMSS_logo-nobg.png"
+              src="/ymss_logo_bw.png"
               alt="Yola Model School logo"
               fill
               sizes="80px"
@@ -264,13 +270,17 @@ export function ReportCardSheet({
               <td className="w-1/2 border border-black px-2 py-1 font-medium">
                 Next term&apos;s fee
               </td>
-              <td className="w-1/2 border border-black px-2 py-1" />
+              <td className="w-1/2 border border-black px-2 py-1">
+                {nextTermFee ?? ""}
+              </td>
             </tr>
             <tr>
               <td className="border border-black px-2 py-1 font-medium">
                 Next term commences
               </td>
-              <td className="border border-black px-2 py-1" />
+              <td className="border border-black px-2 py-1">
+                {nextTermBegins ?? ""}
+              </td>
             </tr>
           </tbody>
         </table>

@@ -13,9 +13,22 @@ import { SubjectAttendance } from "@/jotai/subject-attendance/subject-attendance
 import { Button } from "@/components/ui/button";
 import { DynamicHeader } from "@/components/general/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SelectField } from "@/components/ui/form-field";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { InputField, SelectField } from "@/components/ui/form-field";
 import { SelectItem } from "@/components/ui/select";
 import { ReportCardSheet } from "@/components/portal/students/report-card-sheet";
+import {
+  formatFeeInput,
+  formatNaira,
+  formatTermDate,
+} from "@/components/portal/students/report-fees";
 import { generateAcademicYears } from "@/common/helper";
 import { Printer } from "lucide-react";
 import {
@@ -56,6 +69,18 @@ export default function StudentDetailPage() {
   const [allTimeResults, setAllTimeResults] = useState<Grade[]>([]);
   const [academicYear, setAcademicYear] = useState<string>("2024/2025");
   const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("FIRST");
+  // FEES section values printed on this student's report card, collected via a
+  // prompt when the admin chooses to print.
+  const [nextTermFee, setNextTermFee] = useState<string>("");
+  const [nextTermDate, setNextTermDate] = useState<string>("");
+  const [printDialogOpen, setPrintDialogOpen] = useState(false);
+
+  // Close the fee prompt, then print once the sheet has re-rendered with the
+  // entered values.
+  const handlePrintReport = () => {
+    setPrintDialogOpen(false);
+    setTimeout(() => window.print(), 150);
+  };
 
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -538,7 +563,7 @@ export default function StudentDetailPage() {
               <CardTitle>Academic Period</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-end">
                 <SelectField
                   label="Academic Year"
                   value={academicYear}
@@ -570,7 +595,7 @@ export default function StudentDetailPage() {
                 <Button
                   variant="outline"
                   className="flex items-center gap-2"
-                  onClick={() => window.print()}
+                  onClick={() => setPrintDialogOpen(true)}
                   disabled={!reportCard || reportCard.results.length === 0}
                 >
                   <Printer className="h-4 w-4" />
@@ -579,6 +604,55 @@ export default function StudentDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Fee prompt shown before printing this student's report card */}
+          <Dialog open={printDialogOpen} onOpenChange={setPrintDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Print Report Card</DialogTitle>
+                <DialogDescription>
+                  These values appear in the FEES section of the printed report.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <InputField
+                  id="next-term-fee"
+                  type="text"
+                  inputMode="decimal"
+                  label="Next term's fee (₦)"
+                  placeholder="e.g. 33,000.00"
+                  value={nextTermFee}
+                  onChange={(e) =>
+                    setNextTermFee(formatFeeInput(e.target.value))
+                  }
+                />
+                <InputField
+                  id="next-term-date"
+                  type="date"
+                  label="Next term commences"
+                  value={nextTermDate}
+                  onChange={(e) => setNextTermDate(e.target.value)}
+                />
+              </div>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setPrintDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex items-center gap-2"
+                  onClick={handlePrintReport}
+                >
+                  <Printer className="h-4 w-4" />
+                  Print
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {reportCardLoading ? (
             <div className="flex items-center justify-center h-40">
@@ -596,6 +670,8 @@ export default function StudentDetailPage() {
               reportCard={reportCard}
               academicYear={academicYear}
               term={term}
+              nextTermFee={formatNaira(nextTermFee)}
+              nextTermBegins={formatTermDate(nextTermDate)}
             />
           )}
 

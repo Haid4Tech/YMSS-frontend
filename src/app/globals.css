@@ -215,4 +215,27 @@
   main {
     overflow: visible !important;
   }
+
+  /* ---- Batch printing: one report card per page ---- */
+
+  /* When batch printing, hide the whole app and show only the portal
+     (a direct child of <body> alongside the Next.js root). */
+  body.batch-printing > *:not(.batch-print-portal) {
+    display: none !important;
+  }
+
+  .batch-print-portal {
+    position: static !important;
+    inset: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  /* Force a page break before every report except the first. */
+  .report-page {
+    break-inside: avoid-page;
+  }
+  .report-page + .report-page {
+    break-before: page;
+  }
 }

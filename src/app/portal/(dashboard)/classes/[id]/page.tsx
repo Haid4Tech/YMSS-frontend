@@ -29,6 +29,8 @@ import {
 } from "recharts";
 import { extractErrorMessage } from "@/utils/helpers";
 import { StudentRosterCard } from "@/components/portal/dashboards/class/student-roster-card";
+import { BatchReportPrint } from "@/components/portal/students/batch-report-print";
+import { isAdminAtom } from "@/jotai/auth/auth";
 
 export default function ClassDetailPage() {
   const params = useParams();
@@ -43,6 +45,7 @@ export default function ClassDetailPage() {
   const [activeTab, setActiveTab] = useState("overview");
 
   const [, getResultsByClass] = useAtom(gradesAPI.getResultsByClass);
+  const [isAdmin] = useAtom(isAdminAtom);
 
   useEffect(() => {
     const fetchClassData = async () => {
@@ -326,7 +329,15 @@ export default function ClassDetailPage() {
       {activeTab === "students" && (
         <Card>
           <CardHeader>
-            <CardTitle>Students Roster</CardTitle>
+            <CardTitle className="flex items-center justify-between gap-4">
+              <span>Students Roster</span>
+              {isAdmin && classData?.students?.length > 0 && (
+                <BatchReportPrint
+                  students={classData.students}
+                  className={classData.name}
+                />
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {classData?.students?.length > 0 ? (
