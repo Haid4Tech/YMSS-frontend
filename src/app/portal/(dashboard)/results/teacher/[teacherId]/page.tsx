@@ -47,8 +47,8 @@ export default function TeacherResultsPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [, setStudents] = useState<Student[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
-  const [academicYear, setAcademicYear] = useState<string>("2024/2025");
-  const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("FIRST");
+  const [academicYear, setAcademicYear] = useState<string>("2025/2026");
+  const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("THIRD");
 
   // Role-based access control
   const [isTeacher] = useAtom(isTeacherAtom);

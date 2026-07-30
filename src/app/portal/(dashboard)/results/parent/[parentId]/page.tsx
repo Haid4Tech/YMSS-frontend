@@ -40,8 +40,8 @@ export default function ParentResultsPage() {
   // const parentId = Number(params.parentId);
 
   const [ward, setWard] = useState<Student | null>(null);
-  const [academicYear] = useState<string>("2024/2025");
-  const [term] = useState<"FIRST" | "SECOND" | "THIRD">("FIRST");
+  const [academicYear] = useState<string>("2025/2026");
+  const [term] = useState<"FIRST" | "SECOND" | "THIRD">("THIRD");
 
   // Role-based access control
   const [isParent] = useAtom(isParentAtom);

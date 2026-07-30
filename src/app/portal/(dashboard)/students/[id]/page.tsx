@@ -65,8 +65,8 @@ export default function StudentDetailPage() {
   const [, getResultsByStudent] = useAtom(gradesAPI.getResultsByStudent);
   const [reportCardLoading, setReportCardLoading] = useState(false);
   const [allTimeResults, setAllTimeResults] = useState<Grade[]>([]);
-  const [academicYear, setAcademicYear] = useState<string>("2024/2025");
-  const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("FIRST");
+  const [academicYear, setAcademicYear] = useState<string>("2025/2026");
+  const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("THIRD");
   // FEES section values printed on this student's report card.
   const [nextTermFee, setNextTermFee] = useState<string>("");
   const [nextTermDate, setNextTermDate] = useState<string>("");
@@ -570,7 +570,7 @@ export default function StudentDetailPage() {
                   value={academicYear}
                   onValueChange={(value: string) => setAcademicYear(value)}
                 >
-                  {generateAcademicYears(2023, 5).map((year) => (
+                  {generateAcademicYears(2024, 5).map((year) => (
                     <SelectItem key={year} value={year}>
                       {year}
                     </SelectItem>
