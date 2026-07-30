@@ -37,7 +37,9 @@ export default function SignIn() {
     setError("");
 
     try {
-      setLoginFormData({ email: email, password: password });
+      // Email is case-insensitive: normalize before submitting so casing/
+      // stray whitespace never blocks a valid login.
+      setLoginFormData({ email: email.trim().toLowerCase(), password: password });
       const response = await triggerLogin();
 
       if (response?.user !== null) {
