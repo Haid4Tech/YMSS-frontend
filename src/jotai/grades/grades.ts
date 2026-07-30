@@ -332,6 +332,40 @@ export const gradesAPI = {
     }
   ),
 
+  // Get report cards for an entire class in one request (batch printing).
+  getClassReportCards: atom(
+    null,
+    async (
+      _get,
+      set,
+      classId: number,
+      academicYear?: string,
+      term?: string
+    ) => {
+      set(reportCardLoadingAtom, true);
+      set(reportCardErrorAtom, null);
+
+      try {
+        const params = new URLSearchParams();
+        if (academicYear) params.append("academicYear", academicYear);
+        if (term) params.append("term", term);
+
+        const response = await axiosInstance.get(
+          `/grades/results/report-card/class/${classId}?${params}`
+        );
+        return response.data;
+      } catch (error: any) {
+        set(
+          reportCardErrorAtom,
+          error.message || "Failed to fetch class report cards"
+        );
+        throw error;
+      } finally {
+        set(reportCardLoadingAtom, false);
+      }
+    }
+  ),
+
   // Create or update result
   createOrUpdateResult: atom(null, async (_get, set, data: any) => {
     set(gradeLoadingAtom, true);

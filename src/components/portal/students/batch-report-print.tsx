@@ -17,12 +17,18 @@ import {
 } from "@/components/ui/dialog";
 import { InputField, SelectField } from "@/components/ui/form-field";
 import { SelectItem } from "@/components/ui/select";
+import { RemarkCombobox } from "@/components/ui/remark-combobox";
 import { ReportCardSheet } from "@/components/portal/students/report-card-sheet";
 import {
   formatFeeInput,
   formatNaira,
   formatTermDate,
 } from "@/components/portal/students/report-fees";
+import {
+  suggestRemarks,
+  teacherRemarkGroups,
+  principalRemarkGroups,
+} from "@/components/portal/students/report-comments";
 
 import { gradesAPI } from "@/jotai/grades/grades";
 import { ReportCard } from "@/jotai/grades/grades-types";
@@ -39,6 +45,7 @@ const TERM_OPTIONS: Array<{ value: Term; label: string }> = [
 ];
 
 interface BatchReportPrintProps {
+  classId: number;
   students: Student[];
   className?: string;
 }
@@ -48,15 +55,16 @@ interface BatchReportPrintProps {
 
   The admin first supplies the shared term settings (academic year, term and the
   "next term's fee" / "next term commences" values printed on every sheet). We
-  then fetch each student's compiled report card, drop those with no results,
-  and render one report sheet per printed page inside a full-screen preview
-  portal that they can review and print.
+  then fetch every report card for the class in a single request, drop those
+  with no results, and render one report sheet per printed page inside a
+  full-screen preview portal that they can review and print.
 */
 export function BatchReportPrint({
+  classId,
   students,
   className,
 }: BatchReportPrintProps) {
-  const [, getReportCard] = useAtom(gradesAPI.getReportCard);
+  const [, getClassReportCards] = useAtom(gradesAPI.getClassReportCards);
 
   const [open, setOpen] = useState(false);
   const [preparing, setPreparing] = useState(false);
@@ -82,22 +90,16 @@ export function BatchReportPrint({
 
     setPreparing(true);
     try {
-      const settled = await Promise.all(
-        students.map(async (student) => {
-          try {
-            const rc = (await getReportCard(
-              student.id,
-              academicYear,
-              term
-            )) as ReportCard | null;
-            return rc && rc.results?.length ? rc : null;
-          } catch {
-            return null;
-          }
-        })
-      );
+      // One request fetches every student's report card for the class.
+      const data = (await getClassReportCards(
+        classId,
+        academicYear,
+        term
+      )) as { reportCards?: ReportCard[] } | null;
 
-      const valid = settled.filter((rc): rc is ReportCard => rc !== null);
+      const valid = (data?.reportCards ?? []).filter(
+        (rc): rc is ReportCard => Boolean(rc?.results?.length)
+      );
 
       if (!valid.length) {
         toast.error("No results found", {
@@ -232,6 +234,8 @@ interface BatchPrintPreviewProps {
   onClose: () => void;
 }
 
+type RemarkState = Record<number, { teacher: string; principal: string }>;
+
 function BatchPrintPreview({
   reports,
   academicYear,
@@ -242,6 +246,35 @@ function BatchPrintPreview({
   onClose,
 }: BatchPrintPreviewProps) {
   const [mounted, setMounted] = useState(false);
+
+  // Auto-fill each student's remarks from their own average once, when the
+  // preview opens. Kept in state so the admin can edit individuals before
+  // printing.
+  const [remarks, setRemarks] = useState<RemarkState>(() => {
+    const initial: RemarkState = {};
+    for (const rc of reports) {
+      const studentId = rc.student?.id;
+      if (studentId == null) continue;
+      const suggested = suggestRemarks(rc.summary?.average);
+      initial[studentId] = {
+        teacher: suggested.teacher,
+        principal: suggested.principal,
+      };
+    }
+    return initial;
+  });
+
+  const setTeacher = (studentId: number, value: string) =>
+    setRemarks((prev) => ({
+      ...prev,
+      [studentId]: { ...prev[studentId], teacher: value },
+    }));
+
+  const setPrincipal = (studentId: number, value: string) =>
+    setRemarks((prev) => ({
+      ...prev,
+      [studentId]: { ...prev[studentId], principal: value },
+    }));
 
   // Portal into <body> and flag it so print CSS can hide the rest of the app,
   // leaving only the stacked report sheets on paper.
@@ -277,9 +310,48 @@ function BatchPrintPreview({
 
       <div className="mx-auto max-w-5xl space-y-6 p-4 print:max-w-none print:space-y-0 print:p-0">
         {reports.map((rc) => {
-          const student = studentsById.get(rc.student?.id) ?? rc.student;
+          const studentId = rc.student?.id;
+          const student = studentsById.get(studentId) ?? rc.student;
+          const remark =
+            (studentId != null && remarks[studentId]) || {
+              teacher: "",
+              principal: "",
+            };
+          const studentName = `${student?.user?.firstname ?? ""} ${
+            student?.user?.lastname ?? ""
+          }`.trim();
+
           return (
-            <div key={rc.student?.id} className="report-page">
+            <div key={studentId} className="report-page">
+              {/* Per-student remark editor - screen only */}
+              <div className="mb-3 rounded-md border bg-white p-4 shadow-sm print:hidden">
+                <p className="mb-3 text-sm font-medium">
+                  Remarks — {studentName || `Student ${studentId}`}
+                </p>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <RemarkCombobox
+                    id={`teacher-remark-${studentId}`}
+                    label="Form teacher's Remark"
+                    placeholder="Type or select a remark"
+                    value={remark.teacher}
+                    onChange={(value) =>
+                      studentId != null && setTeacher(studentId, value)
+                    }
+                    groups={teacherRemarkGroups(rc.summary?.average)}
+                  />
+                  <RemarkCombobox
+                    id={`principal-remark-${studentId}`}
+                    label="Principal's Remark"
+                    placeholder="Type or select a remark"
+                    value={remark.principal}
+                    onChange={(value) =>
+                      studentId != null && setPrincipal(studentId, value)
+                    }
+                    groups={principalRemarkGroups(rc.summary?.average)}
+                  />
+                </div>
+              </div>
+
               <ReportCardSheet
                 student={student}
                 reportCard={rc}
@@ -287,6 +359,8 @@ function BatchPrintPreview({
                 term={term}
                 nextTermFee={nextTermFee}
                 nextTermBegins={nextTermBegins}
+                teacherRemark={remark.teacher}
+                principalRemark={remark.principal}
               />
             </div>
           );

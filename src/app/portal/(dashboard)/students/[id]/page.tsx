@@ -15,12 +15,18 @@ import { DynamicHeader } from "@/components/general/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputField, SelectField } from "@/components/ui/form-field";
 import { SelectItem } from "@/components/ui/select";
+import { RemarkCombobox } from "@/components/ui/remark-combobox";
 import { ReportCardSheet } from "@/components/portal/students/report-card-sheet";
 import {
   formatFeeInput,
   formatNaira,
   formatTermDate,
 } from "@/components/portal/students/report-fees";
+import {
+  suggestRemarks,
+  teacherRemarkGroups,
+  principalRemarkGroups,
+} from "@/components/portal/students/report-comments";
 import { generateAcademicYears } from "@/common/helper";
 import { Printer } from "lucide-react";
 import {
@@ -64,6 +70,9 @@ export default function StudentDetailPage() {
   // FEES section values printed on this student's report card.
   const [nextTermFee, setNextTermFee] = useState<string>("");
   const [nextTermDate, setNextTermDate] = useState<string>("");
+  // Teacher/principal remarks, pre-filled from the student's average.
+  const [teacherRemark, setTeacherRemark] = useState<string>("");
+  const [principalRemark, setPrincipalRemark] = useState<string>("");
 
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -135,6 +144,15 @@ export default function StudentDetailPage() {
 
     fetchAllTimeResults();
   }, [studentId, getResultsByStudent]);
+
+  // Pre-fill the remark fields with a natural teacher/principal combination
+  // for the compiled average whenever the report card changes.
+  useEffect(() => {
+    if (!reportCard || reportCard.results.length === 0) return;
+    const suggested = suggestRemarks(reportCard.summary.average);
+    setTeacherRemark(suggested.teacher);
+    setPrincipalRemark(suggested.principal);
+  }, [reportCard]);
 
   // Cumulative performance: average overall score per academic year/term.
   const cumulativePerformance = Object.values(
@@ -592,6 +610,24 @@ export default function StudentDetailPage() {
                   onChange={(e) => setNextTermDate(e.target.value)}
                 />
               </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <RemarkCombobox
+                  id="teacher-remark"
+                  label="Form teacher's Remark"
+                  placeholder="Type or select a remark"
+                  value={teacherRemark}
+                  onChange={setTeacherRemark}
+                  groups={teacherRemarkGroups(reportCard?.summary.average)}
+                />
+                <RemarkCombobox
+                  id="principal-remark"
+                  label="Principal's Remark"
+                  placeholder="Type or select a remark"
+                  value={principalRemark}
+                  onChange={setPrincipalRemark}
+                  groups={principalRemarkGroups(reportCard?.summary.average)}
+                />
+              </div>
               <div className="flex justify-end">
                 <Button
                   variant="outline"
@@ -624,6 +660,8 @@ export default function StudentDetailPage() {
               term={term}
               nextTermFee={formatNaira(nextTermFee)}
               nextTermBegins={formatTermDate(nextTermDate)}
+              teacherRemark={teacherRemark}
+              principalRemark={principalRemark}
             />
           )}
 

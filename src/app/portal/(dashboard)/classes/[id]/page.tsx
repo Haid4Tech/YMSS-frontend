@@ -333,6 +333,7 @@ export default function ClassDetailPage() {
               <span>Students Roster</span>
               {isAdmin && classData?.students?.length > 0 && (
                 <BatchReportPrint
+                  classId={classData.id}
                   students={classData.students}
                   className={classData.name}
                 />
