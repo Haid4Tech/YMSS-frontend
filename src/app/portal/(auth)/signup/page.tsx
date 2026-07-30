@@ -46,7 +46,14 @@ export default function SignUp() {
     }
 
     try {
-      setSignUpFormData({ firstname, lastname, email, password, role });
+      // Store email lowercased so sign-in remains case-insensitive.
+      setSignUpFormData({
+        firstname,
+        lastname,
+        email: email.trim().toLowerCase(),
+        password,
+        role,
+      });
       await triggerSignUp();
 
       // Redirect to dashboard

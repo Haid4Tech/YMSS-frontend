@@ -166,3 +166,76 @@
   left: -10%;
   opacity: 40%;
 }
+
+/* Report card print styling */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Force the report sheet borders/shades to render on paper */
+  .report-sheet,
+  .report-sheet * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color: #000 !important;
+  }
+
+  .report-sheet {
+    box-shadow: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  /* Fit the sheet to the A4 printable width instead of the fixed
+     on-screen min-width, so nothing is clipped at the page edges. */
+  .report-sheet-inner {
+    min-width: 0 !important;
+    width: 100% !important;
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+  }
+
+  /* Tighten cells so all 12 columns fit across the page */
+  .report-sheet-inner th,
+  .report-sheet-inner td {
+    padding: 1.5px 3px !important;
+    word-break: break-word;
+  }
+
+  /* Avoid clipping the sheet inside scroll containers */
+  main {
+    overflow: visible !important;
+  }
+
+  /* ---- Batch printing: one report card per page ---- */
+
+  /* When batch printing, hide the whole app and show only the portal
+     (a direct child of <body> alongside the Next.js root). */
+  body.batch-printing > *:not(.batch-print-portal) {
+    display: none !important;
+  }
+
+  .batch-print-portal {
+    position: static !important;
+    inset: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  /* Force a page break before every report except the first. */
+  .report-page {
+    break-inside: avoid-page;
+  }
+  .report-page + .report-page {
+    break-before: page;
+  }
+}

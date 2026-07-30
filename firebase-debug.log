@@ -1,0 +1,49 @@
+[debug] [2026-07-09T20:38:32.448Z] ----------------------------------------------------------------------
+[debug] [2026-07-09T20:38:32.456Z] Command:       /usr/local/bin/firebase /Users/johnwogu/.cache/firebase/tools/lib/node_modules/firebase-tools/lib/bin/firebase init
+[debug] [2026-07-09T20:38:32.456Z] CLI Version:   15.0.0
+[debug] [2026-07-09T20:38:32.456Z] Platform:      darwin
+[debug] [2026-07-09T20:38:32.456Z] Node Version:  v20.18.2
+[debug] [2026-07-09T20:38:32.457Z] Time:          Thu Jul 09 2026 21:38:32 GMT+0100 (West Africa Standard Time)
+[debug] [2026-07-09T20:38:32.457Z] ----------------------------------------------------------------------
+[debug] 
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/johnwogu/Coms/HAID/Projects/YMSS-frontend
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[debug] [2026-07-09T20:38:38.189Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-09T20:38:38.190Z] > authorizing via signed-in user (yolamodeldev@gmail.com)
+[debug] [2026-07-09T20:38:38.195Z] Checked if tokens are valid: true, expires at: 1783630803522
+[debug] [2026-07-09T20:38:38.196Z] Checked if tokens are valid: true, expires at: 1783630803522
+[debug] [2026-07-09T20:38:38.199Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/ymss-964d7 [none]
+[debug] [2026-07-09T20:38:39.034Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/ymss-964d7 200
+[debug] [2026-07-09T20:38:39.035Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/ymss-964d7 {"projectId":"ymss-964d7","projectNumber":"4020614985","displayName":"YMSS","name":"projects/ymss-964d7","resources":{"hostingSite":"ymss-964d7"},"state":"ACTIVE","labels":{"firebase":"enabled"},"etag":"1_baf3e6c7-775b-48ac-aad8-a95d1b4b1139"}
+[info] i  Using project ymss-964d7 (YMSS) . 
+[info] 
+=== Hosting Setup
+[debug] [2026-07-09T20:38:39.051Z] Checked if tokens are valid: true, expires at: 1783630803522
+[debug] [2026-07-09T20:38:39.051Z] Checked if tokens are valid: true, expires at: 1783630803522
+[debug] [2026-07-09T20:38:39.051Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/ymss-964d7 [none]
+[debug] [2026-07-09T20:38:39.513Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/ymss-964d7 200
+[debug] [2026-07-09T20:38:39.513Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/ymss-964d7 {"projectId":"ymss-964d7","projectNumber":"4020614985","displayName":"YMSS","name":"projects/ymss-964d7","resources":{"hostingSite":"ymss-964d7"},"state":"ACTIVE","labels":{"firebase":"enabled"},"etag":"1_baf3e6c7-775b-48ac-aad8-a95d1b4b1139"}
+[info] 
+[info] Your public directory is the folder (relative to your project directory) that
+[info] will contain Hosting assets to be uploaded with firebase deploy. If you
+[info] have a build process for your assets, use your build's output directory.
+[info] 
