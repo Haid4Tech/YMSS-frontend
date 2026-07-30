@@ -97,6 +97,10 @@ interface ReportCardSheetProps {
   nextTermFee?: string;
   /** Date the next term commences, e.g. "4th May, 2026". */
   nextTermBegins?: string;
+  /** Form teacher's remark shown in the comment section. */
+  teacherRemark?: string;
+  /** Principal's remark shown in the comment section. */
+  principalRemark?: string;
 }
 
 export function ReportCardSheet({
@@ -106,6 +110,8 @@ export function ReportCardSheet({
   term,
   nextTermFee,
   nextTermBegins,
+  teacherRemark,
+  principalRemark,
 }: ReportCardSheetProps) {
   const { summary, results } = reportCard;
 
@@ -318,13 +324,19 @@ export function ReportCardSheet({
             </div>
             <div className="space-y-4 px-2 py-3">
               <div className="flex items-end justify-between gap-2">
-                <p className="font-medium">Form teacher&apos;s Remark:</p>
+                <p className="font-medium">
+                  Form teacher&apos;s Remark:{" "}
+                  <span className="font-normal">{teacherRemark ?? ""}</span>
+                </p>
                 <span className="text-nowrap text-muted-foreground">
                   Sign................
                 </span>
               </div>
               <div className="flex items-end justify-between gap-2">
-                <p className="font-medium">Principal&apos;s Remark:</p>
+                <p className="font-medium">
+                  Principal&apos;s Remark:{" "}
+                  <span className="font-normal">{principalRemark ?? ""}</span>
+                </p>
                 <span className="text-nowrap text-muted-foreground">
                   Sign................
                 </span>
