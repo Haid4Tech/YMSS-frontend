@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "YMSS Portal",
-  description: "YMSS School Management Portal",
+  title: "Yola Model Secondary School",
+  description: "YMSS",
 };
 
 export default function RootLayout({
