@@ -27,6 +27,14 @@ import { DataTable } from "@/components/general/data-table";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Users, BookOpen, TrendingUp, Award } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 import { extractErrorMessage } from "@/utils/helpers";
 import { cn } from "@/lib/utils";
@@ -60,6 +68,7 @@ export default function ClassResultsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [currentFormData, setCurrentFormData] = useState<Partial<Grade>>({});
+  const [printResult, setPrintResult] = useState<Grade | null>(null);
 
   // Role-based access control
   const [isParent] = useAtom(isParentAtom);
@@ -156,6 +165,24 @@ export default function ClassResultsPage() {
 
     fetchData();
   }, [classId]);
+
+  // Trigger the browser print dialog for a single result, scoped via the
+  // printable-only section below (see `printResult` state and its effects).
+  const handlePrintResult = (result: Grade) => {
+    setPrintResult(result);
+  };
+
+  useEffect(() => {
+    if (!printResult) return;
+    const timer = setTimeout(() => window.print(), 0);
+    return () => clearTimeout(timer);
+  }, [printResult]);
+
+  useEffect(() => {
+    const handleAfterPrint = () => setPrintResult(null);
+    window.addEventListener("afterprint", handleAfterPrint);
+    return () => window.removeEventListener("afterprint", handleAfterPrint);
+  }, []);
 
   // Modal handling functions
   const handleEditResult = (result: Grade) => {
@@ -564,18 +591,14 @@ export default function ClassResultsPage() {
                         );
                       },
                     },
-                    // {
-                    //   label: "Print Result",
-                    //   onClick: () => {
-                    //     // TODO: Implement print result functionality
-                    //     console.log(
-                    //       "Print result for student:",
-                    //       result.studentId,
-                    //       "subject:",
-                    //       result.subjectId
-                    //     );
-                    //   },
-                    // },
+                    ...(result.id && typeof result.id === "number"
+                      ? [
+                          {
+                            label: "Print Result",
+                            onClick: () => handlePrintResult(result),
+                          },
+                        ]
+                      : []),
                   ]}
                 />
               );
@@ -617,6 +640,67 @@ export default function ClassResultsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Printable single-result summary - only visible when printing a result */}
+      {printResult && (
+        <div className="hidden print:block space-y-4">
+          <div>
+            <h2 className="text-xl font-bold">
+              {printResult.student?.user?.firstname}{" "}
+              {printResult.student?.user?.lastname}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {currentClass.name} — {printResult.subject?.name} —{" "}
+              {printResult.academicYear} {printResult.term} Term Result
+            </p>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>CA1</TableHead>
+                <TableHead>CA2</TableHead>
+                <TableHead>Exam</TableHead>
+                <TableHead>LTC</TableHead>
+                <TableHead>Overall</TableHead>
+                <TableHead>Grade</TableHead>
+                <TableHead>Position</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>
+                  {printResult.ca1 ? printResult.ca1.toFixed(1) : "-"}
+                </TableCell>
+                <TableCell>
+                  {printResult.ca2 ? printResult.ca2.toFixed(1) : "-"}
+                </TableCell>
+                <TableCell>
+                  {printResult.examScore
+                    ? printResult.examScore.toFixed(1)
+                    : "-"}
+                </TableCell>
+                <TableCell>
+                  {printResult.ltc ? printResult.ltc.toFixed(1) : "-"}
+                </TableCell>
+                <TableCell className="font-semibold">
+                  {printResult.overallScore
+                    ? printResult.overallScore.toFixed(1) + "%"
+                    : "-"}
+                </TableCell>
+                <TableCell>{printResult.grade || "-"}</TableCell>
+                <TableCell>
+                  {printResult.subjectPosition
+                    ? `${printResult.subjectPosition}${getOrdinalSuffix(
+                        printResult.subjectPosition
+                      )}`
+                    : "-"}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      <div className="print:hidden space-y-6">
       {/* Header */}
       <PageHeader
         title={`${currentClass.name} Results`}
@@ -841,6 +925,7 @@ export default function ClassResultsPage() {
           }}
         />
       )}
+      </div>
     </div>
   );
 }
