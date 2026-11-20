@@ -16,11 +16,12 @@ import { SelectItem } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { ChevronDown } from "lucide-react";
 import { defaultPromotionDestination, promotionDestinations } from "@/lib/promotions/default-destination";
 import { promotionsAPI, PromotionBatch, PromotionClass, PromotionDecision, PromotionOutcome, PromotionRoster } from "@/jotai/promotions/promotions";
 
 const labels: Record<PromotionOutcome, string> = { PROMOTE: "Promote", REPEAT: "Repeat", GRADUATE: "Graduate", WITHDRAW: "Withdraw" };
-const inputClass = "h-10 w-full rounded-md border bg-background px-3 text-sm";
+const inputClass = "h-10 w-full appearance-none rounded-md border bg-background pl-3 pr-10 text-sm disabled:cursor-not-allowed disabled:opacity-50";
 function message(error: unknown) {
   return (error as { response?: { data?: { error?: string } } })?.response?.data?.error || (error instanceof Error ? error.message : "Unable to process promotions");
 }
@@ -155,13 +156,17 @@ export default function PromotionsPage() {
               </CardHeader>
               {decision && <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="relative z-10 space-y-2"><Label htmlFor={`outcome-${student.id}`}>Decision</Label><select id={`outcome-${student.id}`} className={inputClass} value={decision.outcome} disabled={busy} onChange={e => updateDecision({ ...defaultDecision(student.id, e.target.value as PromotionOutcome), notes: decision.notes })}>
+                  <div className="relative z-10 space-y-2"><Label htmlFor={`outcome-${student.id}`}>Decision</Label><div className="relative"><select id={`outcome-${student.id}`} className={inputClass} value={decision.outcome} disabled={busy} onChange={e => updateDecision({ ...defaultDecision(student.id, e.target.value as PromotionOutcome), notes: decision.notes })}>
                     {Object.entries(labels).filter(([value]) => value !== "GRADUATE" || roster.sourceClass.gradeLevel === "SS3").map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                  </select></div>
-                  {(decision.outcome === "PROMOTE" || decision.outcome === "REPEAT") && <div className="relative z-10 space-y-2"><Label htmlFor={`destination-${student.id}`}>Destination class</Label><select id={`destination-${student.id}`} className={inputClass} value={decision.destinationClassId ?? ""} disabled={busy} onChange={e => {
+                  </select>
+                    <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  </div></div>
+                  {(decision.outcome === "PROMOTE" || decision.outcome === "REPEAT") && <div className="relative z-10 space-y-2"><Label htmlFor={`destination-${student.id}`}>Destination class</Label><div className="relative"><select id={`destination-${student.id}`} className={inputClass} value={decision.destinationClassId ?? ""} disabled={busy} onChange={e => {
                     const selected = roster.destinationClasses.find(c => c.id === Number(e.target.value));
                     updateDecision({ ...decision, destinationClassId: selected?.id ?? null, subjectIds: selected?.subjects.map(s => s.id) ?? [] });
                   }}><option value="">Choose a destination class</option>{destinationsFor(decision.outcome).map(c => <option key={c.id} value={c.id}>{c.name}{c.stream ? ` · ${c.stream}` : ""}</option>)}</select>
+                    <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    </div>
                     {!destinationsFor(decision.outcome).length && <p className="text-sm text-amber-700">No destination classes configured for this grade level. Set the class grade level in Classes.</p>}
                   </div>}
                 </div>
