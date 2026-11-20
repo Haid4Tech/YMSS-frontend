@@ -36,6 +36,7 @@ export default function AddSubjectPage() {
 
   const [formData, setFormData] = useState({
     name: "",
+    isElective: false,
     description: "",
     classId: "",
     category: "",
@@ -73,6 +74,7 @@ export default function AddSubjectPage() {
     try {
       const subjectData = {
         name: formData.name,
+        isElective: formData.isElective,
         description: formData.description,
         classId: parseInt(formData.classId),
         category: formData.category,
@@ -181,7 +183,11 @@ export default function AddSubjectPage() {
                 </SelectField>
               </div>
               <div className="md:col-span-2">
-                <TextareaField
+                <label className="flex items-center gap-4 text-sm mb-4">
+                <input type="checkbox" checked={formData.isElective} onChange={e => setFormData(prev => ({ ...prev, isElective: e.target.checked }))} />
+                Elective subject (optional during promotion)
+              </label>
+              <TextareaField
                   id="description"
                   label="Description"
                   value={formData.description}

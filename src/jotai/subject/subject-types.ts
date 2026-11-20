@@ -26,6 +26,7 @@ export interface Subject {
   category?: string;
   description?: string;
   weeklyHours?: number;
+  isElective?: boolean;
 
   // Additional fields used in the application
   code?: string; // Subject code like "MATH101"

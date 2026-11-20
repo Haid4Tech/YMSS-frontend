@@ -55,12 +55,12 @@ export const classLoadingAtom = atom<boolean>(false);
 export const classErrorAtom = atom<string | null>(null);
 
 export const classesAPI = {
-  getAll: atom(null, async (_get, set) => {
+  getAll: atom(null, async (_get, set, academicYear?: string) => {
     set(classLoadingAtom, true);
     set(classErrorAtom, null);
 
     try {
-      const response = await axiosInstance.get("/classes");
+      const response = await axiosInstance.get("/classes", { params: { academicYear } });
       set(classListAtom, response.data);
       return response.data;
     } catch (error: any) {
@@ -70,8 +70,8 @@ export const classesAPI = {
     }
   }),
 
-  getById: async (id: number): Promise<Class> => {
-    const response = await axiosInstance.get(`/classes/${id}`);
+  getById: async (id: number, academicYear?: string): Promise<Class> => {
+    const response = await axiosInstance.get(`/classes/${id}`, { params: { academicYear } });
     return response.data;
   },
 

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -47,6 +48,7 @@ import { toast } from "sonner";
 export default function SubjectDetailPage() {
   const params = useParams();
   const subjectId = params.id as string;
+  const { academicYear } = useAcademicPeriod();
   const router = useRouter();
 
   const [subject, setSubject] = useState<Subject | null>(null);
@@ -435,7 +437,7 @@ export default function SubjectDetailPage() {
         const [subjectData, enrollmentsData, teachersData, attendanceData] =
           await Promise.allSettled([
             subjectsAPI.getById(parseInt(subjectId)),
-            enrollmentsAPI.getBySubject(parseInt(subjectId)),
+            enrollmentsAPI.getBySubject(parseInt(subjectId), academicYear),
             subjectTeacherAPI.getBySubject(parseInt(subjectId)),
             subjectAttendanceAPI.getBySubject(parseInt(subjectId)),
             // studentsAPI.getBySubject(subjectId),
@@ -463,7 +465,7 @@ export default function SubjectDetailPage() {
     } else {
       setLoading(false);
     }
-  }, [subjectId, states]);
+  }, [subjectId, academicYear, states]);
 
   const handleAssignTeacherToSubject = async () => {
     setStates((prev) => ({

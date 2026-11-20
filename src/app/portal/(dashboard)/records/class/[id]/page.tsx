@@ -54,15 +54,15 @@ export default function ClassRecordsPage() {
 
     try {
       // Fetch class data
-      const classResponse = await classesAPI.getById(classId);
+      const classResponse = await classesAPI.getById(classId, academicYear);
       if (currentRequest !== requestId.current) return;
       setClassData(classResponse);
 
       // Fetch related data
       const [studentsData, subjectsData, gradesData, attendanceData] =
         await Promise.allSettled([
-          studentsAPI.getStudentsByClass(classId),
-          subjectsAPI.getSubjectByClassID(classId),
+          studentsAPI.getStudentsByClass(classId, academicYear),
+          subjectsAPI.getSubjectByClassID(classId, academicYear),
           getResultsByClass(classId, academicYear, term),
           getAllAttendanceAtom(),
         ]);

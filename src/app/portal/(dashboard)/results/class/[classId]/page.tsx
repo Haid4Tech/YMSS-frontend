@@ -166,8 +166,8 @@ export default function ClassResultsPage() {
   useEffect(() => {
     const fetchData = async () => {
       const [subjects, students] = await Promise.all([
-        subjectsAPI.getSubjectByClassID(classId),
-        studentsAPI.getStudentsByClass(classId),
+        subjectsAPI.getSubjectByClassID(classId, academicYear),
+        studentsAPI.getStudentsByClass(classId, academicYear),
       ]);
 
       setSubjects(Array.isArray(subjects) ? subjects : []);
@@ -175,7 +175,7 @@ export default function ClassResultsPage() {
     };
 
     fetchData();
-  }, [classId]);
+  }, [classId, academicYear]);
 
   // Modal handling functions
   const handleEditResult = (result: Grade) => {

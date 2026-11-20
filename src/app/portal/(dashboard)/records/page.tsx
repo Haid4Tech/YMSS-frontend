@@ -1,13 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
 import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { classesAPI } from "@/jotai/class/class";
-import { studentsAPI } from "@/jotai/students/student";
-import { parentsAPI } from "@/jotai/parent/parent";
 import {
-  userAtom,
   isAdminAtom,
   isStudentAtom,
   isParentAtom,
@@ -26,7 +24,7 @@ export default function RecordsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [user] = useAtom(userAtom);
+  const { academicYear } = useAcademicPeriod();
   const [isAdmin] = useAtom(isAdminAtom);
   const [isStudent] = useAtom(isStudentAtom);
   const [isParent] = useAtom(isParentAtom);
@@ -39,40 +37,10 @@ export default function RecordsPage() {
 
     try {
       // Fetch classes with their students and subjects included
-      const classes = await getAllClasses();
+      const classes = await getAllClasses(academicYear);
       const allClasses = Array.isArray(classes) ? classes : [];
 
-      // Filter classes based on user role
-      let filteredClasses = allClasses;
-
-      if (isStudent && user) {
-        // Student: Show only classes they're enrolled in
-        const studentData = await studentsAPI.getByUserId(user.id);
-        if (studentData && studentData.classId) {
-          filteredClasses = allClasses.filter(
-            (c: Class) => c.id === studentData.classId
-          );
-        } else {
-          filteredClasses = [];
-        }
-      } else if (isParent && user) {
-        // Parent: Show only classes their children are enrolled in
-        const parentData = await parentsAPI.getByUserId(user.id);
-        if (parentData && parentData.students) {
-          const childrenClassIds = parentData.students
-            .map((student) => student.classId)
-            .filter(
-              (id: number | undefined): id is number =>
-                id !== undefined && id !== null
-            );
-          filteredClasses = allClasses.filter((c: Class) =>
-            childrenClassIds.includes(c.id)
-          );
-        } else {
-          filteredClasses = [];
-        }
-      }
-      // Admin: Show all classes (no filtering needed)
+      const filteredClasses = allClasses;
 
       setClassRecords(filteredClasses);
     } catch (err) {
@@ -82,7 +50,7 @@ export default function RecordsPage() {
     } finally {
       setLoading(false);
     }
-  }, [getAllClasses, isStudent, isParent, user]);
+  }, [getAllClasses, academicYear]);
 
   useEffect(() => {
     fetchAllData();

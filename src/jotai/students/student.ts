@@ -13,6 +13,7 @@ import { Student, StudentResponse } from "./student-types";
 export const studentListAtom = atom<StudentResponse | null>(null);
 export const studentLoadingAtom = atom<boolean>(false);
 export const studentErrorAtom = atom<string | null>(null);
+const studentListRequestAtom = atom(0);
 
 export interface StudentSearchParams {
   search?: string;
@@ -22,19 +23,26 @@ export interface StudentSearchParams {
 export const studentsAPI = {
   getAll: atom(
     null,
-    async (_get, set, params?: StudentSearchParams) => {
+    async (get, set, params?: StudentSearchParams, signal?: AbortSignal) => {
+      const request = get(studentListRequestAtom) + 1;
+      set(studentListRequestAtom, request);
       set(studentLoadingAtom, true);
       set(studentErrorAtom, null);
 
       try {
         const response = await axiosInstance.get<StudentResponse>("/students", {
           params,
+          signal,
         });
-        set(studentListAtom, response.data);
+        if (!signal?.aborted && get(studentListRequestAtom) === request) {
+          set(studentListAtom, response.data);
+        }
       } catch (error: any) {
-        set(studentErrorAtom, error.message || "Failed to fetch students");
+        if (!signal?.aborted && get(studentListRequestAtom) === request) {
+          set(studentErrorAtom, error.message || "Failed to fetch students");
+        }
       } finally {
-        set(studentLoadingAtom, false);
+        if (get(studentListRequestAtom) === request) set(studentLoadingAtom, false);
       }
     }
   ),
@@ -59,8 +67,8 @@ export const studentsAPI = {
     return response.data;
   },
 
-  getStudentsByClass: async (classId: number): Promise<Student[]> => {
-    const response = await axiosInstance.get(`/students/${classId}/class`);
+  getStudentsByClass: async (classId: number, academicYear?: string): Promise<Student[]> => {
+    const response = await axiosInstance.get(`/students/${classId}/class`, { params: { academicYear } });
     return response.data;
   },
 

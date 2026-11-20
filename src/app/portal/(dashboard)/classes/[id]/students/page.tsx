@@ -1,5 +1,6 @@
 "use client";
 
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -38,6 +39,7 @@ type CheckboxState = {
 export default function Page() {
   const params = useParams<{ id: string }>();
   const classId = parseInt(params?.id);
+  const { academicYear } = useAcademicPeriod();
 
   const [existingEnrollments, setExistingEnrollments] = useState<
     { studentId: number; subjectId: number }[]
@@ -51,8 +53,8 @@ export default function Page() {
   useEffect(() => {
     const fetchData = async () => {
       const [students, subjects] = await Promise.all([
-        studentsAPI.getStudentsByClass(classId),
-        subjectsAPI.getSubjectByClassID(classId),
+        studentsAPI.getStudentsByClass(classId, academicYear),
+        subjectsAPI.getSubjectByClassID(classId, academicYear),
       ]);
 
       // console.log(students);
@@ -63,7 +65,7 @@ export default function Page() {
       setStudentsData(studentsList);
       setSubjectsData(subjectsList);
 
-      const enrollments = await getAllEnrollments();
+      const enrollments = await getAllEnrollments(academicYear);
       const enrollmentPairs = enrollments.map(
         (enr: { studentId: number; subjectId: number }) => ({
           studentId: enr.studentId,
@@ -87,7 +89,7 @@ export default function Page() {
     };
 
     fetchData();
-  }, [classId, getAllEnrollments]);
+  }, [classId, academicYear, getAllEnrollments]);
 
   const handleCheckChange = (studentId: number, subjectId: number) => {
     setChecks((prev) => ({
@@ -137,6 +139,7 @@ export default function Page() {
           .map((subjectId) => ({
             studentId,
             subjectId,
+            academicYear,
           }));
 
         await enrollmentsAPI.create(payload);
@@ -159,6 +162,7 @@ export default function Page() {
               .map((subjectId) => ({
                 studentId,
                 subjectId,
+                academicYear,
               }))
         );
 

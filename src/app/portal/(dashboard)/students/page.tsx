@@ -7,6 +7,7 @@ import {
   studentsAPI,
   studentListAtom,
   studentLoadingAtom,
+  studentErrorAtom,
 } from "@/jotai/students/student";
 import { getAllClassAtom } from "@/jotai/class/class";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,7 @@ export default function StudentsPage() {
   const [reload, setReload] = useState<boolean>(false);
   const [students] = useAtom(studentListAtom);
   const [loading] = useAtom(studentLoadingAtom);
+  const [error] = useAtom(studentErrorAtom);
   const [, getAllStudents] = useAtom(studentsAPI.getAll);
   const [classes] = useAtom(getAllClassAtom);
   const [loadingStates, setLoadingStates] = useState<{
@@ -73,10 +75,12 @@ export default function StudentsPage() {
   const debouncedSearch = useDebounce(searchTerm, 300);
 
   useEffect(() => {
+    const controller = new AbortController();
     getAllStudents({
-      search: debouncedSearch || undefined,
+      search: debouncedSearch.trim() || undefined,
       classId: classFilter !== "all" ? Number(classFilter) : undefined,
-    });
+    }, controller.signal);
+    return () => controller.abort();
   }, [getAllStudents, reload, debouncedSearch, classFilter]);
 
   const filteredStudents = Array.isArray(students?.students)
@@ -320,24 +324,6 @@ export default function StudentsPage() {
     },
   ];
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (isParent || isStudent || isTeacher) {
-    if (filteredStudents.length === 0) {
-      return (
-        <div className="flex h-96 items-center justify-center">
-          <p>No student yet</p>
-        </div>
-      );
-    }
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -378,6 +364,8 @@ export default function StudentsPage() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Input
+          type="search"
+          aria-label="Search students"
           placeholder="Search by name, admission number, or student ID..."
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
@@ -397,12 +385,19 @@ export default function StudentsPage() {
           </SelectContent>
         </Select>
       </div>
-
-      <DataTable
-        columns={columns}
-        data={filteredStudents}
-        hideSearchBar
-      />
+      {error && (
+        <div role="alert" className="flex items-center gap-3 text-sm text-destructive">
+          <span>{extractErrorMessage(error)}</span>
+          <Button variant="outline" size="sm" onClick={() => setReload(previous => !previous)}>Retry</Button>
+        </div>
+      )}
+      <div aria-busy={loading}>
+        <DataTable
+          columns={columns}
+          data={filteredStudents}
+          hideSearchBar
+        />
+      </div>
     </div>
   );
 }

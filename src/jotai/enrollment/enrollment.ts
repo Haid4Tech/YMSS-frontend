@@ -14,12 +14,12 @@ export const enrollmentLoadingAtom = atom<boolean>(false);
 export const enrollmentErrorAtom = atom<string | null>(null);
 
 export const enrollmentsAPI = {
-  getAll: atom(null, async (_get, set) => {
+  getAll: atom(null, async (_get, set, academicYear?: string) => {
     set(enrollmentLoadingAtom, true);
     set(enrollmentErrorAtom, null);
 
     try {
-      const response = await axiosInstance.get("/enrollments");
+      const response = await axiosInstance.get("/enrollments", { params: { academicYear } });
       set(enrollmentListAtom, response.data);
       return response.data;
     } catch (error) {
@@ -37,9 +37,9 @@ export const enrollmentsAPI = {
     return response.data;
   },
 
-  getBySubject: async (subjectId: number): Promise<Enrollment[]> => {
+  getBySubject: async (subjectId: number, academicYear?: string): Promise<Enrollment[]> => {
     const response = await axiosInstance.get(
-      `/enrollments/subject/${subjectId}`
+      `/enrollments/subject/${subjectId}`, { params: { academicYear } }
     );
     return response.data;
   },

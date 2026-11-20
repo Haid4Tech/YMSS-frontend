@@ -6,6 +6,8 @@ export interface Enrollment {
   id: number;
   studentId: number;
   subjectId: number;
+  academicYear?: string | null;
+  classAssignmentId?: number | null;
   enrolledAt: string;
   student: Student;
   subject: Subject;
@@ -20,6 +22,7 @@ export interface EnrollmentResponse {
 }
 
 export interface CreateEnrollmentData {
+  academicYear: string;
   studentId: number;
   subjectId: number;
 }
