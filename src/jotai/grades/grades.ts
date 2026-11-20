@@ -19,6 +19,10 @@ export const reportCardAtom = atom<ReportCard | null>(null);
 export const reportCardLoadingAtom = atom<boolean>(false);
 export const reportCardErrorAtom = atom<string | null>(null);
 
+// Ignore older responses when the selected academic period changes mid-request.
+const classResultsRequestAtom = atom(0);
+const reportCardRequestAtom = atom(0);
+
 // ===== BASIC GRADE FUNCTIONS (Legacy) =====
 
 export const gradesAPI = {
@@ -233,13 +237,15 @@ export const gradesAPI = {
   getResultsByClassAndSubject: atom(
     null,
     async (
-      _get,
+      get,
       set,
       classId: number,
       subjectId: number,
       academicYear?: string,
       term?: string
     ) => {
+      const request = get(classResultsRequestAtom) + 1;
+      set(classResultsRequestAtom, request);
       set(gradeLoadingAtom, true);
       set(gradeErrorAtom, null);
 
@@ -251,16 +257,17 @@ export const gradesAPI = {
         const response = await axiosInstance.get(
           `/grades/results/class/${classId}/subject/${subjectId}?${params}`
         );
-        set(gradeListAtom, response.data);
+        if (get(classResultsRequestAtom) === request) set(gradeListAtom, response.data);
         return response.data;
       } catch (error: any) {
+        if (get(classResultsRequestAtom) !== request) throw error;
         set(
           gradeErrorAtom,
           error.message || "Failed to fetch class subject results"
         );
         throw error;
       } finally {
-        set(gradeLoadingAtom, false);
+        if (get(classResultsRequestAtom) === request) set(gradeLoadingAtom, false);
       }
     }
   ),
@@ -269,12 +276,14 @@ export const gradesAPI = {
   getResultsByClass: atom(
     null,
     async (
-      _get,
+      get,
       set,
       classId: number,
       academicYear?: string,
       term?: string
     ) => {
+      const request = get(classResultsRequestAtom) + 1;
+      set(classResultsRequestAtom, request);
       set(gradeLoadingAtom, true);
       set(gradeErrorAtom, null);
 
@@ -286,13 +295,14 @@ export const gradesAPI = {
         const response = await axiosInstance.get(
           `/grades/results/class/${classId}?${params}`
         );
-        set(gradeListAtom, response.data);
+        if (get(classResultsRequestAtom) === request) set(gradeListAtom, response.data);
         return response.data;
       } catch (error: any) {
+        if (get(classResultsRequestAtom) !== request) throw error;
         set(gradeErrorAtom, error.message || "Failed to fetch class results");
         throw error;
       } finally {
-        set(gradeLoadingAtom, false);
+        if (get(classResultsRequestAtom) === request) set(gradeLoadingAtom, false);
       }
     }
   ),
@@ -301,12 +311,15 @@ export const gradesAPI = {
   getReportCard: atom(
     null,
     async (
-      _get,
+      get,
       set,
       studentId: number,
       academicYear?: string,
       term?: string
     ) => {
+      const request = get(reportCardRequestAtom) + 1;
+      set(reportCardRequestAtom, request);
+      set(reportCardAtom, null);
       set(reportCardLoadingAtom, true);
       set(reportCardErrorAtom, null);
 
@@ -318,16 +331,17 @@ export const gradesAPI = {
         const response = await axiosInstance.get(
           `/grades/results/report-card/${studentId}?${params}`
         );
-        set(reportCardAtom, response.data);
+        if (get(reportCardRequestAtom) === request) set(reportCardAtom, response.data);
         return response.data;
       } catch (error: any) {
+        if (get(reportCardRequestAtom) !== request) throw error;
         set(
           reportCardErrorAtom,
           error.message || "Failed to fetch report card"
         );
         throw error;
       } finally {
-        set(reportCardLoadingAtom, false);
+        if (get(reportCardRequestAtom) === request) set(reportCardLoadingAtom, false);
       }
     }
   ),

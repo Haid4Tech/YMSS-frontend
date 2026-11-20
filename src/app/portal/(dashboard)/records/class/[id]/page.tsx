@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { useAtom } from "jotai";
 import { classesAPI } from "@/jotai/class/class";
@@ -18,6 +18,9 @@ import { Subject } from "@/jotai/subject/subject-types";
 import { Download, Printer, TrendingUp, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
 
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
+import { AcademicPeriodFields } from "@/components/portal/dashboards/results/academic-period-fields";
+
 interface StudentRecordRow {
   studentId: number;
   studentName: string;
@@ -31,6 +34,8 @@ interface StudentRecordRow {
 export default function ClassRecordsPage() {
   const params = useParams<{ id: string }>();
   const classId = parseInt(params.id);
+  const { academicYear, term, setPeriod } = useAcademicPeriod();
+  const requestId = useRef(0);
 
   const [classData, setClassData] = useState<Class | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -43,12 +48,14 @@ export default function ClassRecordsPage() {
   const [, getAllAttendanceAtom] = useAtom(attendanceAPI.getAll);
 
   const fetchClassData = useCallback(async () => {
+    const currentRequest = ++requestId.current;
     setLoading(true);
     setError(null);
 
     try {
       // Fetch class data
       const classResponse = await classesAPI.getById(classId);
+      if (currentRequest !== requestId.current) return;
       setClassData(classResponse);
 
       // Fetch related data
@@ -56,9 +63,12 @@ export default function ClassRecordsPage() {
         await Promise.allSettled([
           studentsAPI.getStudentsByClass(classId),
           subjectsAPI.getSubjectByClassID(classId),
-          getResultsByClass(classId),
+          getResultsByClass(classId, academicYear, term),
           getAllAttendanceAtom(),
         ]);
+
+      if (currentRequest !== requestId.current) return;
+      if (gradesData.status === "rejected") throw gradesData.reason;
 
       const studentsResult =
         studentsData.status === "fulfilled" && Array.isArray(studentsData.value)
@@ -83,6 +93,7 @@ export default function ClassRecordsPage() {
 
       // Filter attendance for students in this class
       const classAttendance = attendanceResult.filter((record) =>
+        record.classId === classId &&
         studentsResult.some((student) => student.id === record.studentId)
       );
 
@@ -106,7 +117,8 @@ export default function ClassRecordsPage() {
         subjectsResult.forEach((subject) => {
           const studentGrade = gradesResult.find(
             (grade) =>
-              grade.studentId === student.id && grade.subjectId === subject.id
+              grade.studentId === student.id && grade.subjectId === subject.id &&
+              grade.classId === classId && grade.academicYear === academicYear && grade.term === term
           );
 
           // Use totalScore if available, otherwise use overallScore or value
@@ -148,15 +160,18 @@ export default function ClassRecordsPage() {
 
       setTableData(tableRows);
     } catch (err) {
+      if (currentRequest !== requestId.current) return;
       setError(err instanceof Error ? err.message : "Failed to fetch class data");
       toast.error("Failed to load class records");
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) setLoading(false);
     }
-  }, [classId, getResultsByClass, getAllAttendanceAtom]);
+  }, [classId, academicYear, term, getResultsByClass, getAllAttendanceAtom]);
 
   useEffect(() => {
     fetchClassData();
+    const requests = requestId;
+    return () => { requests.current++; };
   }, [fetchClassData]);
 
   const handleExport = () => {
@@ -240,7 +255,7 @@ export default function ClassRecordsPage() {
       },
       {
         accessorKey: "attendancePercentage",
-        header: () => <div className="text-center">Attendance %</div>,
+        header: () => <div className="text-center">Attendance % (all dates)</div>,
         cell: ({ row }) => {
           const percentage = row.original.attendancePercentage;
           const colorClass =
@@ -298,9 +313,13 @@ export default function ClassRecordsPage() {
         <div className="flex-1">
           <PageHeader
             title={`Academic Records - ${classData.name}`}
-            subtitle={`Comprehensive records for ${students.length} students across ${subjects.length} subjects`}
+            subtitle={`${academicYear} | ${term} Term | ${students.length} students across ${subjects.length} subjects`}
           />
         </div>
+      </div>
+
+      <div className="print:hidden">
+        <AcademicPeriodFields academicYear={academicYear} term={term} onChange={setPeriod} />
       </div>
 
       {/* Class Info */}
@@ -334,7 +353,7 @@ export default function ClassRecordsPage() {
         <CardHeader>
           <CardTitle>Student Academic Records</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Showing all students with subject scores and attendance
+            Subject scores for {academicYear}, {term.toLowerCase()} term. Attendance covers all recorded dates.
           </p>
         </CardHeader>
         <CardContent>

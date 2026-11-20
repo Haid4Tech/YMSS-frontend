@@ -1,5 +1,7 @@
 "use client";
 
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
+
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
@@ -29,6 +31,7 @@ import { Grade } from "@/jotai/grades/grades-types";
 import { PageHeader } from "@/components/general/page-header";
 import ActionsDropdown from "@/components/ui/actions-dropdown";
 import { UpdateResult } from "@/components/portal/dashboards/results/update-result-modal";
+import { AcademicPeriodFields } from "@/components/portal/dashboards/results/academic-period-fields";
 
 export default function TeacherSubjectResultsPage() {
   const params = useParams();
@@ -51,8 +54,25 @@ export default function TeacherSubjectResultsPage() {
   const [isAdmin] = useAtom(isAdminAtom);
   const [user] = useAtom(userAtom);
 
-  const [academicYear] = useState<string>("2025/2026");
-  const [term] = useState<string>("THIRD");
+  const { academicYear, term, setPeriod } = useAcademicPeriod();
+
+  useEffect(() => {
+    setIsModalOpen(false);
+    setSelectedResult(null);
+    setSelectedStudent(null);
+    setCurrentFormData({});
+    setLocalResults({});
+  }, [academicYear, term]);
+
+  const handlePeriodChange = (period: Pick<Grade, "academicYear" | "term">) => {
+    if (isUpdating) return;
+    setIsModalOpen(false);
+    setSelectedResult(null);
+    setSelectedStudent(null);
+    setCurrentFormData({});
+    setLocalResults({});
+    setPeriod(period);
+  };
 
   const [results] = useAtom(gradeListAtom);
   const [loading] = useAtom(gradeLoadingAtom);
@@ -163,7 +183,7 @@ export default function TeacherSubjectResultsPage() {
 
     setIsUpdating(true);
     try {
-      const key = `${selectedStudent.id}-${subject.id}`;
+      const key = `${academicYear}-${term}-${selectedStudent.id}-${subject.id}`;
 
       // Check if result already exists for this student-subject combination
       const existingResult = Array.isArray(results)
@@ -236,7 +256,7 @@ export default function TeacherSubjectResultsPage() {
   // Create results for students in this subject
   const mappedResults = subject
     ? students.map((student) => {
-        const key = `${student.id}-${subject.id}`;
+        const key = `${academicYear}-${term}-${student.id}-${subject.id}`;
         const existingResult = Array.isArray(results)
           ? results.find(
               (r) =>
@@ -584,6 +604,13 @@ export default function TeacherSubjectResultsPage() {
         } | Academic Year: ${academicYear} | Term: ${term}`}
       />
 
+      <AcademicPeriodFields
+          academicYear={academicYear}
+          term={term}
+          onChange={handlePeriodChange}
+          disabled={isUpdating}
+        />
+
       {/* Subject Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -714,8 +741,8 @@ export default function TeacherSubjectResultsPage() {
           }
           modalDescription={
             selectedResult?.id
-              ? `Update result for ${subject.name}`
-              : `Add new result for ${subject.name}`
+              ? `Update result for ${subject.name} — ${academicYear}, ${term} Term`
+              : `Add new result for ${subject.name} — ${academicYear}, ${term} Term`
           }
           btnText={
             isUpdating
