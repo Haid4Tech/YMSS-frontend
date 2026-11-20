@@ -395,6 +395,8 @@ export default function StudentsPage() {
         <DataTable
           columns={columns}
           data={filteredStudents}
+          onRowClick={(student: Student) => handleViewStudent(student.id)}
+          getRowLabel={(student: Student) => `Open ${student.user?.firstname ?? ""} ${student.user?.lastname ?? ""} details`}
           hideSearchBar
         />
       </div>

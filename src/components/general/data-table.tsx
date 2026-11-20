@@ -41,6 +41,9 @@ interface IDataTable {
   enableGlobalSearch?: boolean;
   /** Hide the built-in search input, e.g. when the parent renders its own search/filter bar (server-side search). */
   hideSearchBar?: boolean;
+  /** Open a record from the row while leaving nested controls independent. */
+  onRowClick?: (record: any) => void;
+  getRowLabel?: (record: any) => string;
 }
 
 export const DataTable: React.FC<IDataTable> = ({
@@ -50,6 +53,8 @@ export const DataTable: React.FC<IDataTable> = ({
   searchKey = "name",
   enableGlobalSearch = false,
   hideSearchBar = false,
+  onRowClick,
+  getRowLabel,
 }) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -157,9 +162,30 @@ export const DataTable: React.FC<IDataTable> = ({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  tabIndex={onRowClick ? 0 : undefined}
+                  aria-label={onRowClick ? getRowLabel?.(row.original) : undefined}
+                  className={onRowClick ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring" : undefined}
+                  onClick={onRowClick ? (event) => {
+                    if (event.defaultPrevented) return;
+                    const target = event.target;
+                    if (target instanceof Element && target.closest(
+                      'a, button, input, select, textarea, label, summary, [role="button"], [role="checkbox"], [role="switch"], [role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"], [contenteditable="true"], [data-row-click-ignore]'
+                    )) return;
+                    onRowClick(row.original);
+                  } : undefined}
+                  onKeyDown={onRowClick ? (event) => {
+                    if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) {
+                      event.preventDefault();
+                      onRowClick(row.original);
+                    }
+                  } : undefined}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell className={"last:text-center"} key={cell.id}>
+                    <TableCell
+                      className={"last:text-center"}
+                      key={cell.id}
+                      data-row-click-ignore={onRowClick && cell.column.id === "actions" ? "" : undefined}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

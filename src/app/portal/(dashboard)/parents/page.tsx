@@ -254,6 +254,8 @@ export default function ParentsPage() {
       <DataTable
         columns={columns}
         data={filteredParents}
+        onRowClick={(parent: Parent) => handleViewParent(parent.id)}
+        getRowLabel={(parent: Parent) => `Open ${parent.user?.firstname ?? ""} ${parent.user?.lastname ?? ""} details`}
         searchPlaceholder="Search parents by name, email, or phone..."
         enableGlobalSearch={true}
       />
