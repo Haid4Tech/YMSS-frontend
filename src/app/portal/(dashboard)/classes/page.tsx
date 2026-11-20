@@ -9,7 +9,7 @@ import {
   classLoadingAtom,
   classErrorAtom,
 } from "@/jotai/class/class";
-import { Class } from "@/jotai/class/class-type";
+import { Class, GRADE_LEVELS } from "@/jotai/class/class-type";
 import { authPersistedAtom } from "@/jotai/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,8 +24,15 @@ import {
 
 import { toast } from "sonner";
 import { Spinner } from "@radix-ui/themes";
-import { Eye, Trash2 } from "lucide-react";
+import { BookOpen, Trash2, Users } from "lucide-react";
 import { extractErrorMessage } from "@/utils/helpers";
+
+function gradeOrder(classItem: Class) {
+  const configured = classItem.gradeLevel?.replace(/\s+/g, "").toUpperCase();
+  const fromName = classItem.name.replace(/\s+/g, "").toUpperCase().match(/^(JSS[1-3]|SS[1-3])/)?.[1];
+  const index = GRADE_LEVELS.findIndex(grade => grade.value === (configured || fromName));
+  return index < 0 ? GRADE_LEVELS.length : index;
+}
 
 export default function ClassesPage() {
   const router = useRouter();
@@ -34,11 +41,9 @@ export default function ClassesPage() {
   const [reload, setReload] = useState<boolean>(false);
   const [loadingStates, setLoadingStates] = useState<{
     add: boolean;
-    view: number | null;
     delete: number | null;
   }>({
     add: false,
-    view: null,
     delete: null,
   });
 
@@ -70,10 +75,23 @@ export default function ClassesPage() {
   }, [getAllClasses, auth, reload]);
 
   const filteredClasses = Array.isArray(classes)
-    ? classes.filter((classItem) =>
-        classItem?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    ? classes
+        .filter((classItem) =>
+          classItem.name.toLowerCase().includes(searchTerm.trim().toLowerCase())
+        )
+        .sort((a, b) =>
+          gradeOrder(a) - gradeOrder(b) ||
+          a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }) ||
+          a.id - b.id
+        )
     : [];
+
+  const classGroups = [...GRADE_LEVELS.map(grade => grade.label), "Other classes"]
+    .map((grade, index) => ({
+      grade,
+      classes: filteredClasses.filter(classItem => gradeOrder(classItem) === index),
+    }))
+    .filter(group => group.classes.length > 0);
 
   if (loading) {
     return (
@@ -103,15 +121,6 @@ export default function ClassesPage() {
       </div>
     );
   }
-
-  const handleViewClass = (parentId: number) => {
-    setLoadingStates((prev) => ({ ...prev, view: parentId }));
-    router.push(`/portal/classes/${parentId}`);
-
-    setTimeout(() => {
-      setLoadingStates((prev) => ({ ...prev, view: null }));
-    }, 3000);
-  };
 
   const handleDeleteClass = async () => {
     if (!classToDelete) return;
@@ -178,75 +187,70 @@ export default function ClassesPage() {
           className="max-w-sm"
         />
       </div>
-      {/* Classes Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredClasses.map((classItem) => (
-          <Card key={classItem?.id} className="hover-scale">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{classItem?.name}</span>
-
-                <div className="flex md:flex-row flex-col gap-2 md:gap-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleViewClass(classItem.id)}
-                  >
-                    {loadingStates.view === classItem.id ? (
-                      <div>
-                        <Spinner />
+      {/* Grade sections */}
+      <div className="space-y-6">
+        {classGroups.map(group => (
+          <section key={group.grade} aria-labelledby={`grade-${group.grade.replace(/\s+/g, "-")}`} className="space-y-3">
+            <div className="flex items-center justify-between border-y bg-muted/60 px-4 py-2">
+              <h2 id={`grade-${group.grade.replace(/\s+/g, "-")}`} className="text-sm font-semibold">
+                {group.grade}
+              </h2>
+              <span className="text-xs text-muted-foreground">
+                {group.classes.length} {group.classes.length === 1 ? "class" : "classes"}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {group.classes.map(classItem => (
+                <Card key={classItem.id} className="relative gap-3 rounded-lg py-4 shadow-none transition-colors hover:border-primary/40">
+                  <CardHeader className="flex flex-row items-start justify-between gap-2 px-4">
+                    <div className="min-w-0 space-y-2">
+                      <CardTitle className="truncate text-base" title={classItem.name}>
+                        <Link
+                          href={`/portal/classes/${classItem.id}`}
+                          aria-label={`View ${classItem.name} details`}
+                          className="after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-ring"
+                        >
+                          {classItem.name}
+                        </Link>
+                      </CardTitle>
+                      <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                        {classItem.gradeLevel && <span className="rounded bg-muted px-1.5 py-0.5 font-medium">{classItem.gradeLevel}</span>}
+                        {classItem.stream && <span className="capitalize">{classItem.stream.toLowerCase()}</span>}
+                        <span className="text-muted-foreground/70">#{classItem.id}</span>
                       </div>
-                    ) : (
-                      <div className="flex flex-row gap-1">
-                        <p className="block md:hidden text-sm">View</p>
-                        <Eye size={12} />
-                      </div>
-                    )}
-                  </Button>
-                  {isAdmin && (
-                    <Button
-                      size={"sm"}
-                      variant={"destructive"}
-                      onClick={() => setClassToDelete(classItem)}
-                    >
-                      {loadingStates.delete === classItem.id ? (
-                        <div>
-                          <Spinner />
-                        </div>
-                      ) : (
-                        <div className="flex flex-row gap-1">
-                          <p className="block md:hidden text-sm">Delete</p>
-                          <Trash2 size={12} />
-                        </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      {isAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="relative z-10 size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          aria-label={`Delete ${classItem.name}`}
+                          title={`Delete ${classItem.name}`}
+                          disabled={loadingStates.delete === classItem.id}
+                          onClick={() => setClassToDelete(classItem)}
+                        >
+                          {loadingStates.delete === classItem.id ? <Spinner /> : <Trash2 className="size-4" />}
+                        </Button>
                       )}
-                    </Button>
-                  )}
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {(classItem?.gradeLevel || classItem?.stream) && (
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-medium">Grade/Stream:</span>{" "}
-                    {classItem?.gradeLevel || "—"}
-                    {classItem?.stream ? ` (${classItem.stream})` : ""}
-                  </p>
-                )}
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Students:</span>{" "}
-                  {classItem?.students?.length || 0}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Subjects:</span>{" "}
-                  {classItem?.subjects?.length || 0}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Class ID:</span> {classItem?.id}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="px-4">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t pt-3 text-xs text-muted-foreground">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Users className="size-3.5" aria-hidden="true" />
+                        <span><strong className="font-semibold text-foreground">{classItem.students?.length ?? 0}</strong> students</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <BookOpen className="size-3.5" aria-hidden="true" />
+                        <span><strong className="font-semibold text-foreground">{classItem.subjects?.length ?? 0}</strong> subjects</span>
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
         ))}
       </div>
       {/* Empty State */}

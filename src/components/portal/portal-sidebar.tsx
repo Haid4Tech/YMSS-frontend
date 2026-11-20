@@ -71,6 +71,12 @@ const navigationItems: NavItem[] = [
     roles: ["ADMIN", "TEACHER"],
   },
   {
+    name: "Promotions",
+    href: "/portal/promotions",
+    lucideIcon: GraduationCap,
+    roles: ["ADMIN"],
+  },
+  {
     name: "Subjects",
     href: "/portal/subjects",
     lucideIcon: BookOpen,

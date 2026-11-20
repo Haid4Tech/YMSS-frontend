@@ -119,7 +119,7 @@ export default function TeacherSubjectResultsPage() {
       if (subject?.classId) {
         try {
           const studentsData = await studentsAPI.getStudentsByClass(
-            subject.classId
+            subject.classId, academicYear
           );
           setStudents(Array.isArray(studentsData) ? studentsData : []);
         } catch (error) {
@@ -132,7 +132,7 @@ export default function TeacherSubjectResultsPage() {
     if (subject?.classId) {
       fetchStudents();
     }
-  }, [subject?.classId]);
+  }, [subject?.classId, academicYear]);
 
   // Load results for this subject
   useEffect(() => {

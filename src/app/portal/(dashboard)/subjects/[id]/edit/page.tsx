@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAtom } from "jotai";
+import { userAtom } from "@/jotai/auth/auth";
 import { DynamicHeader } from "@/components/general/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,7 @@ export default function EditSubjectPage() {
   const params = useParams<{ id: string }>();
   const subjectId = parseInt(params.id);
   const router = useRouter();
+  const [user] = useAtom(userAtom);
 
   const [loading, setLoading] = useState<boolean>(false);
   const [dataLoading, setDataLoading] = useState<boolean>(true);
@@ -32,6 +34,7 @@ export default function EditSubjectPage() {
 
   const [formData, setFormData] = useState({
     name: "",
+    isElective: false,
     description: "",
     category: "",
     weeklyHours: "",
@@ -52,6 +55,7 @@ export default function EditSubjectPage() {
         setClasses(Array.isArray(classesData) ? classesData : []);
         setFormData({
           name: subject.name || "",
+          isElective: subject.isElective ?? false,
           description: subject.description || "",
           category: subject.category || "",
           weeklyHours: subject.weeklyHours?.toString() || "",
@@ -80,6 +84,7 @@ export default function EditSubjectPage() {
     try {
       const updateData = {
         name: formData.name,
+        ...(user?.role === "ADMIN" ? { isElective: formData.isElective } : {}),
         description: formData.description,
         category: formData.category,
         weeklyHours: formData.weeklyHours
@@ -190,6 +195,10 @@ export default function EditSubjectPage() {
             </div>
 
             <div>
+              {user?.role === "ADMIN" && <label className="flex items-center gap-2 text-sm mb-4">
+                <input type="checkbox" checked={formData.isElective} onChange={e => setFormData(prev => ({ ...prev, isElective: e.target.checked }))} />
+                Elective subject (optional during promotion)
+              </label>}
               <TextareaField
                 label="Description"
                 placeholder="Enter subject description"

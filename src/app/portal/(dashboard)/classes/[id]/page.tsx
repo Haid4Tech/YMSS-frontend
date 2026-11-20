@@ -1,5 +1,6 @@
 "use client";
 
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -35,6 +36,7 @@ import { isAdminAtom } from "@/jotai/auth/auth";
 export default function ClassDetailPage() {
   const params = useParams();
   const classId = params.id as string;
+  const { academicYear, term } = useAcademicPeriod();
   const router = useRouter();
 
   const [classData, setClassData] = useState<Class | null>(null);
@@ -51,10 +53,10 @@ export default function ClassDetailPage() {
     const fetchClassData = async () => {
       try {
         setError(null);
-        const studentsData = studentsAPI.getStudentsByClass(parseInt(classId));
+        const studentsData = await studentsAPI.getStudentsByClass(parseInt(classId), academicYear);
         const [classInfo, gradesData] = await Promise.all([
-          classesAPI.getById(parseInt(classId)),
-          getResultsByClass(parseInt(classId)),
+          classesAPI.getById(parseInt(classId), academicYear),
+          getResultsByClass(parseInt(classId), academicYear, term),
           // enhancedSubjectAttendanceAPI.getByClass(parseInt(classId)),
         ]);
 
@@ -74,7 +76,7 @@ export default function ClassDetailPage() {
     if (classId) {
       fetchClassData();
     }
-  }, [classId, getResultsByClass]);
+  }, [classId, academicYear, term, getResultsByClass]);
 
   // Calculate class statistics. Capacity is optional - a class with no
   // capacity set has no enrollment limit, so it's tracked separately from
