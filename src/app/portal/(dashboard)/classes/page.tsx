@@ -216,7 +216,6 @@ export default function ClassesPage() {
                       <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                         {classItem.gradeLevel && <span className="rounded bg-muted px-1.5 py-0.5 font-medium">{classItem.gradeLevel}</span>}
                         {classItem.stream && <span className="capitalize">{classItem.stream.toLowerCase()}</span>}
-                        <span className="text-muted-foreground/70">#{classItem.id}</span>
                       </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
