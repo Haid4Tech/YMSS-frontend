@@ -1,5 +1,6 @@
 "use client";
 
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
@@ -39,12 +40,17 @@ interface ScheduleFormValues {
 
 export default function AddClassPage() {
   const router = useRouter();
+  const { academicYear } = useAcademicPeriod();
   const [loading, setLoading] = useState<boolean>(false);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [, getAllTeachers] = useAtom(teachersAPI.getAll);
 
   const [formData, setFormData] =
-    useState<IClassFormData>(ClassFormInitialData);
+    useState<IClassFormData>({ ...ClassFormInitialData, academicYear });
+
+  useEffect(() => {
+    setFormData((previous) => ({ ...previous, academicYear }));
+  }, [academicYear]);
 
   // Start/end date and time are managed by their own react-hook-form
   // instance (FormDate/FormTime require a react-hook-form context), scoped

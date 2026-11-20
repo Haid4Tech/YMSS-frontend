@@ -1,5 +1,8 @@
 "use client";
 
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
+import { AcademicPeriodFields } from "@/components/portal/dashboards/results/academic-period-fields";
+
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { useParams, useRouter } from "next/navigation";
@@ -47,8 +50,7 @@ export default function TeacherResultsPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [, setStudents] = useState<Student[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
-  const [academicYear, setAcademicYear] = useState<string>("2025/2026");
-  const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("THIRD");
+  const { academicYear, term, setPeriod } = useAcademicPeriod();
 
   // Role-based access control
   const [isTeacher] = useAtom(isTeacherAtom);
@@ -86,7 +88,7 @@ export default function TeacherResultsPage() {
     if (canViewResults && user) {
       fetchTeacherSubjects();
     }
-  }, [canViewResults, user, getAllStudents]);
+  }, [canViewResults, user, getAllSubjects, teacherId]);
 
   // Load data
   useEffect(() => {
@@ -353,42 +355,8 @@ export default function TeacherResultsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <SelectField
-                label="Academic Year"
-                value={academicYear}
-                onValueChange={(value) => setAcademicYear(value)}
-                placeholder="Select academic year"
-              >
-                {Array.from({ length: 5 }, (_, i) => {
-                  const currentYear = new Date().getFullYear();
-                  const yearStart = currentYear + i;
-                  const yearEnd = yearStart + 1;
-                  return (
-                    <SelectItem
-                      key={yearStart}
-                      value={`${yearStart}-${yearEnd}`}
-                    >
-                      {yearStart}/{yearEnd}
-                    </SelectItem>
-                  );
-                })}
-              </SelectField>
-            </div>
-            <div>
-              <SelectField
-                label="Term"
-                value={term}
-                onValueChange={(value: string) =>
-                  setTerm(value as "FIRST" | "SECOND" | "THIRD")
-                }
-              >
-                {["FIRST", "SECOND", "THIRD"].map((term, index) => (
-                  <SelectItem key={index} value={term}>
-                    {term}
-                  </SelectItem>
-                ))}
-              </SelectField>
+            <div className="md:col-span-2">
+              <AcademicPeriodFields academicYear={academicYear} term={term} onChange={setPeriod} />
             </div>
             <div>
               <SelectField

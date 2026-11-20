@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 
 import { userAtom, authErrorAtom, authLoadingAtom } from "@/jotai/auth/auth";
 import PortalSidebar from "@/components/portal/portal-sidebar";
+import { AcademicPeriodProvider } from "@/components/portal/academic-period/academic-period-provider";
+import { AcademicPeriodPage } from "@/components/portal/academic-period/page-period-notice";
 import PortalNavbar from "@/components/portal/portal-navbar";
 import { Button } from "@/components/ui/button";
 
@@ -42,7 +44,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   }
 
+  if (!user) return null;
+
   return (
+    <AcademicPeriodProvider key={user.id} userId={user.id}>
     <div className="flex h-screen bg-background">
       {sidebarOpen && (
         <div
@@ -73,10 +78,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         )}
 
         <main className="flex-1 overflow-y-auto p-6 scrollbar-width">
-          {children}
+          <AcademicPeriodPage>{children}</AcademicPeriodPage>
         </main>
       </div>
     </div>
+    </AcademicPeriodProvider>
   );
 }
 // --- Supporting Components for cleaner composition ---

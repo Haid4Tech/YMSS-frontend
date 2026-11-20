@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
+import { AcademicPeriodFields } from "@/components/portal/dashboards/results/academic-period-fields";
+
+import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useAtom } from "jotai";
 import { toast } from "sonner";
@@ -15,8 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { InputField, SelectField } from "@/components/ui/form-field";
-import { SelectItem } from "@/components/ui/select";
+import { InputField } from "@/components/ui/form-field";
 import { RemarkCombobox } from "@/components/ui/remark-combobox";
 import { ReportCardSheet } from "@/components/portal/students/report-card-sheet";
 import {
@@ -33,16 +35,10 @@ import {
 import { gradesAPI } from "@/jotai/grades/grades";
 import { ReportCard } from "@/jotai/grades/grades-types";
 import { Student } from "@/jotai/students/student-types";
-import { generateAcademicYears } from "@/common/helper";
 import { extractErrorMessage } from "@/utils/helpers";
 
 type Term = "FIRST" | "SECOND" | "THIRD";
 
-const TERM_OPTIONS: Array<{ value: Term; label: string }> = [
-  { value: "FIRST", label: "First Term" },
-  { value: "SECOND", label: "Second Term" },
-  { value: "THIRD", label: "Third Term" },
-];
 
 interface BatchReportPrintProps {
   classId: number;
@@ -70,8 +66,14 @@ export function BatchReportPrint({
   const [preparing, setPreparing] = useState(false);
   const [reports, setReports] = useState<ReportCard[] | null>(null);
 
-  const [academicYear, setAcademicYear] = useState<string>("2025/2026");
-  const [term, setTerm] = useState<Term>("THIRD");
+  const generation = useRef(0);
+  const { academicYear, term, setPeriod } = useAcademicPeriod();
+  useEffect(() => {
+    generation.current++;
+    setPreparing(false);
+    setReports(null);
+  }, [academicYear, term]);
+
   const [nextTermFee, setNextTermFee] = useState<string>("");
   const [nextTermDate, setNextTermDate] = useState<string>("");
 
@@ -89,6 +91,7 @@ export function BatchReportPrint({
     }
 
     setPreparing(true);
+    const request = ++generation.current;
     try {
       // One request fetches every student's report card for the class.
       const data = (await getClassReportCards(
@@ -97,15 +100,15 @@ export function BatchReportPrint({
         term
       )) as { reportCards?: ReportCard[] } | null;
 
+      if (generation.current !== request) return;
+
       const valid = (data?.reportCards ?? []).filter(
         (rc): rc is ReportCard => Boolean(rc?.results?.length)
       );
 
       if (!valid.length) {
         toast.error("No results found", {
-          description: `No student has results for ${academicYear} — ${
-            TERM_OPTIONS.find((t) => t.value === term)?.label
-          }.`,
+          description: `No student has results for ${academicYear} — ${term.toLowerCase()} term.`,
         });
         return;
       }
@@ -120,11 +123,12 @@ export function BatchReportPrint({
       setReports(valid);
       setOpen(false);
     } catch (error) {
+      if (generation.current !== request) return;
       toast.error("Failed to prepare report cards", {
         description: extractErrorMessage(error),
       });
     } finally {
-      setPreparing(false);
+      if (generation.current === request) setPreparing(false);
     }
   };
 
@@ -147,29 +151,7 @@ export function BatchReportPrint({
           </DialogHeader>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <SelectField
-              label="Academic Year"
-              value={academicYear}
-              onValueChange={setAcademicYear}
-            >
-              {generateAcademicYears(2024, 5).map((year) => (
-                <SelectItem key={year} value={year}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectField>
-
-            <SelectField
-              label="Term"
-              value={term}
-              onValueChange={(value: string) => setTerm(value as Term)}
-            >
-              {TERM_OPTIONS.map((t) => (
-                <SelectItem key={t.value} value={t.value}>
-                  {t.label}
-                </SelectItem>
-              ))}
-            </SelectField>
+            <div className="sm:col-span-2"><AcademicPeriodFields academicYear={academicYear} term={term} onChange={setPeriod} /></div>
 
             <InputField
               id="next-term-fee"

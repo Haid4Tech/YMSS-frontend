@@ -1,5 +1,8 @@
 "use client";
 
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
+import { AcademicPeriodFields } from "@/components/portal/dashboards/results/academic-period-fields";
+
 import { useAtom } from "jotai";
 import { useEffect, useState, useTransition } from "react";
 import { usersAPI } from "@/jotai/users/user";
@@ -13,10 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { BookOpen, TrendingUp, Award, User, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Grade } from "@/jotai/grades/grades-types";
-import { SelectItem } from "@/components/ui/select";
 
-import { SelectField } from "@/components/ui/form-field";
-import { generateAcademicYears } from "@/common/helper";
 
 const StudentResult = () => {
   const [user] = useAtom(userAtom);
@@ -26,8 +26,7 @@ const StudentResult = () => {
   const [studentData, setStudentData] = useState<UserManagement | null>(null);
   const [results, setResults] = useState<Grade[]>([]);
   const [studentResults, setStudentResults] = useState<Grade[]>([]);
-  const [academicYear, setAcademicYear] = useState<string>("2025/2026");
-  const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("THIRD");
+  const { academicYear, term, setPeriod } = useAcademicPeriod();
 
   const [, getUserById] = useAtom(usersAPI.getById);
   const [, getAllResults] = useAtom(gradesAPI.getAllResults);
@@ -258,49 +257,7 @@ const StudentResult = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <SelectField
-                label={"Academic Year"}
-                value={academicYear}
-                onValueChange={(value: string) => setAcademicYear(value)}
-              >
-                {generateAcademicYears(2024, 5).map((year, index) => (
-                  <SelectItem key={index} value={year}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectField>
-            </div>
-            <div>
-              <SelectField
-                label={"Term"}
-                value={term}
-                onValueChange={(value: string) =>
-                  setTerm(value as "FIRST" | "SECOND" | "THIRD")
-                }
-              >
-                {[
-                  {
-                    value: "FIRST",
-                    label: "First Term",
-                  },
-                  {
-                    value: "SECOND",
-                    label: "Second Term",
-                  },
-                  {
-                    value: "THIRD",
-                    label: "Third Term",
-                  },
-                ].map((term, index) => (
-                  <SelectItem key={index} value={term.value}>
-                    {term.label}
-                  </SelectItem>
-                ))}
-              </SelectField>
-            </div>
-          </div>
+          <AcademicPeriodFields academicYear={academicYear} term={term} onChange={setPeriod} />
         </CardContent>
       </Card>
 

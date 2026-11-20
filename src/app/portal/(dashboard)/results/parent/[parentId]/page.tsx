@@ -1,5 +1,8 @@
 "use client";
 
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
+import { AcademicPeriodFields } from "@/components/portal/dashboards/results/academic-period-fields";
+
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
@@ -40,8 +43,7 @@ export default function ParentResultsPage() {
   // const parentId = Number(params.parentId);
 
   const [ward, setWard] = useState<Student | null>(null);
-  const [academicYear] = useState<string>("2025/2026");
-  const [term] = useState<"FIRST" | "SECOND" | "THIRD">("THIRD");
+  const { academicYear, term, setPeriod } = useAcademicPeriod();
 
   // Role-based access control
   const [isParent] = useAtom(isParentAtom);
@@ -296,6 +298,8 @@ export default function ParentResultsPage() {
           </div>
         </div>
       </div>
+
+      <AcademicPeriodFields academicYear={academicYear} term={term} onChange={setPeriod} />
 
       {/* Ward Information */}
       <Card>

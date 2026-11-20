@@ -1,5 +1,8 @@
 "use client";
 
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
+import { AcademicPeriodFields } from "@/components/portal/dashboards/results/academic-period-fields";
+
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { useParams, useRouter } from "next/navigation";
@@ -34,13 +37,6 @@ import { Student } from "@/jotai/students/student-types";
 import { Grade } from "@/jotai/grades/grades-types";
 // import { toast } from "sonner";
 // import { PageHeader } from "@/components/general/page-header";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export default function StudentResultsPage() {
   const params = useParams();
@@ -48,8 +44,7 @@ export default function StudentResultsPage() {
   const studentId = Number(params.studentId);
 
   const [student, setStudent] = useState<Student | null>(null);
-  const [academicYear, setAcademicYear] = useState<string>("2025/2026");
-  const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("THIRD");
+  const { academicYear, term, setPeriod } = useAcademicPeriod();
 
   // Role-based access control
   const [isStudent] = useAtom(isStudentAtom);
@@ -328,36 +323,7 @@ export default function StudentResultsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium">Academic Year</label>
-              <input
-                type="text"
-                value={academicYear}
-                onChange={(e) => setAcademicYear(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border rounded-md"
-                placeholder="e.g., 2024/2025"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Term</label>
-              <Select
-                value={term}
-                onValueChange={(value: "FIRST" | "SECOND" | "THIRD") =>
-                  setTerm(value)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FIRST">First Term</SelectItem>
-                  <SelectItem value="SECOND">Second Term</SelectItem>
-                  <SelectItem value="THIRD">Third Term</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <AcademicPeriodFields academicYear={academicYear} term={term} onChange={setPeriod} />
         </CardContent>
       </Card>
 

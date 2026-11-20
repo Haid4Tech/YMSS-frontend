@@ -28,6 +28,7 @@ import { PersonAvatar } from "@/components/ui/person-avatar";
 import { Spinner } from "@radix-ui/themes";
 import { toast } from "sonner";
 
+
 interface PortalNavbarProps {
   user: User;
   onMenuClick: () => void;
@@ -111,8 +112,8 @@ export default function PortalNavbar({ user, onMenuClick }: PortalNavbarProps) {
   };
 
   return (
-    <header className="bg-background border-b border-border px-6 py-4 h-18">
-      <div className="flex flex-row items-center justify-between">
+    <header className="bg-background border-b border-border px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Left side - Menu button for mobile */}
         <div className="flex items-center gap-4">
           <Button

@@ -1,5 +1,7 @@
 "use client";
 
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
+
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
@@ -43,6 +45,7 @@ import { SelectItem } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import ActionsDropdown from "@/components/ui/actions-dropdown";
 import { UpdateResult } from "@/components/portal/dashboards/results/update-result-modal";
+import { AcademicPeriodFields } from "@/components/portal/dashboards/results/academic-period-fields";
 
 export default function ClassResultsPage() {
   const params = useParams();
@@ -68,8 +71,25 @@ export default function ClassResultsPage() {
   const [isAdmin] = useAtom(isAdminAtom);
   const [user] = useAtom(userAtom);
 
-  const [academicYear] = useState<string>("2025/2026");
-  const [term] = useState<string>("THIRD");
+  const { academicYear, term, setPeriod } = useAcademicPeriod();
+
+  useEffect(() => {
+    setIsModalOpen(false);
+    setSelectedResult(null);
+    setSelectedStudent(null);
+    setCurrentFormData({});
+    setLocalResults({});
+  }, [academicYear, term]);
+
+  const handlePeriodChange = (period: Pick<Grade, "academicYear" | "term">) => {
+    if (isUpdating) return;
+    setIsModalOpen(false);
+    setSelectedResult(null);
+    setSelectedStudent(null);
+    setCurrentFormData({});
+    setLocalResults({});
+    setPeriod(period);
+  };
 
   const [results] = useAtom(gradeListAtom);
   const [loading] = useAtom(gradeLoadingAtom);
@@ -192,7 +212,7 @@ export default function ClassResultsPage() {
 
     setIsUpdating(true);
     try {
-      const key = `${selectedStudent.id}-${selectedSubjectData.id}`;
+      const key = `${academicYear}-${term}-${selectedStudent.id}-${selectedSubjectData.id}`;
 
       // Check if result already exists for this student-subject combination
       const existingResult = Array.isArray(results)
@@ -275,7 +295,7 @@ export default function ClassResultsPage() {
 
   const mappedResults = selectedSubjectData
     ? getFilteredStudents().map((student) => {
-        const key = `${student.id}-${selectedSubjectData.id}`;
+        const key = `${academicYear}-${term}-${student.id}-${selectedSubjectData.id}`;
         const existingResult = Array.isArray(results)
           ? results.find(
               (r) =>
@@ -627,7 +647,7 @@ export default function ClassResultsPage() {
       <div className={"space-y-5"}>
         <div>
           <p className={"leading-none font-semibold"}>
-            Filter Results by Subject and Academic Year
+            Filter Results by Subject, Academic Year and Term
           </p>
           {isTeacher && !isAdmin && getFilteredSubjects().length === 0 && (
             <p className="text-sm text-amber-600 mt-2">
@@ -635,6 +655,12 @@ export default function ClassResultsPage() {
             </p>
           )}
         </div>
+        <AcademicPeriodFields
+          academicYear={academicYear}
+          term={term}
+          onChange={handlePeriodChange}
+          disabled={isUpdating}
+        />
         <div className={"max-w-md"}>
           {isTeacher && !isAdmin && getFilteredSubjects().length === 0 ? (
             <div className="space-y-2">
@@ -814,8 +840,8 @@ export default function ClassResultsPage() {
           }
           modalDescription={
             selectedResult?.id
-              ? `Update result for ${selectedSubjectData.name}`
-              : `Add new result for ${selectedSubjectData.name}`
+              ? `Update result for ${selectedSubjectData.name} — ${academicYear}, ${term} Term`
+              : `Add new result for ${selectedSubjectData.name} — ${academicYear}, ${term} Term`
           }
           btnText={
             isUpdating

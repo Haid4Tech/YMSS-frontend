@@ -1,5 +1,8 @@
 "use client";
 
+import { useAcademicPeriod } from "@/components/portal/academic-period/academic-period-provider";
+import { AcademicPeriodFields } from "@/components/portal/dashboards/results/academic-period-fields";
+
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -13,8 +16,7 @@ import { SubjectAttendance } from "@/jotai/subject-attendance/subject-attendance
 import { Button } from "@/components/ui/button";
 import { DynamicHeader } from "@/components/general/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { InputField, SelectField } from "@/components/ui/form-field";
-import { SelectItem } from "@/components/ui/select";
+import { InputField } from "@/components/ui/form-field";
 import { RemarkCombobox } from "@/components/ui/remark-combobox";
 import { ReportCardSheet } from "@/components/portal/students/report-card-sheet";
 import {
@@ -27,7 +29,6 @@ import {
   teacherRemarkGroups,
   principalRemarkGroups,
 } from "@/components/portal/students/report-comments";
-import { generateAcademicYears } from "@/common/helper";
 import { Printer } from "lucide-react";
 import {
   LineChart,
@@ -60,13 +61,15 @@ export default function StudentDetailPage() {
 
   // Report card (compiled result for a specific term) + cumulative
   // performance (every term/year on record for this student).
-  const [reportCard] = useAtom(reportCardAtom);
+  const [storedReportCard] = useAtom(reportCardAtom);
   const [, getReportCard] = useAtom(gradesAPI.getReportCard);
   const [, getResultsByStudent] = useAtom(gradesAPI.getResultsByStudent);
   const [reportCardLoading, setReportCardLoading] = useState(false);
   const [allTimeResults, setAllTimeResults] = useState<Grade[]>([]);
-  const [academicYear, setAcademicYear] = useState<string>("2025/2026");
-  const [term, setTerm] = useState<"FIRST" | "SECOND" | "THIRD">("THIRD");
+  const { academicYear, term, setPeriod } = useAcademicPeriod();
+  const reportCard = storedReportCard?.academicYear === academicYear &&
+    storedReportCard.term === term && storedReportCard.student.id === Number(studentId)
+    ? storedReportCard : null;
   // FEES section values printed on this student's report card.
   const [nextTermFee, setNextTermFee] = useState<string>("");
   const [nextTermDate, setNextTermDate] = useState<string>("");
@@ -81,7 +84,7 @@ export default function StudentDetailPage() {
 
         const [studentData, gradesData, attendanceData] = await Promise.all([
           studentsAPI.getById(parseInt(studentId)),
-          getByStudent(parseInt(studentId)),
+          getByStudent(parseInt(studentId), academicYear, term),
           enhancedSubjectAttendanceAPI.getByStudent(parseInt(studentId)),
         ]);
 
@@ -110,7 +113,7 @@ export default function StudentDetailPage() {
     } else {
       setLoading(false);
     }
-  }, [studentId, getByStudent]);
+  }, [studentId, academicYear, term, getByStudent]);
 
   // Compiled result / report card for the selected term.
   useEffect(() => {
@@ -565,34 +568,7 @@ export default function StudentDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <SelectField
-                  label="Academic Year"
-                  value={academicYear}
-                  onValueChange={(value: string) => setAcademicYear(value)}
-                >
-                  {generateAcademicYears(2024, 5).map((year) => (
-                    <SelectItem key={year} value={year}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectField>
-                <SelectField
-                  label="Term"
-                  value={term}
-                  onValueChange={(value: string) =>
-                    setTerm(value as "FIRST" | "SECOND" | "THIRD")
-                  }
-                >
-                  {[
-                    { value: "FIRST", label: "First Term" },
-                    { value: "SECOND", label: "Second Term" },
-                    { value: "THIRD", label: "Third Term" },
-                  ].map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectField>
+                <div className="md:col-span-2"><AcademicPeriodFields academicYear={academicYear} term={term} onChange={setPeriod} /></div>
                 <InputField
                   id="next-term-fee"
                   type="text"
