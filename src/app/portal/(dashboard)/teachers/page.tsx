@@ -325,6 +325,8 @@ export default function TeachersPage() {
       <DataTable
         columns={columns}
         data={filteredTeachers}
+        onRowClick={(teacher: Teacher) => handleViewTeacher(teacher.id)}
+        getRowLabel={(teacher: Teacher) => `Open ${teacher.user?.firstname ?? ""} ${teacher.user?.lastname ?? ""} details`}
         searchPlaceholder="Search teachers by name, email, or phone..."
         enableGlobalSearch={true}
       />
